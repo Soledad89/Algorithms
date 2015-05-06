@@ -1,32 +1,29 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "global.h"
 
 int main(int arc, char *argv[])
 {
-	if (arc == 1){	
-		printf("please input the numbers");
-		return 0;
-	}
-	
-	int num = atoi(argv[1]);
-	int a[MAXMUM];
-	int i; 
-	
-	printf("please input %d numbers\n", num);
-	
-	for (i = 0; i < num;  i++)
-	{
-		printf("please input the %d number\n", i);
-		scanf("%d", &a[i]);
-	}
-	printf("the original numbers: ");
-	for (i = 0; i < num; i++)
-		printf("%d ", a[i]);
+    int i;
 
-	int n = remove_duplicates(a, num);
-	printf("\nthe moved numbers: ");
-	for (i = 0; i < n; i++)
-		printf("%d ", a[i]);
-	return 0;
+    int num = 10;
+    int A[MAXMUM] = {1,2,3,4,4,4,4,7,7,8};
+    for (i = 0; i < num; i++)
+        printf("%d  ", A[i]);
+    printf("\n");
+
+    int num_new;
+    //num_new = remove_duplicates(A, num);
+    num_new = remove_duplicates3(A, num);
+
+
+    for (i = 0; i < num_new; i++)
+        printf("%d  ",A[i]);
+    printf("\n");
+
+    return 0;
 }
 
 
