@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#define MAXMUM 1000
-int remove_duplicates(int a[], int num);
+#include "global.h"
 
 int main(int arc, char *argv[])
 {
@@ -30,16 +27,6 @@ int main(int arc, char *argv[])
 	for (i = 0; i < n; i++)
 		printf("%d ", a[i]);
 	return 0;
-}
-
-int remove_duplicates(int a[], int num)
-{
-	if (num == 0) return 0;
-	int i, index = 0;
-	for (i = 1; i < num; i++)
-		if (a[index] != a[i])
-			a[++index] = a[i];
-	return index+1;
 }
 
 
