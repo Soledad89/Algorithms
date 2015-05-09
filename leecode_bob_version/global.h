@@ -12,6 +12,7 @@ int remove_duplicates3(int a[], int num);
 int binsearch(int x, int A[], int n);
 int search_in_rotated_sorted_array(int x, int A[], int num);
 
+int longestConsecutive(const vector<int> &num);
 
 
 
