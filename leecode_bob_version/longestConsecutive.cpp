@@ -1,7 +1,7 @@
 #include <vector>
 #include <unordered_map>
 
-int longestConsecutive(const vector<int. &num)
+int longestConsecutive(const vector<int> &num)
 {
 	unordered_map<int, bool> used;
 	int longest = 0;

@@ -14,6 +14,11 @@ int search_in_rotated_sorted_array(int x, int A[], int num);
 
 int longestConsecutive(const vector<int> &num);
 
+vector<int> twoSum(vector<int> &num, int target);
+
+int longestConsecutive(const vector<int> &num);
+
+vector<vector<int> > threeSum(vector<int> & num);
 
 
 
