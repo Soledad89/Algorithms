@@ -5,3 +5,9 @@ int minimumDepthofBinaryTree(const TreeNode *root, bool hasbrother){
 			minimumDepthofBinaryTree(root->right, root->left != NULL));
 }
 
+int maxDepthOfBinaryTree(TreeNode* root){
+	if (root == NULL) return 0;
+
+	return max(maxDepthOfBinaryTree(root->left), maxDepthOfBinaryTree(root->right)) + 1;
+}
+
