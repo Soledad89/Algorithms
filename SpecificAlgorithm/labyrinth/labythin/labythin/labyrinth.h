@@ -176,15 +176,15 @@ bool labyrinth(Cell Laby[LABY_MAX][LABY_MAX], Cell* s, Cell* t)
         Cell* c = path.top(); //检查当前栈顶位置
         if ( c == t)    return true; //若已抵达终点，则找到了一跳通路
         
-        while (NO_WAY > (c->outgoing = nextESWN(c->outgoing)))  //逐一检查所有方向
-            if (AVAILABLE == neighbor(c)->status)   break;      //试图找到尚未试探的方向
-        
-        if (c->outgoing < NO_WAY)                              //若所有的方向都已尝试过
+        while ((c->outgoing = nextESWN(c->outgoing)) < NO_WAY)  //逐一检查所有方向
+            if (AVAILABLE == neighbor(c)->status)               //试图找到尚未试探的方向
+                break;
+        if (c->outgoing < NO_WAY)                              //若有的方向还未尝试过
         {
             path.push(c = advance(c));
             c->outgoing = UNKNOWN;
             c->status = ROUTE;
-        }else //否则向前试探一步
+        }else
         {
             c->status = BACKTRACKED; path.pop();         //则向后回溯一步
             
