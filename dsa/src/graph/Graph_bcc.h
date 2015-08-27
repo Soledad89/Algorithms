@@ -8,41 +8,5 @@
 
 #pragma once
 
-template <typename Tv, typename Te> void Graph<Tv, Te>::bcc ( int s ) { //»ùÓÚDFSµÄBCC·Ö½âËã·¨
-   reset(); int clock = 0; int v = s; Stack<int> S; //Õ»SÓÃÒÔ¼ÇÂ¼ÒÑ·ÃÎÊµÄ¶¥µã
-   do
-      if ( UNDISCOVERED == status ( v ) ) { //Ò»µ©·¢ÏÖÎ´·¢ÏÖµÄ¶¥µã£¨ĞÂÁ¬Í¨·ÖÁ¿£©
-         BCC ( v, clock, S ); //¼´´Ó¸Ã¶¥µã³ö·¢Æô¶¯Ò»´ÎBCC
-         S.pop(); //±éÀú·µ»Øºó£¬µ¯³öÕ»ÖĞ×îºóÒ»¸ö¶¥µã¡ª¡ªµ±Ç°Á¬Í¨ÓòµÄÆğµã
-      }
-   while ( s != ( v = ( ++v % n ) ) );
-}
-#define hca(x) (fTime(x)) //ÀûÓÃ´Ë´¦ÏĞÖÃµÄfTime[]³äµ±hca[]
-template <typename Tv, typename Te> //¶¥µãÀàĞÍ¡¢±ßÀàĞÍ
-void Graph<Tv, Te>::BCC ( int v, int& clock, Stack<int>& S ) { //assert: 0 <= v < n
-   hca ( v ) = dTime ( v ) = ++clock; status ( v ) = DISCOVERED; S.push ( v ); //v±»·¢ÏÖ²¢ÈëÕ»
-   for ( int u = firstNbr ( v ); -1 < u; u = nextNbr ( v, u ) ) //Ã¶¾ÙvµÄËùÓĞÁÚ¾Óu
-      switch ( status ( u ) ) { //²¢ÊÓuµÄ×´Ì¬·Ö±ğ´¦Àí
-         case UNDISCOVERED:
-            parent ( u ) = v; type ( v, u ) = TREE; BCC ( u, clock, S ); //´Ó¶¥µãu´¦ÉîÈë
-            if ( hca ( u ) < dTime ( v ) ) //±éÀú·µ»Øºó£¬Èô·¢ÏÖu£¨Í¨¹ıºóÏò±ß£©¿ÉÖ¸ÏòvµÄÕæ×æÏÈ
-               hca ( v ) = min ( hca ( v ), hca ( u ) ); //ÔòvÒà±ØÈç´Ë
-            else { //·ñÔò£¬ÒÔvÎª¹Ø½Úµã£¨uÒÔÏÂ¼´ÊÇÒ»¸öBCC£¬ÇÒÆäÖĞ¶¥µã´ËÊ±Õı¼¯ÖĞÓÚÕ»SµÄ¶¥²¿£©
-               /*DSA*/printf ( "BCC rooted at %c:", vertex ( v ) );
-               /*DSA*/Stack<int> temp; do { temp.push ( S.pop() ); print ( vertex ( temp.top() ) ); } while ( v != temp.top() ); while ( !temp.empty() ) S.push ( temp.pop() );
-               while ( v != S.pop() ); //ÒÀ´Îµ¯³öµ±Ç°BCCÖĞµÄ½Úµã£¬Òà¿É¸ù¾İÊµ¼ÊĞèÇó×ª´æÖÁÆäËü½á¹¹
-               S.push ( v ); //×îºóÒ»¸ö¶¥µã£¨¹Ø½Úµã£©ÖØĞÂÈëÕ»¡ª¡ª×Ü¼ÆÖÁ¶àÁ½´Î
-               /*DSA*/printf ( "\n" );
-            }
-            break;
-         case DISCOVERED:
-            type ( v, u ) = BACKWARD; //±ê¼Ç(v, u)£¬²¢°´ÕÕ¡°Ô½Ğ¡Ô½¸ß¡±µÄ×¼Ôò
-            if ( u != parent ( v ) ) hca ( v ) = min ( hca ( v ), dTime ( u ) ); //¸üĞÂhca[v]
-            break;
-         default: //VISITED (digraphs only)
-            type ( v, u ) = ( dTime ( v ) < dTime ( u ) ) ? FORWARD : CROSS;
-            break;
-      }
-   status ( v ) = VISITED; //¶ÔvµÄ·ÃÎÊ½áÊø
-}
-#undef hca
+template <typename Tv, typename Te> void Graph<Tv, Te>::bcc ( int s ) { //é©è½°ç°¬DFSé¨å‡šCCé’å—šĞ’ç» æ¥ç¡¶
+   reset(); int clock = 0; int v = s; Stack<int> S; //éåœ«é¢ã„¤äº’ç’æ¿ç¶å®¸èŒ¶

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>69438407-0AD8-4B2E-97D7-1F855B5DEFDC</string>
+	<key>IDESourceControlProjectName</key>
+	<string>project</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>6A436A2DD416A503A50C69D5BD2037EA26332945</key>
+		<string>github.com:Soledad89/LearnAlgorithm.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>SpecificAlgorithm/huffmancode/huffman/huffman.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>6A436A2DD416A503A50C69D5BD2037EA26332945</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:Soledad89/LearnAlgorithm.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>6A436A2DD416A503A50C69D5BD2037EA26332945</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>6A436A2DD416A503A50C69D5BD2037EA26332945</string>
+			<key>IDESourceControlWCCName</key>
+			<string>learnAlgorithm</string>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -8,28 +8,6 @@
 
 #pragma once
 
-template <typename Tv, typename Te> //¹ã¶ÈÓÅÏÈËÑË÷BFSËã·¨£¨È«Í¼£©
+template <typename Tv, typename Te> //éªå®å®³æµ¼æ¨ºå›é¼æ»…å‚¨BFSç» æ¥ç¡¶é”›å åé¥æ’…ç´š
 void Graph<Tv, Te>::bfs ( int s ) { //assert: 0 <= s < n
-   reset(); int clock = 0; int v = s; //³õÊ¼»¯
-   do //ÖğÒ»¼ì²éËùÓĞ¶¥µã
-      if ( UNDISCOVERED == status ( v ) ) //Ò»µ©Óöµ½ÉĞÎ´·¢ÏÖµÄ¶¥µã
-         BFS ( v, clock ); //¼´´Ó¸Ã¶¥µã³ö·¢Æô¶¯Ò»´ÎBFS
-   while ( s != ( v = ( ++v % n ) ) ); //°´ĞòºÅ¼ì²é£¬¹Ê²»Â©²»ÖØ
-}
-
-template <typename Tv, typename Te> //¹ã¶ÈÓÅÏÈËÑË÷BFSËã·¨£¨µ¥¸öÁ¬Í¨Óò£©
-void Graph<Tv, Te>::BFS ( int v, int& clock ) { //assert: 0 <= v < n
-   Queue<int> Q; //ÒıÈë¸¨Öú¶ÓÁĞ
-   status ( v ) = DISCOVERED; Q.enqueue ( v ); //³õÊ¼»¯Æğµã
-   while ( !Q.empty() ) { //ÔÚQ±ä¿ÕÖ®Ç°£¬²»¶Ï
-      int v = Q.dequeue(); dTime ( v ) = ++clock; //È¡³ö¶ÓÊ×¶¥µãv
-      for ( int u = firstNbr ( v ); -1 < u; u = nextNbr ( v, u ) ) //Ã¶¾ÙvµÄËùÓĞÁÚ¾Óu
-         if ( UNDISCOVERED == status ( u ) ) { //ÈôuÉĞÎ´±»·¢ÏÖ£¬Ôò
-            status ( u ) = DISCOVERED; Q.enqueue ( u ); //·¢ÏÖ¸Ã¶¥µã
-            type ( v, u ) = TREE; parent ( u ) = v; //ÒıÈëÊ÷±ßÍØÕ¹Ö§³ÅÊ÷
-         } else { //ÈôuÒÑ±»·¢ÏÖ£¬»òÕßÉõÖÁÒÑ·ÃÎÊÍê±Ï£¬Ôò
-            type ( v, u ) = CROSS; //½«(v, u)¹éÀàÓÚ¿ç±ß
-         }
-      status ( v ) = VISITED; //ÖÁ´Ë£¬µ±Ç°¶¥µã·ÃÎÊÍê±Ï
-   }
-}
+   reset(); int clock = 0; int v = s; //é’æ¿†

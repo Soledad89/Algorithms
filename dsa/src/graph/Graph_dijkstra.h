@@ -8,17 +8,4 @@
 
 #pragma once
 
-template <typename Tv, typename Te> //×î¶ÌÂ·¾¶DijkstraËã·¨£ºÊÊÓÃÓÚÒ»°ãµÄÓĞÏòÍ¼
-void Graph<Tv, Te>::dijkstra ( int s ) { //assert: 0 <= s < n
-   reset(); priority ( s ) = 0;
-   for ( int i = 0; i < n; i++ ) { //¹²ĞèÒıÈën¸ö¶¥µãºÍn-1Ìõ±ß
-      status ( s ) = VISITED;
-      if ( -1 != parent ( s ) ) type ( parent ( s ), s ) = TREE; //ÒıÈëµ±Ç°µÄs
-      for ( int j = firstNbr ( s ); -1 < j; j = nextNbr ( s, j ) ) //Ã¶¾ÙsµÄËùÓĞÁÚ¾Ój
-         if ( ( status ( j ) == UNDISCOVERED ) && ( priority ( j ) > priority ( s ) + weight ( s, j ) ) ) //¶ÔÁÚ½Ó¶¥µãj×öËÉ³Ú
-            { priority ( j ) = priority ( s ) + weight ( s, j ); parent ( j ) = s; } //ÓëPrimËã·¨Î¨Ò»µÄ²»Í¬Ö®´¦
-      for ( int shortest = INT_MAX, j = 0; j < n; j++ ) //Ñ¡³öÏÂÒ»×î½ü¶¥µã
-         if ( ( status ( j ) == UNDISCOVERED ) && ( shortest > priority ( j ) ) )
-            { shortest = priority ( j ); s = j; }
-   }
-} //¶ÔÓÚÎŞÏòÁ¬Í¨Í¼£¬¼ÙÉèÃ¿Ò»Ìõ±ß±íÊ¾Îª·½Ïò»¥Äæ¡¢È¨ÖØÏàµÈµÄÒ»¶Ô±ß
+template <typename Tv, typename Te> //éˆ

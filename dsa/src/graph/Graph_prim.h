@@ -8,17 +8,4 @@
 
 #pragma once
 
-template <typename Tv, typename Te> //PrimËã·¨£ºÎŞÏòÁ¬Í¨Í¼£¬¸÷±ß±íÊ¾Îª·½Ïò»¥Äæ¡¢È¨ÖØÏàµÈµÄÒ»¶Ô±ß
-void Graph<Tv, Te>::prim ( int s ) { //assert: 0 <= s < n
-   reset(); priority ( s ) = 0;
-   for ( int i = 0; i < n; i++ ) { //¹²ĞèÒıÈën¸ö¶¥µãºÍn-1Ìõ±ß
-      status ( s ) = VISITED;
-      if ( -1 != parent ( s ) ) type ( parent ( s ), s ) = TREE; //ÒıÈëµ±Ç°µÄs
-      for ( int j = firstNbr ( s ); -1 < j; j = nextNbr ( s, j ) ) //Ã¶¾ÙsµÄËùÓĞÁÚ¾Ój
-         if ( ( status ( j ) == UNDISCOVERED ) && ( priority ( j ) > weight ( s, j ) ) ) //¶ÔÁÚ½Ó¶¥µãj×öËÉ³Ú
-            { priority ( j ) = weight ( s, j ); parent ( j ) = s; } //ÓëDijkstraËã·¨Î¨Ò»µÄ²»Í¬Ö®´¦
-      for ( int shortest = INT_MAX, j = 0; j < n; j++ ) //Ñ¡³öÏÂÒ»¼«¶Ì¿ç±ß
-         if ( ( status ( j ) == UNDISCOVERED ) && ( shortest > priority ( j ) ) )
-            { shortest = priority ( j ); s = j; }
-   }
-}
+template <typename Tv, typename Te> //Primç» æ¥ç¡¶é”›æ°­æ£¤éšæˆ£ç¹›é–«æ°¬æµ˜é”›å±½æ‚‡æˆç¡…ã€ƒç»€è½°è´Ÿé‚ç‘°æ‚œæµœæ—

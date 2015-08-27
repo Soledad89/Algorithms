@@ -8,26 +8,6 @@
 
 #pragma once
 
-template <typename Tv, typename Te> //Éî¶ÈÓÅÏÈËÑË÷DFSËã·¨£¨È«Í¼£©
+template <typename Tv, typename Te> //å¨£åå®³æµ¼æ¨ºå›é¼æ»…å‚¨DFSç» æ¥ç¡¶é”›å åé¥æ’…ç´š
 void Graph<Tv, Te>::dfs ( int s ) { //assert: 0 <= s < n
-   reset(); int clock = 0; int v = s; //³õÊ¼»¯
-   do //ÖğÒ»¼ì²éËùÓĞ¶¥µã
-      if ( UNDISCOVERED == status ( v ) ) //Ò»µ©Óöµ½ÉĞÎ´·¢ÏÖµÄ¶¥µã
-         DFS ( v, clock ); //¼´´Ó¸Ã¶¥µã³ö·¢Æô¶¯Ò»´ÎDFS
-   while ( s != ( v = ( ++v % n ) ) ); //°´ĞòºÅ¼ì²é£¬¹Ê²»Â©²»ÖØ
-}
-
-template <typename Tv, typename Te> //Éî¶ÈÓÅÏÈËÑË÷DFSËã·¨£¨µ¥¸öÁ¬Í¨Óò£©
-void Graph<Tv, Te>::DFS ( int v, int& clock ) { //assert: 0 <= v < n
-   dTime ( v ) = ++clock; status ( v ) = DISCOVERED; //·¢ÏÖµ±Ç°¶¥µãv
-   for ( int u = firstNbr ( v ); -1 < u; u = nextNbr ( v, u ) ) //Ã¶¾ÙvµÄËùÓĞÁÚ¾Óu
-      switch ( status ( u ) ) { //²¢ÊÓÆä×´Ì¬·Ö±ğ´¦Àí
-         case UNDISCOVERED: //uÉĞÎ´·¢ÏÖ£¬ÒâÎ¶×ÅÖ§³ÅÊ÷¿ÉÔÚ´ËÍØÕ¹
-            type ( v, u ) = TREE; parent ( u ) = v; DFS ( u, clock ); break;
-         case DISCOVERED: //uÒÑ±»·¢ÏÖµ«ÉĞÎ´·ÃÎÊÍê±Ï£¬Ó¦Êô±»ºó´úÖ¸ÏòµÄ×æÏÈ
-            type ( v, u ) = BACKWARD; break;
-         default: //uÒÑ·ÃÎÊÍê±Ï£¨VISITED£¬ÓĞÏòÍ¼£©£¬ÔòÊÓ³ĞÏ®¹ØÏµ·ÖÎªÇ°Ïò±ß»ò¿ç±ß
-            type ( v, u ) = ( dTime ( v ) < dTime ( u ) ) ? FORWARD : CROSS; break;
-      }
-   status ( v ) = VISITED; fTime ( v ) = ++clock; //ÖÁ´Ë£¬µ±Ç°¶¥µãv·½¸æ·ÃÎÊÍê±Ï
-}
+   reset(); int clock = 0; int v = s; //é’æ¿†

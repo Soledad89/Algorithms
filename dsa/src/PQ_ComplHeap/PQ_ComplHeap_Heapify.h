@@ -8,7 +8,7 @@
 
 #pragma once
 
-template <typename T> void PQ_ComplHeap<T>::heapify ( Rank n ) { //Floyd½¨¶ÑËã·¨£¬O(n)Ê±¼ä
-   for ( int i = LastInternal ( n ); InHeap ( n, i ); i-- ) //×Ôµ×¶øÉÏ£¬ÒÀ´Î
-      percolateDown ( n, i ); //ÏÂÂË¸÷ÄÚ²¿½Úµã
+template <typename T> void PQ_ComplHeap<T>::heapify ( Rank n ) { //Floydå»ºå †ç®—æ³•ï¼ŒO(n)æ—¶é—´
+   for ( int i = LastInternal ( n ); InHeap ( n, i ); i-- ) //è‡ªåº•è€Œä¸Šï¼Œä¾æ¬¡
+      percolateDown ( n, i ); //ä¸‹æ»¤å„å†…éƒ¨èŠ‚ç‚¹
 }

@@ -167,6 +167,7 @@ void reverse(int* A, int lo, int hi) //迭代版，一般用迭代版，以上�
 
 void shift(int* A, int n, int k)
 {
+    k %= n;
     std::reverse(A,A+k);
     std::reverse(A+k, A+n);
     std::reverse(A, A+n);
