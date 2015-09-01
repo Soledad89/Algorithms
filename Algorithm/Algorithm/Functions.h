@@ -19,6 +19,8 @@ struct ListNode {
 };
 //ListNode* header;
 //ListNode* trailer;
+int countOnes ( unsigned int n );
+int countOnes1( unsigned int n );
 void convert(std::stack<char> &stk, int n, int base);
 void bubblesort(int A[], int n);
 void merge(int a[], int lo, int mid, int hi);
