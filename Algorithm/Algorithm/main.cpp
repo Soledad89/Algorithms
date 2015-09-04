@@ -7,6 +7,21 @@
 
 int main( int argc, char* argv[] ) {
     
+    //测试：KMP
+    char* p = "wangbowan";
+    char* t = "wan, bowan, wangbowawanbowangbowangwang";
+    KMP_stringMatch(p, t);
+    
+    //测试：堆排序算法
+    printf("\n");
+    int arr [ 10 ] = { 91 , 8 , 6 , 82 , 15 , 18 , 7 , 46 , 29 , 12 } ;
+    int i ;
+    k_min ( arr , 10 , 4 ) ;
+    for ( i = 0 ; i < 4 ; ++ i )
+        printf ( "%d " , arr [ i ] ) ;
+    
+    //测试：stack conversion
+    printf("\n");
     std::stack<char> stk;
     convert(stk, 15, 16);
     while (!stk.empty()) {
@@ -14,6 +29,7 @@ int main( int argc, char* argv[] ) {
         stk.pop();
     }
     
+    //测试：Mergesort
     int n = 20; //array length
     if(1 < argc)
         n = atoi(argv[1]);
@@ -30,9 +46,9 @@ int main( int argc, char* argv[] ) {
     mergeSort( A, 0, n ); //sort the array
     printf( "==>  " ); print( A, n );
     int index = binsearch2(A, 10, 0, n);
-
     printf("index: %d\n", index);
-    
     free(A); //release the array
+    
+    
     return 0;
 }
