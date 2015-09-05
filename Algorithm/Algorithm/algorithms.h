@@ -30,6 +30,155 @@ struct ListNode {
 //ListNode* trailer;
 
 
+//问题：给定两个串a和b，问b是否是a的子串的变位词。例如输入a = hello, b = lel, lle,
+//ello都是true,但是b = elo是false
+//算法：划窗+字符种类差
+int anagramMatch(char* t, char* p){
+    int num[26] = {0};
+    int nonZero = 0;
+    int lenp = (int)strlen(p);
+    int lent = (int)strlen(t);
+    
+    for (int i = 0; i < lenp; i++){
+        if (++num[p[i] - 'a'] == 1) ++nonZero;
+    }
+    
+    int i, k = 0;
+    for (; k < lent-lenp; k ++){
+        for (i = k; i < lenp+k; i ++){
+            int c = t[i] - 'a';
+            --num[c];
+            if (num[c] == 0)    --nonZero;
+            if (num[c] == -1)   ++nonZero;
+        }
+        if (nonZero==0)     return k;
+    }
+    return -1;
+}
+
+
+
+//问题：bitmap的使用
+//算法：
+#define BYTESIZE 8  //定义每个Byte中有8个Bit位
+void SetBit(char *p, int posi)
+{
+    for(int i = 0; i < posi/BYTESIZE; i++)
+    {
+        p++;
+    }
+    
+    *p = *p|(0x01 << (posi%BYTESIZE));//将该Bit位赋值1
+    return;
+}
+
+void BitMapSortDemo(int* num)
+{
+    //为了简单起见，我们不考虑负数
+    
+
+    const int BufferLen = 2;      //BufferLen这个值是根据待排序的数据中最大值确
+    //待排序中的最大值是14，因此只需要2个Bytes(16个Bit)
+    char *pBuffer = new char[BufferLen];
+    
+    //要将所有的Bit位置为0，否则结果不可预知。
+    memset(pBuffer,0,BufferLen);
+    for(int i = 0; i < 9; i++)
+    {
+        //首先将相应Bit位上置为1
+        SetBit(pBuffer,num[i]);
+    }
+    
+    //输出排序结果
+    for(int i=0; i < BufferLen; i++)//每次处理一个字节(Byte)
+    {
+        for(int j=0; j< BYTESIZE;j++)//处理该字节中的每个Bit位
+        {
+            //判断该位上是否是1，进行输出，这里的判断比较笨。
+            //首先得到该第j位的掩码（0x01＜＜j），将内存区中的
+            //位和此掩码作与操作。最后判断掩码是否和处理后的
+            //结果相同
+            if((*pBuffer&(0x01 << j)) == (0x01<<j))
+            {
+                printf("%d ",i*BYTESIZE + j);
+            }
+        }
+        pBuffer++;
+    }
+}
+
+
+//问题：建立Trie树
+//算法：用于匹配，统计等
+#define MAX 26//字符集大小
+typedef struct TrieNode
+{
+    int nCount;//记录该字符出现次数
+    struct TrieNode* next[MAX];
+}TrieNode;
+
+TrieNode Memory[1000000];
+int allocp=0;
+
+/*初始化*/
+void InitTrieRoot(TrieNode* *pRoot)
+{
+    *pRoot=NULL;
+}
+
+/*创建新结点*/
+TrieNode* CreateTrieNode()
+{
+    int i;
+    TrieNode *p;
+    p = &Memory[allocp++];
+    p->nCount=1;
+    for(i=0;i<MAX;i++)
+    {
+        p->next[i]=NULL;
+    }
+    return p;
+}
+
+/*插入*/
+void InsertTrie(TrieNode* *pRoot,char *s)
+{
+    int i,k;
+    TrieNode *p;
+    if(!(p = *pRoot))
+    {
+        p = *pRoot = CreateTrieNode();
+    }
+    i=0;
+    while(s[i])
+    {
+        k = s[i++] - 'a';//确定branch
+        if(p->next[k]) p->next[k]->nCount++;
+        else p->next[k] = CreateTrieNode();
+        p = p->next[k];
+    }
+}
+
+//查找
+int SearchTrie(TrieNode* *pRoot,char *s)
+{
+    TrieNode *p;
+    int i,k;
+    if(!(p = *pRoot))
+    {
+        return 0;
+    }
+    i=0;
+    while(s[i])
+    {
+        k = s[i++]-'a';
+        if(p->next[k] == NULL) return 0;
+        p=p->next[k];
+    }
+    return p->nCount;
+}
+
+
 //问题：归并向量的中位数
 //算法：充分利用向量的有序性
 //中位数算法蛮力版：效率低，仅适用于max(n1, n2)较小的情况
