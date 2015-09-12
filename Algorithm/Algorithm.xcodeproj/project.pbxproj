@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		EB7F07CC1B85C22200BA2603 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB7F07CB1B85C22200BA2603 /* main.cpp */; };
-		EBB6E6641B9A91AC00CE0F51 /* leetcode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EBB6E6631B9A91AC00CE0F51 /* leetcode.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,8 +25,8 @@
 /* Begin PBXFileReference section */
 		EB7F07C81B85C22200BA2603 /* Algorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Algorithm; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB7F07CB1B85C22200BA2603 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		EBB6E6631B9A91AC00CE0F51 /* leetcode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = leetcode.cpp; sourceTree = "<group>"; };
 		EBB6E6651B9A946500CE0F51 /* algorithms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = algorithms.h; sourceTree = "<group>"; };
+		EBB6E6661B9ABFC800CE0F51 /* leetcode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = leetcode.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,9 +59,9 @@
 		EB7F07CA1B85C22200BA2603 /* Algorithm */ = {
 			isa = PBXGroup;
 			children = (
+				EBB6E6661B9ABFC800CE0F51 /* leetcode.h */,
 				EBB6E6651B9A946500CE0F51 /* algorithms.h */,
 				EB7F07CB1B85C22200BA2603 /* main.cpp */,
-				EBB6E6631B9A91AC00CE0F51 /* leetcode.cpp */,
 			);
 			path = Algorithm;
 			sourceTree = "<group>";
@@ -123,7 +122,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EBB6E6641B9A91AC00CE0F51 /* leetcode.cpp in Sources */,
 				EB7F07CC1B85C22200BA2603 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
