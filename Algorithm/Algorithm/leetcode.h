@@ -28,6 +28,34 @@ struct TreeNode {
     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
 };
 
+//problem: reimplement strstr
+//algorithm: the most efficient algorithm is KMP, but you must make sure you can
+//do it right, in interview, brute force is the one.
+int MystrStr(char* haystack, char* needle){
+    if (*needle == NULL) return 0;
+    
+    const char* p1;
+    const char* p2;
+    const char* p1_advance = haystack;
+    
+    for (p2 = &needle[1]; *p2; ++p2){
+        p1_advance++;  //向前移动短字符串的长度
+    }
+    
+    for (p1 = haystack; *p1_advance; p1_advance++){
+        char* p1_old = (char*) p1;
+        p2 = needle;
+        while (*p1 && *p2 && *p1 == *p2){
+            p1++;
+            p2++;
+        }
+        
+        if(*p2 == NULL) return p1_old-haystack; //注意返回的是在haystack中的索引
+        p1 = p1_old + 1;
+    }
+    return -1;
+}
+
 
 //problem: preorder\inordrer\postordre tree traveral recursive and non-recursive
 //algorithm: as follows
@@ -416,6 +444,89 @@ int LCS(char* x, char* y) {
         }
     return c[m][n];
 }
+
+//problem: longest common substring(LCS)
+//algorithm: 总共有三种方法，暴力搜索、动态规划、后缀树
+//dp
+int LCS_dp(char * x, char * y)
+{
+    int xlen = (int)strlen(x);
+    int ylen = (int)strlen(y);
+    int maxlen = 0, maxindex = 0;
+    int dp[xlen][ylen]; //dp[i][j]表示 以x[i]和y[j]结尾的最长公共子串的长度
+    for (int i = 0; i < xlen; i++){
+        if (x[i] == y[0])
+            dp[i][0] = 1;
+        else
+            dp[i][0] = 0;
+    }
+    for (int j = 0; j < ylen; j++) {
+        if (x[0] == y[j])
+            dp[0][j] = 1;
+        else
+            dp[0][j] = 0;
+    }
+    for(int i = 1; i < xlen; ++i)
+    {
+        for(int j = 1; j < ylen; ++j)
+        {
+            if(x[i] == y[j]){
+                dp[i][j] = dp[i-1][j-1] + 1;
+            }else
+                dp[i][j] = 0;
+            
+            if(dp[i][j] > maxlen)
+            {
+                maxlen = dp[i][j];
+                maxindex = i + 1 - maxlen;
+            }
+        }
+    }
+    return maxlen;
+}
+//另一种实现方法
+int LongestCommonSubstring(const char * strA, const char * strB)
+{
+    char * LCS = NULL;
+    const size_t LengthA = strlen(strA);
+    const size_t LengthB = strlen(strB);
+    size_t LCSLength = 0;
+    unsigned int PositionX = 0;
+    unsigned int PositionY = 0;
+    
+    int i, j;
+    int Matrix[LengthA + 1][LengthB + 1];;
+    
+    for(i = 0; i < LengthA ; ++i)
+    {
+        for(j = 0; j < LengthB ; ++j)
+        {
+            Matrix[i][j] = 0;
+        }
+    }
+    
+    for(i = 0; i < LengthA; ++i)
+    {
+        for(j = 0; j < LengthB; ++j)
+        {
+            if(strA[i] == strB[j])
+            {
+                if((i == 0)||(j == 0))
+                    Matrix[i][j] = 1;
+                else
+                    Matrix[i][j] = Matrix[i - 1][j - 1] + 1;
+            }
+            if(Matrix[i][j] > LCSLength)
+            {
+                LCSLength = Matrix[i][j];
+                PositionX = i;
+                PositionY = j;
+            }
+        }
+    }
+    return (int) LCSLength;
+}
+
 
 //问题：longest increasing subsequence(LIS)
 //算法：动态规划，复杂度为O(n2)

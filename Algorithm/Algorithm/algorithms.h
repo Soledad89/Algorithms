@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <iostream>
 #include <algorithm>
+#include <sstream>
 #include <vector>
 #include <queue>
 
@@ -20,6 +21,7 @@ struct node {
     int data;
     node* next;
 };
+typedef node Node;
 //双向链表节点
 struct ListNode {
     int data;
@@ -38,6 +40,223 @@ struct BinaryTreeNode{              // a node in the binary tree
     BinaryTreeNode(int nv = 0, BinaryTreeNode* pl = NULL, BinaryTreeNode* rl = NULL):
     m_nValue(nv), m_pLeft(pl), m_pRight(rl) {}
 };
+
+
+
+
+//problem: memmove
+//algorithm: 注意memcpy和memmove的区别
+void * mymemmove(void *destaddr, const void *sourceaddr, unsigned length)
+{
+    char *dest = (char*)destaddr;
+    const char *source = (char*)sourceaddr;
+    if (source < dest)
+    /* Moving from low mem to hi mem; start at end.  */
+        for (source += length, dest += length; length; --length)
+            *--dest = *--source;
+    else if (source != dest)
+    /* Moving from hi mem to low mem; start at beginning.  */
+        for (; length; --length)
+            *dest++ = *source++;
+                    
+    return destaddr;
+}
+int my_atoi(const char * a) {
+    
+    if (*a == '+')
+        return atoi(a+1);
+    else if (*a=='-')
+        return - atoi(a+1);
+    
+    const char *p = a;
+    int c = 0;
+    while (*p >= '0' && *p <= '9') {
+        c = c*10 + (*p - '0'); }
+    return c;
+}
+
+//problem: linkedlist sort
+//algorithm: use merge sort to sort a linked list, with no extra space used
+
+Node * merge2(Node * p1, Node * p2);
+Node * mergeSort2(Node * p, int len);
+int getLen(Node* head);
+
+Node * linkedListMergeSort(Node * pHead) {
+    int len = getLen(pHead);
+    return mergeSort2(pHead, len);
+}
+int getLen(Node* head){
+    int i = 0;
+    while (head){
+        head = head->next;
+        i++;
+    }
+    return i;
+}
+Node * mergeSort2(Node * p, int len) {
+    if (len == 1) { p->next = NULL; return p; }
+    Node * pmid = p;
+    for (int i=0; i<len/2; i++) {
+        pmid = pmid->next; }
+    Node * p1 = mergeSort2(p, len/2);
+    Node * p2 = mergeSort2(pmid, len - len/2);
+    return merge2(p1, p2);
+}
+//链表合并
+Node *merge2(Node *head1,Node *head2)
+{
+    Node *p1 = NULL;
+    Node *p2 = NULL;
+    Node *head = NULL;
+    
+    //找出两个链表中第一个结点较小的结点，head记录较小结点的头结点
+    if(head1->data < head2->data)
+    {
+        head = head1;
+        p1 = head1->next;
+        p2 = head2;
+    }
+    else
+    {
+        head = head2;
+        p2 = head2->next;
+        p1 = head1;
+    }
+    
+    Node *pcur = head;
+    
+    //在两个链表中遍历比较，将值较小的结点链接到pcur结点后
+    while(p1 != NULL && p2 != NULL)
+    {
+        if(p1->data <= p2->data)
+        {
+            pcur->next = p1;
+            pcur = p1;
+            p1 = p1->next;
+        }
+        else
+        {
+            pcur->next = p2;
+            pcur = p2;
+            p2 = p2->next;
+        }
+    }
+    //将p1或p2剩余的结点链到pcur之后，完成整个合并的过程
+    if(p1 != NULL)
+        pcur->next = p1;
+    if(p2 != NULL)
+        pcur->next = p2;
+    
+    return head;
+}
+
+
+//再用递归实现链表的merge
+Node * Merge3(Node *head1, Node *head2)
+{
+    if(head1 == NULL)
+        return head2;
+    if(head2 == NULL)
+        return head1;
+    Node *head = NULL;
+    if(head1->data < head2->data)
+    {
+        head = head1;
+        head->next = Merge3(head1->next, head2);
+    }
+    else
+    {
+        head = head2;
+        head->next = Merge3(head1, head2->next);
+    }
+    return head;
+}
+
+
+//problem: lowest common ancestor
+//algorithm:
+
+//情况1：节点只有左指针、右指针，没有parent指针，root已知
+BinaryTreeNode* findLowestCommonAncestor(BinaryTreeNode* root , BinaryTreeNode* a , BinaryTreeNode* b)
+{
+    if(root == NULL)
+        return NULL;
+    if(root == a || root == b)
+        return root;
+    
+    BinaryTreeNode* left =
+        findLowestCommonAncestor(root->m_pLeft , a , b);
+    BinaryTreeNode* right =
+        findLowestCommonAncestor(root->m_pRight , a , b);
+    
+    if(left && right)
+        return root;
+    return left ? left : right;
+}
+//情况2：节点有左指针、右指针、还有parent指针，可以知道两个点肯定有交点
+//可以转化为求两条链相交的最近点
+//这里再提供一个思路
+/*
+ 给定两个单链表(head1, head2),检测两个链表是否有交点,如果有返回第一个交点。
+ 如果 head1==head2,那么显然相交,直接返回 head1。
+ 否则,分别从 head1,head2 开始遍历两个链表获得其长度 len1 与 len2,
+ 假设 len1>=len2,那么指针 p1 由 head1 开始向后移动 len1-len2 步,指针 p2=head2,
+ 下面 p1、p2 每次向后前进一步并比较 p1、p2 是否相等,如果相等即返回该结点,
+ 否则说明两个链表没有交点。
+ */
+
+//情况3： 二叉树是个二叉查找树，且root和两个节点的值(a, b)已知
+BinaryTreeNode* findLowestCommonAncestor3(BinaryTreeNode* root , BinaryTreeNode* a , BinaryTreeNode* b)
+{
+    int min, max;
+    if(a->m_nValue < b->m_nValue)
+        min = a->m_nValue , max = b->m_nValue;
+    else
+        min = b->m_nValue , max = a->m_nValue;
+    while(root)
+    {
+        if(root->m_nValue >= min && root->m_nValue <= max)
+            return root;
+        else if(root->m_nValue < min && root->m_nValue < max)
+            root = root->m_pRight;
+        else
+            root = root->m_pLeft;
+    }
+    return NULL;
+}
+
+
+
+//problem: 把数组排成最小的数
+//algorithm: 重新定义比较函数
+/*
+ 字符串的比较函数需要重新定义，不是比较a和b，而是比较ab与 ba。如果ab < ba，则a < b；
+ 如果ab > ba，则a > b；如果ab = ba，则a = b。比较函数的定义是本解决方案的关键。
+ */
+struct comparestr  //仿函数
+{
+    bool operator() (const string &src1, const string &src2)
+    {
+        string s1 = src1 + src2;
+        string s2 = src2 + src1;
+        return s1 < s2;   //升序排列，如果改为s1 > s2则为逆序排列
+    }
+};
+//函数功能 ： 把数组排成最小的数
+//函数参数 ： pArray为数组,num为数组元素个数
+void ComArrayMin(int *pArray, int num){
+    string *pStrArray = new string[num];
+    for(int i=0; i<num; i++)
+    {
+        stringstream stream;
+        stream<<pArray[i];
+        stream>>pStrArray[i];
+    }
+    
+    sort(pStrArray, pStrArray + num, comparestr()); //字符串数组排序
+
+}
 
 //problem: 用递归法颠倒一个栈
 //algorithm: recursion
@@ -2489,6 +2708,14 @@ void reverse(int* A, int lo, int hi) //迭代版，一般用迭代版，以上�
 {
     while (lo < hi)
         std::swap(A[lo++], A[hi--]);
+}
+
+void reverseString(char* str){  //如果是char* str = "adnafn"，这是不能修改的，出错。可以改为传入为字符数组
+    for(int i = 0,j = (int) strlen(str) - 1; i < j; i++, j--){
+        str[i] = str[i] ^ str[j];
+        str[j] = str[j] ^ str[i];
+        str[i] = str[i] ^ str[j];
+    }
 }
 
 void shift(int* A, int n, int k)

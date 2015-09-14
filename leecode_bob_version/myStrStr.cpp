@@ -1,4 +1,4 @@
-char* myStrStr(const char* haystack, const char* needle){
+int myStrStr(const char* haystack, const char* needle){
 	if (*needle == NULL) return (char*)haystack;
 
 	const char* p1;
@@ -17,10 +17,10 @@ char* myStrStr(const char* haystack, const char* needle){
 			p2++;
 		}
 
-		if(*p2 == NULL) return p1_old;
+		if(*p2 == NULL) return p1_old-haystack;
 		p1 = p1_old + 1;
 	}
-	return NULL;
+	return -1;
 }
 
 

@@ -7,7 +7,54 @@
 
 int main( int argc, char* argv[] ) {
     
+    char a = 'a';
+    char b = 'b';
+    a = a^b;
+    b = b^a;
+    a = a^b;
+    char ch[] = "abcdef"; //不能改为char* ch = "abcdef"，这是不可修改的，是字符串常量
+    reverseString(ch);
     
+    return 0;
+    /*
+    
+    Node *head1 = NULL;
+    Node *node1 = NULL,*node2 = NULL,*node3 = NULL,*node4 = NULL;
+    head1 = (Node *)malloc(sizeof(Node));
+    node1 = (Node *)malloc(sizeof(Node));
+    node2 = (Node *)malloc(sizeof(Node));
+    node3 = (Node *)malloc(sizeof(Node));
+    node4 = (Node *)malloc(sizeof(Node));
+    head1->data = 7;
+    node1->data = 5;
+    node2->data = 2;
+    node3->data = 3;
+    node4->data = 1;
+    head1->next = node1;
+    node1->next = node2;
+    node2->next = node3;
+    node3->next = node4;
+    node4->next = NULL;
+    
+    head1 = linkedListMergeSort(head1);
+    int i = 0;
+    
+    Node *head2 = NULL;
+    Node *node5 = NULL,*node6 = NULL,*node7 = NULL,*node8 = NULL;
+    head2 = (Node *)malloc(sizeof(Node));
+    node5 = (Node *)malloc(sizeof(Node));
+    node6 = (Node *)malloc(sizeof(Node));
+    node7 = (Node *)malloc(sizeof(Node));
+    node8 = (Node *)malloc(sizeof(Node));
+    node5->data = 3;
+    node6->data = 4;
+    node7->data = 5;
+    node8->data = 6;
+    head2->next = node5;
+    node5->next = node6;
+    node6->next = node7;
+    node7->next = node8;
+    node8->next = NULL;
     //test:
     char* x = "abcd";
     char* y = "addcd";
@@ -32,7 +79,6 @@ int main( int argc, char* argv[] ) {
     int nrow = (int) matrix.size();
     int ncol = (int) matrix[0].size();
     int ab = maxSubMatrix(matrix, nrow);
-    /*
     //test:
     int i = 21;
     int j = 11;
@@ -59,7 +105,7 @@ int main( int argc, char* argv[] ) {
     vector<int> v = {1, 2, 3, 4, 6, 8};
     int n = findKthLargest2_1(v, 4);
     */
-     return 0;
+     //return 0;
     /*
     //test:
     vector<int> v = {1, 2, 3, 4, 6, 8};
