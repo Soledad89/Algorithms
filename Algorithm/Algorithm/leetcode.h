@@ -18,8 +18,10 @@
 #include <string>
 #include <queue>
 #include <iostream>
+#include "algorithms.h"
 
 using namespace std;
+
 
 struct TreeNode {
     int val;
@@ -1098,3 +1100,190 @@ void nextPermutation(vector<int>& nums) {
     reverse(nums.begin() + x + 1, nums.end());
     
 }
+
+//problem: add two binary string
+//Given two binary strings, return their sum (also a binary string)
+//algorithm:
+string addBinaryString(string a, string b){
+    string result;
+    int al = a.size();
+    int bl = b.size();
+    
+    const size_t n = al > bl ? al: bl;
+    reverse(a.begin(), a.end());
+    reverse(b.begin(), b.end());
+    
+    int carry = 0;
+    for (size_t i = 0; i < n; i++){
+        const int ai = i < al ? a[i] - '0' : 0;
+        const int bi = i < bl ? b[i] - '0' : 0;
+        const int val = (ai + bi + carry) % 2;
+        carry = (ai + bi + carry) / 2;
+        result.insert(result.begin(), val+'0');
+    }
+    
+    if (carry == 1){
+        result.insert(result.begin(), '1');
+    }
+    
+    return result;
+}
+
+//problem: add digits
+//algorithm:
+int addDigits(int num)
+{
+    return 1 + (num-1) % 9;
+}
+
+//problem: 这题与add binary string 类似，都是用字符串或者链表来保存整数或二进制数，用来进行计算
+//这样就可以计算特别大的数的和，整数不能表示，只能用字符串或者链表表示
+/*
+ You are given two linked lists representing two non-negative numbers. The digits are stored in reverse order and each of their nodes contain a single digit. Add the two numbers and return it as a linked list.
+ 
+ Input: (2 -> 4 -> 3) + (5 -> 6 -> 4)
+ Output: 7 -> 0 -> 8
+ */
+
+node *addTwoNumbers(node *l1, node *l2){
+    node dummy(-1);
+    int carry = 0;
+    node *prev = &dummy;
+    
+    node *pa = l1, *pb = l2;
+    while( pa != NULL || pb != NULL) {
+        const int ai = pa == NULL ? 0: pa->data;
+        const int bi = pb == NULL ? 0: pb->data;
+        const int value = (ai + bi + carry) % 10;
+        carry = (ai + bi + carry) / 10;
+        prev->next = new node(value);
+        
+        pa = pa == NULL ? NULL : pa->next;
+        pb = pb == NULL ? NULL : pb->next;
+        prev = prev->next;
+    }
+    
+    if (carry > 0)
+        prev->next = new node(carry);
+    return dummy.next;
+}
+
+//problem: String to Integer (atoi)
+//algorithm: 考虑各种情况
+int myAtoi(char* str) {
+    int num = 0;
+    int sign = 1;
+    const int n = (int)strlen(str);
+    int i = 0;
+    
+    while (isspace(str[i]) && i < n)
+        i++;
+    
+    if (str[i] == '+'){
+        i++;
+    }else if (str[i] == '-'){
+        sign = -1;
+        i++;
+    }
+    
+    for (; i < n; i++){
+        //	if (str[i] < '0' || str[i] > '9')
+        if (!isdigit(str[i]))
+            break;
+        if (num > INT_MAX/10 || (num == INT_MAX / 10 && (str[i] - '0') > INT_MAX % 10))
+            return sign == -1 ? INT_MIN: INT_MAX;
+        num = num * 10 + str[i] - '0';
+    }
+    
+    return num*sign;
+    
+}
+
+//problem: gas station, 保证解唯一，这个很重要
+//algorithm:
+/*
+ O(N)的解法是,设置两个变量,判断当前的指针的有效性;则判断整个数组是否有解,有就返回通过得到的下标,
+ 没有则返回 -1
+ */
+int canCompleteCircuit(vector<int> &gas, vector<int> &cost)
+{
+    int total = 0;
+    int j = -1;
+    
+    for (int i = 0, sum = 0; i < gas.size(); ++i){
+        sum += gas[i] - cost[i];
+        total += gas[i] - cost[i];
+        if (sum < 0) {
+            j = i;
+            sum = 0;
+        }
+    }
+    return total >= 0 ? j + 1 : -1;
+}
+
+//problem: candy given
+//algorithm: 贪心算法那
+/*
+ 先从左到右扫描一遍，使得右边比左边得分高的小朋友糖果数比左边多。
+ 再从右到左扫描一遍，使得左边比右边得分高的小朋友糖果数比右边多。
+ */
+int candy(vector<int> &ratings) {
+    vector<int> candy(ratings.size(), 1);
+    int height = 1;
+    for (int i = 1; i < ratings.size(); i++) {
+        if (ratings[i] > ratings[i - 1]) {
+            candy[i] = max(++height, candy[i]);
+        } else {
+            height = 1;
+        }
+    }
+    height = 1;
+    for (int i = ratings.size() - 2; i >= 0; i--) {
+        if (ratings[i] > ratings[i + 1]) {
+            candy[i] = max(++height, candy[i]);
+        } else {
+            height = 1;
+        }
+    }
+    int ans = 0;
+    for (int i = 0; i < ratings.size(); i++) {
+        ans += candy[i];
+    }
+    return ans;
+}
+
+//problem:
+//algorithm:
+
+
+
+//problem:
+//algorithm:
+
+
+//problem:
+//algorithm:
+
+
+//problem:
+//algorithm:
+
+
+
+//problem:
+//algorithm:
+
+
+
+//problem:
+//algorithm:
+
+
+
+//problem:
+//algorithm:
+
+
+
+//problem:
+//algorithm:

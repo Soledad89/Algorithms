@@ -1,40 +1,7 @@
-string addBinaryString(string a, string b){
-	string result;
-	const size_t n = a.size() > b.size() ? a.size(): b.size();
-	reverse(a.begin(), a.end());
-	reverse(b.begin(), b.end());
-
-	int carry = 0; 
-	for (size_t i = 0; i < n; i++){
-		const int ai = i < a.size() ? a[i] - '0' : 0;
-		const int bi = i < b.size() ? b[i] - '0' : 0;
-		const int val = (ai + bi + carry) % 2;
-		carry = (ai + bi + carry) / 2;
-		result.insert(result.begin(), val+'0');
-	}
-
-	if (carry == 1){
-		result.insert(result.begin(), '1');
-	}
-
-	return result;
-}
 
 
-void addDigits(vector<int> &digits, int digit)
-{
-	int c = digit;
 
-	for (auto it = digits.rbegin(); it != digits.rend(); ++it)
-	{
-		*it += c;
-		c = *it / 10;
-		*it %= 10;
-	}
 
-	if (c > 0)
-		digits.insert(digits.begin(), 1);
-}
 
 
 struct ListNode {
@@ -44,112 +11,16 @@ struct ListNode {
 };
 
 
-ListNode *addTwoNumbers(ListNode *l1, ListNode *l2){
-	ListNode dummy(-1);
-	int carry = 0;
-	ListNode *prev = &dummy;
-
-	for (ListNode *pa = l1, *pb = l2;
-			pa != nullptr || pb != nullptr;
-			pa = pa == nullptr ? nullptr : pa->next,
-			pb = pb == nullptr ? nullptr : pb->next,
-			prev = prev->next){
-		const int ai = pa == nullptr ? 0: pa->val;
-		const int bi = pb == nullptr ? 0: pb->val;
-		const int value = (ai + bi + carry) % 10;
-		carry = (ai + bi + carry) / 10;
-		prev->next = new ListNode(value);
-	}
-
-	if (carry > 0)
-		prev->next = new ListNode(carry);
-	return dummy.next;
-}
 
 
-int atoi_string2integer(const char* str){
-	int num = 0; 
-	int sign = 1;
-	const int n = strlen(str);
-	int i = 0;
-
-	//while (str[i] ==' ' && i < n)
-	while (isspace(str[i]) && i < n)
-		i++;
-
-	if (str[i] == '+'){
-		i++;
-	}else if (str[i] == '-'){
-		sign = -1;
-		i++;
-	}
-
-	for (; i < n; i++){
-	    //	if (str[i] < '0' || str[i] > '9')
-		if (!isdigit(str[i])
-				break;
-		if (num > INT_MAX/10 || (num == INT_MAX / 10 &&
-					(str[i] - '0') > INT_MAX % 10)){
-			return sign == -1 ? INT_MIN: INT_MAX;
-		}
-
-		num = num * 10 + str[i] - '0';
-	}
-
-	return num*sign;
-}
-int canCompleteCircuit(vector<int> &gas, vector<int> &cost)
-{
-	int total = 0;
-	int j = -1;
-
-	for (int i = 0, sum = 0; i < gas.size(); ++i){
-		sum += gas[i] - cost[i];
-		total += gas[i] - cost[i];
-		if (sum < 0) {
-			j = i;
-			sum = 0;
-		}
-	}
-	return total >= 0 ? j + 1 : -1;
-}
 
 
-int candyGiven(vector<int> &ratings)
-{
-	const int n = ratings.size();
-	vector<int> increment(n);
-
-	//scan from left to right 
-	for (int i = 1, inc = 1; i < n; i ++){
-		if (ratings[i] > ratings[i-1])
-			increment[i] = max(inc++, increment[i]);
-		else
-			inc = 1;
-	}
-
-	//scan from right to left
-	for (int i = n - 1, inc = 1; i >= 0; i--){
-		if (ratings[i] > ratings[i+1])
-			increment[i] = max(inc++, increment);
-		else
-			inc = 1;
-	}
-
-	return accumulate(&increment[0], &increment[0] + n, n);
-}
 
 
-struct TreeLinkNode{
-	int val;
-	TreeLinkNode *left, *right, *next;
-	TreeLinkNode(int x) {
-		val = x;
-		left = NULL;
-		right = NULL;
-		next = NULL;
-	}
-}
+
+
+
+
 
 void connet(TreeLinkNode *root, TreeLinkNode *sibling){
 	if (root = NULL)

@@ -7,6 +7,8 @@
 
 int main( int argc, char* argv[] ) {
     
+    int x[] = {1, 2, 2,2, 3,4};
+    countNum(x, 0, 5, 2);
     char a = 'a';
     char b = 'b';
     a = a^b;

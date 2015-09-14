@@ -20,6 +20,7 @@ using namespace std;
 struct node {
     int data;
     node* next;
+    node(int e = 0): data(e) {}
 };
 typedef node Node;
 //双向链表节点
@@ -42,7 +43,57 @@ struct BinaryTreeNode{              // a node in the binary tree
 };
 
 
+//problem: count the specific number of given array
+//algorithm: recursion
+int counttarget;
+void countNum(int a[],int start,int finish, int target){
+    int middle=(start+finish)/2;
+    if(start>finish)
+        return ;
+    if(a[middle]==target){
+        counttarget++;
+        countNum(a,start,middle-1, target);
+        countNum(a,middle+1,finish, target);
+        //cout<<"get here"<<middle<<endl
+    }else if(a[middle]>target){
+        countNum(a,start,middle-1, target);
+    }else
+    {
+        countNum(a,middle+1,finish, target);
+    }
+}
 
+//algorithm2: 迭代法，参考STL中的equal_range的实现
+//然后两个相减
+int getUpper(int arr[], int size, int key){//获取某个元素最后出现位
+    int low = 0, high = size - 1;
+    //其实是一个递归迭代
+    while(low < high){
+        int mid = (low + high + 1) / 2;
+        if(arr[mid] <= key)
+            //当要查找的值比中位数大于等于时，把查找的低位限制为mid
+            low = mid;
+        else
+            //当要找的值比 中位数小时，，把查找的高位限制为mid-1
+            high = mid - 1;
+    }
+    //    返回最后出现位置
+    return low;
+}
+int getLower(int arr[], int size, int key){//获取某个元素第一次出现位置
+    int low = 0, high = size - 1;
+    while(low < high){
+        int mid = (low + high) / 2;
+        //当要找的值比中位数小于等于时，，把查找的高位限制为mid+1
+        if(arr[mid] >= key)
+            high = mid;
+        else
+            //当要找的值比 中位数大时，，把查找的低位限制为mid+1
+            low = mid + 1;
+    }
+    //返回第一次出现位置
+    return low;
+}
 
 //problem: memmove
 //algorithm: 注意memcpy和memmove的区别
@@ -2694,22 +2745,8 @@ int quickSqrt(int x) {
     return last_mid;
 }
 
-/*
- void reverse(int* A, int lo, int hi) //递归版，recursive
- {
- if(lo < hi)
- {
- std::swap(A[lo], A[hi]);
- reverse(A, lo+1, hi-1)
- }
- }
- */
-void reverse(int* A, int lo, int hi) //迭代版，一般用迭代版，以上的递归版效率较低
-{
-    while (lo < hi)
-        std::swap(A[lo++], A[hi--]);
-}
-
+//problem: 不用额外的变量颠倒一个字符串
+//algorithm: 利用位运算
 void reverseString(char* str){  //如果是char* str = "adnafn"，这是不能修改的，出错。可以改为传入为字符数组
     for(int i = 0,j = (int) strlen(str) - 1; i < j; i++, j--){
         str[i] = str[i] ^ str[j];
@@ -2718,45 +2755,18 @@ void reverseString(char* str){  //如果是char* str = "adnafn"，这是不能�
     }
 }
 
-void shift(int* A, int n, int k)
+void reverse(int* A, int lo, int hi)
+//迭代版，一般用迭代版，以上的递归版效率较低
+{
+    while (lo < hi)
+        std::swap(A[lo++], A[hi--]);
+}
+void shiftRight(int* A, int n, int k)
 {
     k %= n;
     std::reverse(A,A+k);
     std::reverse(A+k, A+n);
     std::reverse(A, A+n);
-}
-
-void shuffle( int A[], int n ) {
-    while ( 1 < n )
-        std::swap ( A[rand() % n], A[--n] );
-}
-
-void shuffle( int A[], int lo, int hi )
-{  shuffle ( A + lo, hi - lo );  }
-
-void randomArray( int A[], int n, int seed ) {
-    srand(seed);
-    for ( int i = 0; i < n; i++ )
-        A[i] = i;
-    shuffle ( A, 0, n / 3 );
-    shuffle ( A, 2 * n / 3, n );
-}
-
-void print( int A[], int n, int lo, int hi ) {
-    bool sorted = true;
-    for( int i = 1; i < n; i++ )
-        if ( A[i-1] > A[i] )
-            sorted = false;
-    printf( sorted ? "S: " : " : " );
-    for( int i = 0; i < lo; i++ ) printf ( "   ." );
-    for( int i = lo; i < hi; i++ ) printf ( "%4d", A[i] );
-    for( int i = hi; i < n; i++ ) printf ( "   ." );
-    printf ( "\n" );
-}
-
-void print( int A[], int n )
-{
-    print( A, n, 0, n );
 }
 
 

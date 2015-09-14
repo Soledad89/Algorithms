@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef long Align;	//定义块首对其的类型：长整型
 union header {	//块首
@@ -29,14 +30,12 @@ void* Malloc(unsigned int nbytes)
 	nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
 	if ((prev = free_list) == NULL) {	//如果无空闲链，定义空闲链
 		base.s.next = free_list = prev = &base;
-		base.s.size = 1;	//这里与实验提示中有点不同，这里的size包括
-		//了块首，实验提示中不包括块首，其实都可以，
-		//只要在计算时注意就可以了
+		base.s.size = 0;	//
+        
 	}
 	for (p = prev->s.next; ; p = p->s.next, prev = p) {	//遍历空闲链，查找合适空闲块
 		if (p->s.size >= nunits) {	//空闲块够大
-			if (p->s.size <= (nunits + 1))	//正好或多一个（多一个的原因大家
-				//可以想一想）
+			if (p->s.size == nunits)
 				prev->s.next = p->s.next;
 			else {	//偏大，切出需要的一块
 				p->s.size -= nunits;
@@ -59,9 +58,9 @@ static Header* Moresys(unsigned int nu)
 	char *cp;
 	Header *up;
 
-	if(nu<NALLOC)
+	if(nu < NALLOC)
 		nu = NALLOC;	//向系统申请的最小量
-	cp = sbrk(nu * sizeof(Header));	
+	cp = (char*) sbrk(nu * sizeof(Header));
 	printf("sbrk: %X -- %X\n", cp, cp + nu * sizeof(Header));	//调试用
 	if(cp == (char *) -1)
 		return NULL;	//无空闲页面，返回空地址
@@ -87,7 +86,7 @@ void Free(void *ap)
 	}
 	else
 		bp->s.next = p->s.next;
-
+   
 	if(p + p->s.size == bp) {
 		p->s.size += bp->s.size;
 		p->s.next = bp->s.next;
@@ -120,10 +119,11 @@ int main()
 {
 	char *p[200];
 	int i;
+    int n_ = sizeof(Header);
 
 	for(i = 0; i < 20; i++ ) {
 		p[i] = (char *)Malloc(8);
-		printf("malloc %d, %X\n", i , p[i]);
+		printf("malloc %d, %s\n", i , p[i]);
 		print_list();
 	}
 
