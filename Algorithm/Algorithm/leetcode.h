@@ -29,6 +29,9 @@ struct TreeNode {
     TreeNode *right;
     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
 };
+//边界条件、特殊输入（NULL指针、空字符串）、错误处理
+
+
 
 //problem: reimplement strstr
 //algorithm: the most efficient algorithm is KMP, but you must make sure you can
@@ -1103,7 +1106,7 @@ void nextPermutation(vector<int>& nums) {
 
 //problem: add two binary string
 //Given two binary strings, return their sum (also a binary string)
-//algorithm:
+//algorithm: 下面的打印大数
 string addBinaryString(string a, string b){
     string result;
     int al = a.size();
@@ -1129,6 +1132,80 @@ string addBinaryString(string a, string b){
     return result;
 }
 
+//problem: 打印出n位的数,用字符数组来解决大数问题
+//algorithm: 这也是个大数问题
+void PrintNumber(char* number);//关键问题在于前面的零不要打印出来
+bool Increment(char* number); //加一，最关键的问题是判断什么时候加到了最大值
+
+void Print1ToMaxOfNDigits_1(int n)
+{
+    if(n <= 0)
+        return;
+    
+    char *number = new char[n + 1];
+    memset(number, '0', n);  //刚开始在所有的位上都初始化为‘0’
+    number[n] = '\0';
+    
+    while(!Increment(number))
+    {
+        PrintNumber(number);
+    }
+    
+    delete []number;
+}
+
+bool Increment(char* number)
+{
+    bool isOverflow = false;
+    int carry = 0;
+    int nLength = (int)strlen(number);
+    
+    for(int i = nLength - 1; i >= 0; i --)
+    {
+        int nSum = number[i] - '0' + carry;
+        if(i == nLength - 1)
+            nSum ++;
+        
+        if(nSum >= 10)
+        {
+            if(i == 0)
+                isOverflow = true;
+            else
+            {
+                nSum -= 10;
+                carry = 1;
+                number[i] = '0' + nSum;
+            }
+        }
+        else
+        {
+            number[i] = '0' + nSum;
+            break;
+        }
+    }
+    
+    return isOverflow;
+}
+
+void PrintNumber(char* number)
+{
+    bool isBeginning0 = true;
+    int nLength = strlen(number);
+    
+    for(int i = 0; i < nLength; ++ i)
+    {
+        if(isBeginning0 && number[i] != '0')
+            isBeginning0 = false;
+        
+        if(!isBeginning0)
+        {
+            printf("%c", number[i]);
+        }
+    }
+    
+    printf("\n");
+}
+
 //problem: add digits
 //algorithm:
 int addDigits(int num)
@@ -1136,7 +1213,8 @@ int addDigits(int num)
     return 1 + (num-1) % 9;
 }
 
-//problem: 这题与add binary string 类似，都是用字符串或者链表来保存整数或二进制数，用来进行计算
+//problem: 这题与add binary string 类似，都是用字符串、数组、链表来保存整数或二进制数，
+//用来进行计算
 //这样就可以计算特别大的数的和，整数不能表示，只能用字符串或者链表表示
 /*
  You are given two linked lists representing two non-negative numbers. The digits are stored in reverse order and each of their nodes contain a single digit. Add the two numbers and return it as a linked list.
@@ -1169,7 +1247,7 @@ node *addTwoNumbers(node *l1, node *l2){
 }
 
 //problem: String to Integer (atoi)
-//algorithm: 考虑各种情况
+//algorithm: 考虑各种情况，这个细节题，却是特别重要
 int myAtoi(char* str) {
     int num = 0;
     int sign = 1;

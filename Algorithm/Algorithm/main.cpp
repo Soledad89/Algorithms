@@ -7,6 +7,12 @@
 
 int main( int argc, char* argv[] ) {
     
+    
+    /*
+    Print1ToMaxOfNDigits_1(4);
+    
+    char sch[20] = "wangbo is bob";
+    ReplaceBlank(sch, 20);
     int x[] = {1, 2, 2,2, 3,4};
     countNum(x, 0, 5, 2);
     char a = 'a';
@@ -18,7 +24,6 @@ int main( int argc, char* argv[] ) {
     reverseString(ch);
     
     return 0;
-    /*
     
     Node *head1 = NULL;
     Node *node1 = NULL,*node2 = NULL,*node3 = NULL,*node4 = NULL;
@@ -61,9 +66,11 @@ int main( int argc, char* argv[] ) {
     char* x = "abcd";
     char* y = "addcd";
     int m = LCS(x, y);
-    int A[] = {1,2,3,4,5,6};
-    evenOddPartition(A, 6);
-    
+    */
+    // int A[] = {1};
+    //evenOddPartition(A, 6);
+    return 0;
+    /*
     WordDictionary wd;
     wd.addWord("abc");
     wd.addWord("a");

@@ -10,7 +10,7 @@
 
 void PrintListReversingly_Iteratively(ListNode* pHead)
 {
-    std::stack<ListNode*> nodes;
+    std::stack<ListNode*> nodes; //
 
     ListNode* pNode = pHead;
     while(pNode != NULL)

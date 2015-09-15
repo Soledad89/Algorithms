@@ -11,6 +11,7 @@
 #include <sstream>
 #include <vector>
 #include <queue>
+#include <exception>
 
 using namespace std;
 
@@ -42,6 +43,243 @@ struct BinaryTreeNode{              // a node in the binary tree
     m_nValue(nv), m_pLeft(pl), m_pRight(rl) {}
 };
 
+
+//problem:
+//algorithm:
+int MinInOrder(int* numbers, int index1, int index2);
+
+int Min(int* numbers, int length)
+{
+    if(numbers == NULL || length <= 0)
+        return -1;
+    
+    int index1 = 0;
+    int index2 = length - 1;
+    int indexMid = index1; //初始化
+    while(numbers[index1] >= numbers[index2])
+    {
+        // index1指向第一个递增数组最后一个元素
+        // index2指向第二个递增数组最前一个元素
+        if(index2 - index1 == 1)
+        {
+            indexMid = index2;
+            break;
+        }
+        
+        //如果下标index1\index2\indexmid指向的数字都相等时，只能用顺序查找的了
+        indexMid = (index1 + index2) / 2;
+        if(numbers[index1] == numbers[index2]
+           && numbers[indexMid] == numbers[index1])
+            return MinInOrder(numbers, index1, index2);
+        
+        // 缩小查找范围
+        if(numbers[indexMid] >= numbers[index1])
+            index1 = indexMid;
+        else if(numbers[indexMid] <= numbers[index2])
+            index2 = indexMid;
+    }
+    
+    return numbers[indexMid];
+}
+
+int MinInOrder(int* numbers, int index1, int index2)
+{
+    int result = numbers[index1];
+    for(int i = index1 + 1; i <= index2; ++i)
+    {
+        if(result > numbers[i])
+            result = numbers[i];
+    }
+    
+    return result;
+}
+
+
+//problem: 利用两个栈实现队列的功能
+//algorithm: stack1用于入栈，stack2用于弹出，当stack2为空时，将stack1中的所有元素压入stack2中
+template <typename T> class CQueue
+{
+public:
+    CQueue(void);
+    ~CQueue(void);
+    
+    void appendTail(const T& node);
+    
+    T deleteHead();
+    
+private:
+    stack<T> stack1;
+    stack<T> stack2;
+};
+
+template<typename T> void CQueue<T>::appendTail(const T& element)
+{
+    stack1.push(element);
+}
+
+template<typename T> T CQueue<T>::deleteHead()
+{
+    if(stack2.size()<= 0)
+    {
+        while(stack1.size()>0)
+        {
+            T& data = stack1.top();
+            stack1.pop();
+            stack2.push(data);
+        }
+    }
+    
+    if(stack2.size() == 0)
+        return INT_MIN;
+    
+    T head = stack2.top();
+    stack2.pop();
+    
+    return head;
+}
+
+
+//problem: 知道先序排列的数组和中序排列的数组，重构原二叉搜索树
+//algorithm: 递归
+BinaryTreeNode* ConstructCore(int* startPreorder, int* endPreorder, int* startInorder, int* endInorder);
+
+BinaryTreeNode* Construct(int* preorder, int* inorder, int length)
+{
+    if(preorder == NULL || inorder == NULL || length <= 0)
+        return NULL;
+    
+    return ConstructCore(preorder, preorder + length - 1,
+                         inorder, inorder + length - 1);
+}
+
+BinaryTreeNode* ConstructCore( int* startPreorder, int* endPreorder,
+                               int* startInorder, int* endInorder)
+{
+    // 前序遍历的第一个节点是根节点的值
+    int rootValue = startPreorder[0];
+    BinaryTreeNode* root = (BinaryTreeNode*) malloc(sizeof(BinaryTreeNode));
+    root->m_nValue = rootValue;
+    root->m_pLeft = root->m_pRight = NULL;
+    
+    if(startPreorder == endPreorder)
+    {
+        if(startInorder == endInorder && *startPreorder == *startInorder)
+            return root;
+        else
+            //throw std::exception("Invalid input.");这是微软的。。。
+            return NULL;
+    }
+    
+    // 在中序遍历中找到根节点的值
+    int* rootInorder = startInorder;
+    while(rootInorder <= endInorder && *rootInorder != rootValue)
+        ++ rootInorder;
+    
+    if(rootInorder == endInorder && *rootInorder != rootValue)
+        //throw std::exception("Invalid input.");
+        return NULL;
+    
+    int leftLength = (int) (rootInorder - startInorder);
+    int* leftPreorderEnd = startPreorder + leftLength;
+    if(leftLength > 0)
+    {
+        // 构建左子树
+        root->m_pLeft = ConstructCore(startPreorder + 1, leftPreorderEnd,
+                                      startInorder, rootInorder - 1);
+    }
+    if(leftLength < endPreorder - startPreorder)
+    {
+        // 构建右子树
+        root->m_pRight = ConstructCore(leftPreorderEnd + 1, endPreorder,
+                                       rootInorder + 1, endInorder);
+    }
+    
+    return root;
+}
+
+//problem:替换字符串中的空格为其他的字符
+//algorithm:从后往前，依次移位，但是首先得确定最终替换后的字符的长度是多少
+void ReplaceBlank(char string[], int length)///*length为字符串的最大值*/
+{
+    if(string == NULL && length <= 0)
+        return;
+    
+    /*originalLength为字符串实际长度*/
+    int originalLength = 0;
+    int numberOfBlank = 0;
+    int i = 0;
+    while(string[i] != '\0')
+    {
+        ++ originalLength;
+        
+        if(string[i] == ' ')
+            ++ numberOfBlank;
+        
+        ++ i;
+    }
+    
+    /*newLength为空格被替换之后的新长度*/
+    int newLength = originalLength + numberOfBlank * 2;
+    if(newLength > length)
+        return;
+    
+    int indexOfOriginal = originalLength - 1;
+    int indexOfNew = newLength - 1;
+    while(indexOfOriginal >= 0 && indexOfNew > indexOfOriginal)
+    {
+        if(string[indexOfOriginal] == ' ')
+        {
+            string[indexOfNew --] = '0';
+            string[indexOfNew --] = '2';
+            string[indexOfNew --] = '%';
+        }
+        else
+        {
+            string[indexOfNew --] = string[indexOfOriginal];
+        }
+        
+        -- indexOfOriginal;
+    }
+}
+
+
+
+//problem: 二维数组中查找特定的数值
+//algorithm: 首先选举右上角的元素与target进行比较，如果大于target则该列被剔除
+//如果小于target则该行被剔除，这样每一步都会缩小查找空间
+//  1   2   8   9
+//  2   4   9   12
+//  4   7   10  13
+//  6   8   11  15
+bool Find(int* matrix, int rows, int columns, int number)
+{
+    bool found = false;
+    
+    if(matrix != NULL && rows > 0 && columns > 0)
+    {
+        int row = 0;
+        int column = columns - 1;
+        while(row < rows && column >=0)
+        {
+            if(matrix[row * columns + column] == number)
+            {
+                found = true;
+                break;
+            }
+            else if(matrix[row * columns + column] > number)
+                -- column;
+            else
+                ++ row;
+        }
+    }
+    
+    return found;
+}
+/*测试用例
+int matrix[][4] = 
+    {{1, 2, 8, 9}, {2, 4, 9, 12}, {4, 7, 10, 13}, {6, 8, 11, 15}};
+    FIND((int*)matrix, 4, 4, 7);
+ */
 
 //problem: count the specific number of given array
 //algorithm: recursion
@@ -435,11 +673,28 @@ void DeleteNode(node* pListHead, node* pToBeDeleted)
  现起来比较麻烦。
 3. 既然想到了栈来实现这个函数，而递归本质上就是一个栈结构。于是很自然的又想到了用递归来实现。要实现反过来输出链表，我们每访问到一个结点的时候，先递归输出它后面的结点，再输出该结点自身，这样链表的输出结果就反过来了
  */
-void PrintListReversely(node* pListHead)
+void PrintListReversingly_Iteratively(node* pHead){
+    std::stack<node*> nodes; //直接把指针压入栈中，免得压数据费时费空间
+    node* pNode = pHead;
+    while(pNode != NULL)
+    {
+        nodes.push(pNode);
+        pNode = pNode->next;
+    }
+    
+    while(!nodes.empty())
+    {
+        pNode = nodes.top();
+        printf("%d\t", pNode->data);
+        nodes.pop();
+    }
+}
+//其实当链表特别长时，应该采用栈，这样可以避免可能发生栈溢出
+void PrintListReversingly(node* pListHead)
 {
     if(pListHead != NULL){
         if (pListHead->next != NULL){
-            PrintListReversely(pListHead->next);
+            PrintListReversingly(pListHead->next);
         }
         printf("%d", pListHead->data);
     }
@@ -453,7 +708,7 @@ int getLen(char *str){
 
 //
 //problem： 将数组中奇数都放在数组的前面，偶数都放在数组的后面
-//algorithm: 类似于quicksort的partition
+//algorithm: 类似于quicksort的partition，以下建立一个模板，可以把数组分成满足不同标准的函数指针
 void evenOddPartition(int A[], int n) {
     if (n == 0 || n == 1)
         return;
@@ -463,11 +718,54 @@ void evenOddPartition(int A[], int n) {
                 i++;
         while ((i < j) && ((A[j] & 1) == 0))
                 j--;
-        swap(A[i], A[j]);
+        if (i < j)  //最好还是再加上一个判断
+            swap(A[i], A[j]);
         i++;
         j--;
     }
 }
+//algorithm: 利用函数指针，提高可移植性
+void Reorder(int *pData, unsigned int length, bool (*func)(int));
+bool isEven(int n);
+
+void ReorderOddEven_2(int *pData, unsigned int length)
+{
+    Reorder(pData, length, isEven); //利用函数指针
+}
+
+void Reorder(int *pData, unsigned int length, bool (*func)(int))
+{
+    if(pData == NULL || length == 0)
+        return;
+    
+    int *pBegin = pData;
+    int *pEnd = pData + length - 1;
+    
+    while(pBegin < pEnd)
+    {
+        // 满足标准
+        while(pBegin < pEnd && !func(*pBegin))
+            pBegin ++;
+        
+        // 不满足标准
+        while(pBegin < pEnd && func(*pEnd))
+            pEnd --;
+        
+        if(pBegin < pEnd) //swap(*pBegin, *pEnd);加一层判断更保险
+        {
+            int temp = *pBegin;
+            *pBegin = *pEnd;
+            *pEnd = temp;
+        }
+    }
+}
+
+bool isEven(int n)
+{
+    return (n & 1) == 0;
+}
+
+
 //problem: find consecutive sequence whose sum equals to n
 //algorithm: recursive
 void PrintContinuousSequence(int small, int big);
@@ -817,7 +1115,7 @@ int NumberOf1_Solution2(int i){
     
     return count;
 }
-//算法3：
+//算法3：把一个整数减去1再与原来的整数做位与运算得到的是把整数的二进制表示中最右边一个1变成0
  int NumberOf1_Solution3(int i){
      int count = 0;
      while (i){
@@ -828,6 +1126,11 @@ int NumberOf1_Solution2(int i){
  }
 //扩展：如何用一个语句判断一个整数是不是二的整数次幂？
 //PS：n&(n-1)==0;//二进制数只有一位位1，则该数是2的整数次幂.
+//扩展2：判断两个整数，计算改变m的二进制表示中多少为才能得到n
+
+inline int changeNbits(int m, int n) {
+    return NumberOf1_Solution3(m ^ n);
+}
 
 //算法4：wikipedia
 int NumberOf1_Solution_Wikipedia(int n) //分治法
@@ -1782,7 +2085,7 @@ struct BSTreeNode
 
 typedef BSTreeNode DoubleList;
 DoubleList * pHead;
-DoubleList * pListIndex;
+DoubleList * pListIndex; //始终指向双向链表的最后一个节点
 
 void convertToDoubleList(BSTreeNode * pCurrent);
 // 创建二元查找树
@@ -1826,7 +2129,8 @@ void ergodicBSTree(BSTreeNode * pCurrent)
         ergodicBSTree(pCurrent->m_pLeft);
     }
     
-    // 节点接到链表尾部
+    // 节点接到链表尾部，假设之前访问过的结点已经调整为一个双向链表，那么
+    //       只需要将当前结点连接至双向链表的最后一个结点即可
     convertToDoubleList(pCurrent);
     // 右子树为空
     if (NULL != pCurrent->m_pRight)
@@ -1839,16 +2143,16 @@ void ergodicBSTree(BSTreeNode * pCurrent)
 void  convertToDoubleList(BSTreeNode * pCurrent)
 {
     
-    pCurrent->m_pLeft = pListIndex;
-    if (NULL != pListIndex)
+    pCurrent->m_pLeft = pListIndex; //使当前结点的左指针指向双向链表中最后一个结点
+    if (NULL != pListIndex) ////使双向链表中最后一个结点的右指针指向当前结点
     {
         pListIndex->m_pRight = pCurrent;
     }
-    else
+    else //若最后一个元素不存在，此时双向链表尚未建立，因此将当前结点设为双向链表头结点
     {
         pHead = pCurrent;
     }
-    pListIndex = pCurrent;
+    pListIndex = pCurrent; //将当前结点设为双向链表中最后一个结点
     cout<<pCurrent->m_nValue<<endl;
 }
 
@@ -2695,8 +2999,16 @@ int disordered(int A[], int n)
 
 //问题：快速计算幂指数
 //算法：分解指数n
+inline bool doubleEqual(double x, double t) {
+    return ( x - t ) < 0.000000001 && ( x - t ) > - 0.000000001;
+}
 double quickPower(double x, int n) //这个在leetcode上面会超时
 {
+    //没检查边界条件和错误输入
+    //有三种错误处理方式：返回值、全局变量和异常
+    if (doubleEqual(x, 0.0) && n < 0)
+        return 0.0;
+    
     if (n < 0)
         return 1.0 / quickPower(x, -n);
     double result = 1;

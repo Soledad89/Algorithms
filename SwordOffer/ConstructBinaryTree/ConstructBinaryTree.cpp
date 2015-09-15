@@ -25,7 +25,7 @@ BinaryTreeNode* ConstructCore
     int* startInorder, int* endInorder
 )
 {
-    // 前序遍历序列的第一个数字是根结点的值
+    // qian'xu
     int rootValue = startPreorder[0];
     BinaryTreeNode* root = new BinaryTreeNode();
     root->m_nValue = rootValue;
