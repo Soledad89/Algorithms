@@ -8,7 +8,7 @@ union header {	//块首
 		union header *next; 	//指向下一空闲块的指针
 		unsigned int size;  	//空闲块的大小
 	} s;
-	Align x;	//对齐
+	Align x;	//对齐, Union结构可以确保header是按照Align也就是long的形式对齐的，不然容易引发总线错误
 };
 
 typedef union header Header;	

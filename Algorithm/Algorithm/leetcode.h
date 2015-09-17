@@ -31,7 +31,60 @@ struct TreeNode {
 };
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
-
+//problem: twosum
+//algorithm: 利用hash，直接用STL提供unordered_map中的hash内核
+vector<int> twoSum(vector<int> &num, int target)
+{
+    unordered_map<int, int> mapping;
+    vector<int> result;
+    for (int i = 0; i < num.size(); i++)
+    {
+        mapping[num[i]] = i;
+    }
+    
+    for (int i = 0; i < num.size(); i++)
+    {
+        const int gap = target - num[i];
+        if (mapping.find(gap) != mapping.end() && mapping[gap] > i)
+        {
+            result.push_back(i + 1);
+            result.push_back(mapping[gap] + 1);
+            break;
+        }
+    }
+    
+    return result;
+}
+//algorithm2: 利用双指针，前提是已经排序的数组
+bool FindNumbersWithSum(int data[], int length, int sum,
+                        int* num1, int* num2)
+{
+    bool found = false;
+    if(length < 1 || num1 == NULL || num2 == NULL)
+        return found;
+    
+    int ahead = length - 1;
+    int behind = 0;
+    
+    while(ahead > behind)
+    {
+        long long curSum = data[ahead] + data[behind];
+        
+        if(curSum == sum)
+        {
+            *num1 = data[behind];
+            *num2 = data[ahead];
+            found = true;
+            break;
+        }
+        else if(curSum > sum)
+            ahead --;
+        else
+            behind ++;
+    }
+    
+    return found;
+}
 
 //problem: reimplement strstr
 //algorithm: the most efficient algorithm is KMP, but you must make sure you can
@@ -219,6 +272,12 @@ int divide(int dividend, int divisor) {
  如果遍历的数组元素小于堆顶元素，舍弃掉，如果遍历的数组元素大于堆顶元素，将堆顶元素出堆，
  然后将大于堆顶元素的数组中的元素插入堆中，再次形成堆
  */
+
+//对比：基于partition的思想的速度更快，但是其需要修改原数组，而且其需要一次性将所有数据都读入内存
+//不适合于大数据量的情况，而基于红黑树或堆的思想不需要修改原始数组，而且可以从辅助存储空间（磁盘）中
+//每次读入一个数字，根据GEtLeastNumbers的方式判断是不是要放入容器leastNumbers中，这种思路只要求
+//内存能够容纳leastNumbers即可。
+
 int findKthLargest(vector<int>& nums, int k){
     
     make_heap(nums.begin(), nums.begin()+k, greater<int>());//这个建立的是最小堆
@@ -272,8 +331,37 @@ int findKthLargest2_1(vector<int>& nums, int k) {
     
     return pq.top();
 }
+//算法2.2: 建立一个红黑树（可以利用STL里面的set或multiset）
+typedef multiset<int, greater<int> >            intSet; //允许重复
+typedef multiset<int, greater<int> >::iterator  setIterator;
 
-//算法3：分治法，利用quick sort的思想
+void GetLeastNumbers_Solution(const vector<int>& data, intSet& leastNumbers, int k)
+{
+    leastNumbers.clear();
+    
+    if(k < 1 || data.size() < k)
+        return;
+    
+    vector<int>::const_iterator iter = data.begin();
+    for(; iter != data.end(); ++ iter)
+    {
+        if((leastNumbers.size()) < k)
+            leastNumbers.insert(*iter);
+        
+        else
+        {
+            setIterator iterGreatest = leastNumbers.begin();
+            
+            if(*iter < *(leastNumbers.begin()))
+            {
+                leastNumbers.erase(iterGreatest);
+                leastNumbers.insert(*iter);
+            }
+        }
+    }
+}
+
+//算法3：分治法，利用quick sort的思想partition
 int partition(vector<int> &nums,int begin,int end);
 
 int findKthLargest3(vector<int>& nums, int k)
@@ -820,7 +908,7 @@ vector<vector<int> >& result) {
     }
 }
 
-//问题：reverse a sentence of words
+//问题：reverse sentence of words
 //算法：利用两个栈，一个用于存放单词，一个用于存放句子
 void reverseWords(string &s) {
     stack<int> word;
@@ -850,7 +938,7 @@ void reverseWords(string &s) {
         sentence.pop();
     };
 }
-//算法2：以上算法并不高效
+//算法2：以上算法并不高效，需要额外的空间
 void reverseWords2(string & s)
 {
     
@@ -873,6 +961,79 @@ void reverseWords2(string & s)
     }
     s=ss;
 }
+//algorithm3: swordoffer标准答案
+void reverseString(char *pBegin, char *pEnd)
+{
+    if(pBegin == NULL || pEnd == NULL)
+        return;
+    
+    while(pBegin < pEnd)
+    {
+        char temp = *pBegin;
+        *pBegin = *pEnd;
+        *pEnd = temp;
+        
+        pBegin ++, pEnd --;
+    }
+}
+
+char* ReverseSentence(char *pData)
+{
+    if(pData == NULL)
+        return NULL;
+    
+    char *pBegin = pData;
+    
+    char *pEnd = pData;
+    while(*pEnd != '\0')
+        pEnd ++;
+    pEnd--;
+    
+    reverseString(pBegin, pEnd);
+    
+    pBegin = pEnd = pData;
+    while(*pBegin != '\0')
+    {
+        if(*pBegin == ' ')
+        {
+            pBegin ++;
+            pEnd ++;
+        }
+        else if(*pEnd == ' ' || *pEnd == '\0')
+        {
+            reverseString(pBegin, --pEnd);
+            pBegin = ++pEnd;
+        }
+        else
+        {
+            pEnd ++;
+        }
+    }
+    
+    return pData;
+}
+//左旋转一个字符串
+char* LeftRotateString(char* pStr, int n)
+{
+    if(pStr != NULL)
+    {
+        int nLength = static_cast<int>(strlen(pStr));
+        if(nLength > 0 && n > 0 && n < nLength)         //边界检测和错误输入处理
+        {
+            char* pFirstStart = pStr;
+            char* pFirstEnd = pStr + n - 1;
+            char* pSecondStart = pStr + n;
+            char* pSecondEnd = pStr + nLength - 1;
+            
+            reverseString(pFirstStart, pFirstEnd);
+            reverseString(pSecondStart, pSecondEnd);
+            reverseString(pFirstStart, pSecondEnd);
+        }
+    }
+    
+    return pStr;
+}
+
 
 //问题：最大间隙问题Maximum gap
 //算法：采用桶结构
@@ -1058,7 +1219,7 @@ string longestCommonPrefix(vector<string>& strs) {
 
 //问题：2sum
 //算法：利用hash_map，可以获得O(1)的search
-vector<int> twoSum(vector<int>& nums, int target) {
+vector<int> twoSum_(vector<int>& nums, int target) {
     unordered_map<int, int> mapping;
     vector<int> result;
     for (int i = 0; i < nums.size();  i++){

@@ -12,6 +12,7 @@
 #include <vector>
 #include <queue>
 #include <exception>
+#include <assert.h>
 
 using namespace std;
 
@@ -43,6 +44,560 @@ struct BinaryTreeNode{              // a node in the binary tree
     m_nValue(nv), m_pLeft(pl), m_pRight(rl) {}
 };
 
+//problem: 找到数组中唯一出现一次的两个整数
+//algorithm: 利用异或的结果将数组分为两个部分，怎么分组才能使一个数字在其中一组，而另一个数字在另一组，而且保证每一组中其余的元素都是配对出现的
+unsigned int FindFirstBitIs1(int num);
+bool IsBit1(int num, unsigned int indexBit);
+
+void FindNumsAppearOnce(int data[], int length, int* num1, int* num2)
+{
+    if (data == NULL || length < 2)
+        return;
+    
+    int resultExclusiveOR = 0;
+    for (int i = 0; i < length; ++ i)
+        resultExclusiveOR ^= data[i];
+    
+    unsigned int indexOf1 = FindFirstBitIs1(resultExclusiveOR);
+    
+    *num1 = *num2 = 0;
+    for (int j = 0; j < length; ++ j)
+    {
+        if(IsBit1(data[j], indexOf1))
+            *num1 ^= data[j];
+        else
+            *num2 ^= data[j];
+    }
+}
+
+//这就是分组的策略
+unsigned int FindFirstBitIs1(int num)
+{
+    int indexBit = 0;
+    while (((num & 1) == 0) && (indexBit < 8 * sizeof(int)))
+    {
+        num = num >> 1;
+        ++ indexBit;
+    }
+    
+    return indexBit;
+}
+//
+bool IsBit1(int num, unsigned int indexBit) //验证第indexBit位是否为1
+{
+    num = num >> indexBit;
+    return (num & 1);
+}
+
+
+//problem:统计排序的数组中元素k的个数
+//algorithm:二分查找法，求出第一个和最后一个k
+int GetFirstK(int* data, int length, int k, int start, int end);
+int GetLastK(int* data, int length, int k, int start, int end);
+
+int GetNumberOfK(int* data, int length, int k)
+{
+    int number = 0;
+    
+    if(data != NULL && length > 0)
+    {
+        int first = GetFirstK(data, length, k, 0, length - 1);
+        int last = GetLastK(data, length, k, 0, length - 1);
+        
+        if(first > -1 && last > -1)
+            number = last - first + 1;
+    }
+    
+    return number;
+}
+
+//
+int GetFirstK(int* data, int length, int k, int start, int end)
+{
+    if(start > end)
+        return -1;
+    
+    int middleIndex = (start + end) / 2;
+    int middleData = data[middleIndex];
+    
+    if(middleData == k)
+    {
+        if((middleIndex > 0 && data[middleIndex - 1] != k)
+           || middleIndex == 0)
+            return middleIndex;
+        else
+            end  = middleIndex - 1;
+    }
+    else if(middleData > k)
+        end = middleIndex - 1;
+    else
+        start = middleIndex + 1;
+    
+    return GetFirstK(data, length, k, start, end);
+}
+
+//
+int GetLastK(int* data, int length, int k, int start, int end)
+{
+    if(start > end)
+        return -1;
+    
+    int middleIndex = (start + end) / 2;
+    int middleData = data[middleIndex];
+    
+    if(middleData == k)
+    {
+        if((middleIndex < length - 1 && data[middleIndex + 1] != k)
+           || middleIndex == length - 1)
+            return middleIndex;
+        else
+            start  = middleIndex + 1;
+    }
+    else if(middleData < k)
+        start = middleIndex + 1;
+    else
+        end = middleIndex - 1;
+    
+    return GetLastK(data, length, k, start, end);
+}
+
+
+
+//problem: 排列
+//algorithm: 递归
+void Permutation(char* pStr, char* pBegin);
+
+void Permutation(char* pStr)
+{
+    if(pStr == NULL)
+        return;
+    
+    Permutation(pStr, pStr);
+}
+
+int nPermu;
+void Permutation(char* pStr, char* pBegin)//pStr指向整个字符串的第一个字符，pBegin指向当前我们做排列操作的字符串的第一个字符
+{
+    if(*pBegin == '\0')
+    {
+        printf("%d: ", nPermu);
+        printf("%s\n", pStr);
+        nPermu++;
+    }
+    else
+    {
+        for(char* pCh = pBegin; *pCh != '\0'; ++ pCh)
+            //每一次递归，从pBegin向后扫描每一个字符，在交换pBegin和pCh之后，再对pBegin后面的字符串递归的排列操作
+        {
+            char temp = *pCh;
+            *pCh = *pBegin;
+            *pBegin = temp;
+            
+            Permutation(pStr, pBegin + 1);
+            
+            //temp = *pCh;
+            //*pCh = *pBegin;
+            //*pBegin = temp;
+        }
+    }
+}
+
+
+//problem:放皇后问题
+//algorithm: 回溯-分支限定
+//使用试探-回溯-剪枝法的头文件
+#define QUEEN_MAX 20
+extern int nSolu;
+extern int nCheck;
+extern int N;
+
+struct Queen{
+    int x, y;
+    Queen (int xx = 0, int yy = 0) : x(xx), y(yy) {};
+    bool operator==(Queen const & q) const {
+        return ( x == q.x)       //行冲突
+        || (y == q.y)            //列冲突
+        || ( x + y == q.x + q.y) //沿对角线冲突
+        || ( x - y == q.x - q.y);//沿反对脚线冲突
+    }
+    bool operator!=(Queen const& q) const { return !(*this == q); }
+    
+};
+
+void displayRow(Queen& q)
+{
+    printf("%2d: ", q.x);
+    int i = 0;
+    while (i++ < q.y) printf("[]");
+    printf("#");
+    while (i++ < N)  printf("[]");
+    printf("%2d\n", q.y);
+    
+}
+void display(std::vector<Queen>& S, int nQueen)
+{
+    //system("clear");
+    for_each(S.rbegin(), S.rend(), displayRow);
+    if ( nQueen <= S.size())
+        cout << nSolu << " solution(s) found after " << nCheck << " check(s)\n";
+    //getchar();
+    
+}
+
+bool findQueen(std::vector<Queen> qVec, const Queen queen)
+{
+    vector<Queen>::iterator iterQueen;
+    bool flag = true;
+    
+    for (iterQueen = qVec.begin(); iterQueen != qVec.end(); iterQueen++)
+        if ((*iterQueen) == queen) { flag = true; break; }
+    if (iterQueen == qVec.end())
+        flag = false;
+    return flag;
+}
+
+//这个好理解一些，整个程序是有三个部分组成，都集中于一个do/while语句中
+void placeQueens(int N)
+{
+    std::vector<Queen> solu; //stack storing the solution
+    Queen q(0, 0);// start from the original point
+    clock_t c_start = clock();
+    
+    do {
+        
+        //while ((q.y < N) && findQueen(solu, q)) //通过与已有皇后的比对
+        while ((q.y < N) && find(solu.begin(),solu.end(),q) != solu.end()) //这个快多了，这一个部分是最花费时间的
+        {
+            q.y++; nCheck++;
+        }//尝试找到可摆放下一个皇后的列
+        
+        if (q.y < N ) { //若存在摆放的列，则
+            solu.push_back(q); //摆放上当前的皇后，并
+            if ( solu.size() >= N ) //若部分解已成为全局解，则通过全局变量nSolu计数
+            {
+                nSolu++; display(solu, N);
+            }
+            q.x++;                  //转入下一行
+            q.y = 0;                //从0列开始，试探下一个皇后
+        }
+        
+        
+        if ( solu.size() >= N || q.y >= N ) //若已出界，则
+        {
+            q = solu.back();
+            solu.pop_back();
+            q.y++;//回溯一行，并继续试探下一列
+        }//否则，试探下一行
+        
+    }while ( (q.x > 0) || (q.y < N)) ; //所有分支均已或穷举或剪枝之后，算法结束,q==(0,N)的时候
+    
+    clock_t c_end = clock();
+    double timeSpended = 1000.0 * (c_end - c_start)/CLOCKS_PER_SEC;
+    printf("Time Spended %f (ms)\n", timeSpended);
+}
+
+//problem: knight moves
+//algorithm: Astar A星算法 A* 主要利用A*算法和BFS算法
+struct knight{
+    int x,y,step;
+    int g,h,f;                                      // f = g + h
+    bool operator < (const knight & k) const{      //重载比较运算符
+        return f > k.f;
+    }
+};
+knight k;
+bool visited[8][8];         //访问标记(关闭列表)
+int xs,ys,xt,yt,ans;                               //起点(x1,y1),终点(x2,y2),最少移动次数ans
+int dirs[8][2]={{-2,-1},{-2,1},{2,-1},{2,1},{-1,-2},{-1,2},{1,-2},{1,2}};//8个移动方向
+priority_queue<knight> que;//最小优先级队列(开启列表)
+
+bool in(const knight & a){                         //判断knight是否在棋盘内
+    if(a.x<0 || a.y<0 || a.x>=8 || a.y>=8)
+        return false;
+    return true;
+}
+int Heuristic(const knight &a){                    //manhattan估价函数
+    return (abs(a.x-xt)+abs(a.y-yt))*10;
+}
+void Astar(){             //A*算法
+    knight s,t;
+    while(!que.empty()){
+        s = que.top(), que.pop(), visited[s.x][s.y] = true;
+        if(s.x == xt && s.y == yt){                 //算法终止条件
+            ans = s.step;
+            break;
+        }
+        for(int i = 0; i < 8; i++){
+            t.x = s.x+dirs[i][0],t.y = s.y+dirs[i][1];
+            if(in(t) && !visited[t.x][t.y]){    //依次判断八个位置的属性是否满足要求，再压入队列中
+                t.g = s.g + 23;                 //23表示根号5乘以10再取其ceil
+                t.h = Heuristic(t);
+                t.f = t.g + t.h;
+                t.step = s.step + 1;
+                que.push(t);
+            }
+        }
+    }
+}
+int Astar_main(){   //测试
+    char line[6];
+    while(fgets(line, 7, stdin)){
+        xs=line[0]-'a',ys=line[1]-'1',xt=line[3]-'a',yt=line[4]-'1';
+        memset(visited,false,sizeof(visited));
+        k.x=xs,k.y=ys,k.g=k.step=0,k.h=Heuristic(k),k.f=k.g+k.h;
+        while(!que.empty()) que.pop();
+        que.push(k);
+        Astar();
+        printf("To get from %c%c to %c%c takes %d knight moves.\n",line[0],line[1],line[3],line[4],ans);
+    }
+    return 0;
+}
+
+
+//algorithm2: BFS
+int n,sx,sy,ex,ey;
+int vis[305][305];
+int direction[8][2] = {-1,-2,-2,-1,-2,1,-1,2,1,-2,2,-1,2,1,1,2};
+struct blank
+{
+    int x,y,step;
+};
+
+int check(int x,int y)
+{
+    if(x<0 || x>=n || y<0 || y>=n)
+        return 1;
+    return vis[x][y];
+}
+
+void bfs()
+{
+    memset(vis,0,sizeof(vis));
+    blank a,next;
+    queue<blank> Q;  //深度优先搜索
+    int i;
+    a.x = sx;
+    a.y = sy;
+    a.step = 0;
+    vis[sx][sy] = 1;
+    Q.push(a);
+    while(!Q.empty())
+    {
+        a = Q.front();
+        Q.pop();
+        if(a.x == ex && a.y == ey)
+        {
+            printf("%d\n",a.step);
+            return;
+        }
+        for(i = 0;i<8;i++)
+        {
+            next = a;
+            next.x = a.x+direction[i][0];
+            next.y = a.y+direction[i][1];
+            if(check(next.x,next.y))
+                continue;
+            next.step = a.step+1;
+            vis[next.x][next.y] = 1;
+            Q.push(next);
+        }
+    }
+}
+
+int bfs_main()
+{
+    int t;
+    scanf("%d",&t);
+    while(t--)
+    {
+        scanf("%d%d%d%d%d",&n,&sx,&sy,&ex,&ey);
+        bfs();
+    }
+    
+    return 0;
+}
+
+//problem:环形打印出一个矩阵
+//algorithm:画图来理清思路
+void PrintMatrixInCircle(int** numbers, int columns, int rows, int start);
+void printNumber(int number);
+
+void PrintMatrixClockwisely(int** numbers, int columns, int rows)
+{
+    if(numbers == NULL || columns <= 0 || rows <= 0)
+        return;
+    
+    int start = 0;
+    
+    while(columns > start * 2 && rows > start * 2)
+    {
+        PrintMatrixInCircle(numbers, columns, rows, start);
+        
+        ++start;
+    }
+}
+
+void PrintMatrixInCircle(int** numbers, int columns, int rows, int start)
+{
+    int endX = columns - 1 - start;
+    int endY = rows - 1 - start;
+    
+    // 从左到右打印第一行
+    for(int i = start; i <= endX; ++i)
+    {
+        int number = numbers[start][i];
+        printNumber(number);
+    }
+    
+    // 从上到下打印一列
+    if(start < endY)
+    {
+        for(int i = start + 1; i <= endY; ++i)
+        {
+            int number = numbers[i][endX];
+            printNumber(number);
+        }
+    }
+    
+    // 从右到左打印一行
+    if(start < endX && start < endY)
+    {
+        for(int i = endX - 1; i >= start; --i)
+        {
+            int number = numbers[endY][i];
+            printNumber(number);
+        }
+    }
+    
+    // 从下到上打印一列
+    if(start < endX && start < endY - 1)
+    {
+        for(int i = endY - 1; i >= start + 1; --i)
+        {
+            int number = numbers[i][start];
+            printNumber(number);
+        }
+    }
+}
+
+void printNumber(int number)
+{
+    printf("%d\t", number);
+}
+
+
+
+//problem: 求一棵树的镜像
+//algorithm: 变相考察树的遍历
+void MirrorRecursively(BinaryTreeNode *pNode)
+{
+    if(pNode == NULL)
+        return;
+    
+    BinaryTreeNode *pTemp = pNode->m_pLeft;
+    pNode->m_pLeft = pNode->m_pRight;
+    pNode->m_pRight = pTemp;
+    
+    if(pNode->m_pLeft)
+        MirrorRecursively(pNode->m_pLeft);
+    
+    if(pNode->m_pRight)
+        MirrorRecursively(pNode->m_pRight);
+}
+
+void MirrorIteratively(BinaryTreeNode* pRoot)
+{
+    if(pRoot == NULL)
+        return;
+    
+    std::stack<BinaryTreeNode*> stackTreeNode;
+    stackTreeNode.push(pRoot);
+    
+    while(stackTreeNode.size() > 0)
+    {
+        BinaryTreeNode *pNode = stackTreeNode.top();
+        stackTreeNode.pop();
+        
+        BinaryTreeNode *pTemp = pNode->m_pLeft;
+        pNode->m_pLeft = pNode->m_pRight;
+        pNode->m_pRight = pTemp;
+        
+        if(pNode->m_pLeft)
+            stackTreeNode.push(pNode->m_pLeft);
+        
+        if(pNode->m_pRight)
+            stackTreeNode.push(pNode->m_pRight);
+    }
+}
+
+
+
+//problem:树的子结构
+//algorithm: 递归调用，考察树的遍历，注意边界条件
+bool HasSubtreeCore(BinaryTreeNode* pRoot1, BinaryTreeNode* pRoot2);
+bool DoesTree1HaveTree2(BinaryTreeNode* pRoot1, BinaryTreeNode* pRoot2);
+bool HasSubtree(BinaryTreeNode* pRoot1, BinaryTreeNode* pRoot2)
+{
+    bool result = false;
+    
+    if(pRoot1 != NULL && pRoot2 != NULL)                //一边遍历一边判断
+    {
+        if(pRoot1->m_nValue == pRoot2->m_nValue)
+            result = DoesTree1HaveTree2(pRoot1, pRoot2); //这就相当于树遍历中的VISIT函数
+        if(!result)
+            result = HasSubtree(pRoot1->m_pLeft, pRoot2);
+        if(!result)
+            result = HasSubtree(pRoot1->m_pRight, pRoot2);
+    }
+    
+    return result;
+}
+
+bool DoesTree1HaveTree2(BinaryTreeNode* pRoot1, BinaryTreeNode* pRoot2)
+{
+    if(pRoot2 == NULL) //这三个递归的退出判断特别重要，前后顺序也很重要
+        return true;
+    
+    if(pRoot1 == NULL)
+        return false;
+    
+    if(pRoot1->m_nValue != pRoot2->m_nValue)
+        return false;
+    
+    return DoesTree1HaveTree2(pRoot1->m_pLeft, pRoot2->m_pLeft) &&
+    DoesTree1HaveTree2(pRoot1->m_pRight, pRoot2->m_pRight);
+}
+
+
+//problem: 定位到链表中倒数第k个节点
+//algorithm:主要考虑鲁棒性，当头结点为空时、k为零时、k大于链表的长度时
+node* FindKthToTail(node* pListHead, unsigned int k)
+{
+    if(pListHead == NULL || k == 0) // 如果k==0,那么由于k的类型是unsigned int则k-1将变成很大的正整数
+        return NULL;
+    
+    node *pAhead = pListHead;
+    node *pBehind = NULL;
+    
+    for(unsigned int i = 0; i < k - 1; ++ i)
+    {
+        if(pAhead->next != NULL)  //
+            pAhead = pAhead->next;
+        else
+        {
+            return NULL;
+        }
+    }
+    
+    pBehind = pListHead;
+    while(pAhead->next != NULL)
+    {
+        pAhead = pAhead->next;
+        pBehind = pBehind->next;
+    }
+    
+    return pBehind;
+}
 
 //problem:
 //algorithm:
@@ -395,19 +950,22 @@ Node * mergeSort2(Node * p, int len) {
 //链表合并
 Node *merge2(Node *head1,Node *head2)
 {
+    if(head1 == NULL) //鲁棒性测试必须先行
+        return head2;
+    if(head2 == NULL)
+        return head1;
+    
     Node *p1 = NULL;
     Node *p2 = NULL;
     Node *head = NULL;
     
     //找出两个链表中第一个结点较小的结点，head记录较小结点的头结点
-    if(head1->data < head2->data)
-    {
+    if(head1->data < head2->data){
         head = head1;
         p1 = head1->next;
         p2 = head2;
     }
-    else
-    {
+    else{
         head = head2;
         p2 = head2->next;
         p1 = head1;
@@ -416,10 +974,8 @@ Node *merge2(Node *head1,Node *head2)
     Node *pcur = head;
     
     //在两个链表中遍历比较，将值较小的结点链接到pcur结点后
-    while(p1 != NULL && p2 != NULL)
-    {
-        if(p1->data <= p2->data)
-        {
+    while(p1 != NULL && p2 != NULL){
+        if(p1->data <= p2->data){
             pcur->next = p1;
             pcur = p1;
             p1 = p1->next;
@@ -522,6 +1078,8 @@ BinaryTreeNode* findLowestCommonAncestor3(BinaryTreeNode* root , BinaryTreeNode*
 /*
  字符串的比较函数需要重新定义，不是比较a和b，而是比较ab与 ba。如果ab < ba，则a < b；
  如果ab > ba，则a > b；如果ab = ba，则a = b。比较函数的定义是本解决方案的关键。
+ 为什么不能直接比较ab和ba的大小呢，因为把他们拼起来可能会超出int的表达范围，所以这是
+ 一个隐形的大数问题
  */
 struct comparestr  //仿函数
 {
@@ -545,6 +1103,47 @@ void ComArrayMin(int *pArray, int num){
     
     sort(pStrArray, pStrArray + num, comparestr()); //字符串数组排序
 
+}
+//剑指offer上的解答
+const int g_MaxNumberLength = 10;
+
+char* g_StrCombine1 = new char[g_MaxNumberLength * 2 + 1];
+char* g_StrCombine2 = new char[g_MaxNumberLength * 2 + 1];
+
+int compare(const void* strNumber1, const void* strNumber2);
+void PrintMinNumber(int* numbers, int length)
+{
+    if(numbers == NULL || length <= 0)
+        return;
+    
+    char** strNumbers = (char**)(new int[length]);
+    for(int i = 0; i < length; ++i)
+    {
+        strNumbers[i] = new char[g_MaxNumberLength + 1];
+        sprintf(strNumbers[i], "%d", numbers[i]);
+    }
+    
+    qsort(strNumbers, length, sizeof(char*), compare);
+    
+    for(int i = 0; i < length; ++i)
+        printf("%s", strNumbers[i]);
+    printf("\n");
+    
+    for(int i = 0; i < length; ++i)
+        delete[] strNumbers[i];
+    delete[] strNumbers;
+}
+int compare(const void* strNumber1, const void* strNumber2)
+{
+    // [strNumber1][strNumber2]
+    strcpy(g_StrCombine1, *(const char**)strNumber1);
+    strcat(g_StrCombine1, *(const char**)strNumber2);
+    
+    // [strNumber2][strNumber1]
+    strcpy(g_StrCombine2, *(const char**)strNumber2);
+    strcat(g_StrCombine2, *(const char**)strNumber1);
+    
+    return strcmp(g_StrCombine1, g_StrCombine2);
 }
 
 //problem: 用递归法颠倒一个栈
@@ -724,7 +1323,7 @@ void evenOddPartition(int A[], int n) {
         j--;
     }
 }
-//algorithm: 利用函数指针，提高可移植性
+//algorithm: 利用函数指针，提高扩展性，只要是把
 void Reorder(int *pData, unsigned int length, bool (*func)(int));
 bool isEven(int n);
 
@@ -767,7 +1366,7 @@ bool isEven(int n)
 
 
 //problem: find consecutive sequence whose sum equals to n
-//algorithm: recursive
+//algorithm: recursive，思想和2sum中前后指针的思想一致，都是若大于sum，则small变化（这里是small加，因为求得是small到big之间的连加），若小于sum，则big加
 void PrintContinuousSequence(int small, int big);
 // Find continuous sequence, whose sum is n
 void FindContinuousSequence(int n)
@@ -787,7 +1386,7 @@ void FindContinuousSequence(int n)
         // move small forward
         while(sum > n)
         {
-            sum -= small;
+            sum -= small;   //避免了重新计算之和，只需减掉小端值就可以了
             small ++;
             // we are lucky and find the sequence
             if(sum == n)
@@ -795,7 +1394,7 @@ void FindContinuousSequence(int n)
         }
         // move big forward
         big ++;
-        sum += big;
+        sum += big;   //只需加上大端值就可以了
     }
 }
 // Print continuous sequence between small and big
@@ -989,7 +1588,8 @@ bool IsPossiblePopOrder(const int* pPush, const int* pPop, int nLength)
 {
     bool bPossible = false;
     
-    if(!pPush || !pPop || nLength <= 0)    return bPossible;
+    if(!pPush || !pPop || nLength <= 0)
+        return bPossible;
     
     const int *pNextPush = pPush;
     const int *pNextPop = pPop;
@@ -1000,28 +1600,15 @@ bool IsPossiblePopOrder(const int* pPush, const int* pPop, int nLength)
     // check every integers in pPop
     while(pNextPop - pPop < nLength)
     {
-        // while the top of the ancillary stack is not the integer
-        // to be poped, try to push some integers into the stack
-        while(stackData.empty() || stackData.top() != *pNextPop)
-        {
-            // pNextPush == NULL means all integers have been
-            // pushed into the stack, can't push any longer
-            if(!pNextPush)
+        while(stackData.empty() || stackData.top() != *pNextPop){
+
+            if (pNextPush - pPush == nLength)
                 break;
-            
             stackData.push(*pNextPush);
-            
-            // if there are integers left in pPush, move
-            // pNextPush forward, otherwise set it to be NULL
-            if(pNextPush - pPush < nLength - 1)
-                pNextPush ++;
-            else
-                pNextPush = NULL;
+            pNextPush ++;
+
         }
         
-        // After pushing, the top of stack is still not same as
-        // pPextPop, pPextPop is not in a pop sequence
-        // corresponding to pPush
         if(stackData.top() != *pNextPop)
             break;
         
@@ -1030,15 +1617,14 @@ bool IsPossiblePopOrder(const int* pPush, const int* pPop, int nLength)
         pNextPop ++;
     }
     
-    // if all integers in pPop have been check successfully,
-    // pPop is a pop sequence corresponding to pPush
     if(stackData.empty() && pNextPop - pPop == nLength)
         bPossible = true;
     
     return bPossible;
 }
-//
-int isPopSeries(int push[], int pop[], int n) {
+//这是用数组的形式来处理的，以上使用指针，本质上没有区别
+bool isPopSeries(int push[], int pop[], int n) {
+    bool bPossible = false;
     stack<int> helper;
     int i1 = 0, i2 = 0;
     while (i2 < n) {
@@ -1046,12 +1632,15 @@ int isPopSeries(int push[], int pop[], int n) {
             if (i1 < n)
                 helper.push(push[i1++]);
             else
-                return 0;
-            while (!helper.empty() && helper.top() == pop[i2]) {
+                break;
+            
+            if (!helper.empty() && helper.top() == pop[i2]) {
                 helper.pop(); i2++; }
         }
     }
-    return 1;
+    if (helper.empty() && i2 == n)
+        bPossible = true;
+    return bPossible;
 }
 //算法2：利用栈混洗的充要条件，算法复杂度是O(n^2)
 /*
@@ -1507,10 +2096,9 @@ void PrintFromTopToBottom(BTreeNode *pTreeRoot)
 因此这道题的本质是在二元树上实现广度优先遍历。
 */
 
-
-//问题：reverse a tree，构成他的影像，左右对称
+//问题：reverse a tree，构成他的镜像mirror，左右对称
 //算法：分治递归
-void Revertsetree(BinaryTreeNode *root)
+void Reversetree(BinaryTreeNode *root)
 {
     if(!root)
         return;
@@ -1521,9 +2109,9 @@ void Revertsetree(BinaryTreeNode *root)
     root->m_pRight = p;
     
     if(root->m_pLeft)
-        Revertsetree(root->m_pLeft);
+        Reversetree(root->m_pLeft);
     if(root->m_pRight)
-        Revertsetree(root->m_pRight);
+        Reversetree(root->m_pRight);
 }
 //算法2：递归改迭代，利用一个栈
 /*
@@ -1535,12 +2123,53 @@ void Revertsetree(BinaryTreeNode *root)
 如果它有右子树，把它的右子树压入栈中。
 这样在下次循环中就能交换它儿子结点的左右子树了。
 */
+
+
+//problem: 二叉搜索树的后序遍历验证
+//algorithm: 递归调用
+bool VerifySquenceOfBST(int sequence[], int length)
+{
+    if(sequence == NULL || length <= 0)
+        return false;
+    
+    int root = sequence[length - 1];
+    
+    // 在二叉搜索树中，左子树节点小于根节点
+    int i = 0;
+    for(; i < length - 1; ++ i)
+    {
+        if(sequence[i] > root)  //找到partition的点
+            break;
+    }
+    
+    // 右子树节点大于根节点
+    int j = i;
+    for(; j < length - 1; ++ j)
+    {
+        if(sequence[j] < root)
+            return false;
+    }
+    
+    // 判断左子树是不是二叉树
+    bool left = true;
+    if(i > 0)
+        left = VerifySquenceOfBST(sequence, i);
+    
+    // 判断右子树是不是二叉树
+    bool right = true;
+    if(i < length - 1)
+        right = VerifySquenceOfBST(sequence + i, length - i - 1);
+    
+    return (left && right);
+}
+
+
 struct ListNode__ {
     int m_value;
     ListNode__* leftch;
     ListNode__* rightch;
 };
-void Revertsetree2(ListNode__ *phead)
+void Reversetree2(ListNode__ *phead)
 {
     if(!phead)
         return;
@@ -1565,7 +2194,9 @@ void Revertsetree2(ListNode__ *phead)
             stacklist.push(pnode->rightch);  //若有右子树，把它的右子树压入栈中
     }
 }
- //问题：已经排好序，求和为固定值的两个数字
+
+
+//问题：已经排好序，求和为固定值的两个数字
 //算法：两边往中间扫描
 bool findTwoNumbers(int data[], unsigned int length, int sum, int& num1, int& num2) {
     bool found = false;
@@ -1587,7 +2218,7 @@ bool findTwoNumbers(int data[], unsigned int length, int sum, int& num1, int& nu
 }
 
 //问题：单项链表，倒数第k个节点
-//算法：
+//算法：注意对错误输入的处理
 node* listSearch(node* head, int k) {
     int i = 0;
     node* p = head, *q = head;
@@ -1691,6 +2322,17 @@ int get_depth(Tree *tree) {
     }
     return depth;
 }
+//简介版
+int TreeDepth(BinaryTreeNode* pRoot)
+{
+    if(pRoot == NULL)
+        return 0;
+    
+    int nLeft = TreeDepth(pRoot->m_pLeft);
+    int nRight = TreeDepth(pRoot->m_pRight);
+    
+    return (nLeft > nRight) ? (nLeft + 1) : (nRight + 1);
+}
 
 /*
  * return the max distance of the tree
@@ -1708,6 +2350,68 @@ int get_max_distance(Tree *tree) {
         distance = ( r_distance > distance ) ? r_distance : distance;
     }
     return distance;
+}
+
+//problem: 判断一个二叉树是不是平衡二叉树
+//algorithm: 后序遍历
+//该算法的缺点是：每一个节点都遍历了多次
+int TreeDepth_(BinaryTreeNode* pRoot)
+{
+    if(pRoot == NULL)
+        return 0;
+    
+    int nLeft = TreeDepth_(pRoot->m_pLeft);
+    int nRight = TreeDepth_(pRoot->m_pRight);
+    
+    return (nLeft > nRight) ? (nLeft + 1) : (nRight + 1);
+}
+
+bool IsBalanced_Solution1(BinaryTreeNode* pRoot)
+{
+    if(pRoot == NULL)
+        return true;
+    
+    int left = TreeDepth_(pRoot->m_pLeft); //会多次计算同一个节点的深度
+    int right = TreeDepth_(pRoot->m_pRight);
+    int diff = left - right;
+    if(diff > 1 || diff < -1)
+        return false;
+    
+    return IsBalanced_Solution1(pRoot->m_pLeft)
+    && IsBalanced_Solution1(pRoot->m_pRight);
+}
+
+//algorithm2: 上述方法虽然简单，但是遍历了多次节点，可以考虑后序遍历，每一个节点
+//用一个变量记录树的高度，然后该节点是否满足平衡二叉树的节点条件
+bool IsBalanced(BinaryTreeNode* pRoot, int* pDepth);
+
+bool IsBalanced_Solution2(BinaryTreeNode* pRoot)
+{
+    int depth = 0;
+    return IsBalanced(pRoot, &depth);
+}
+
+bool IsBalanced(BinaryTreeNode* pRoot, int* pDepth)
+{
+    if(pRoot == NULL)
+    {
+        *pDepth = 0;
+        return true;
+    }
+    
+    int left, right;
+    if(IsBalanced(pRoot->m_pLeft, &left)
+       && IsBalanced(pRoot->m_pRight, &right))
+    {
+        int diff = left - right;
+        if(diff <= 1 && diff >= -1)
+        {
+            *pDepth = 1 + (left > right ? left : right);
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 
@@ -1792,7 +2496,7 @@ node *reverseList2(node *head)
 }
 
 
-//问题：给出俩个单向链表的头指针，比如h1，h2，判断这俩个链表是否相交。
+//问题：给出俩个单向链表的头指针，比如h1，h2，判断这俩个链表是否相交。交点
 //算法：
 /*
  1.首先假定链表不带环
@@ -1809,8 +2513,8 @@ node *reverseList2(node *head)
  如果在，则相交，如果不在，则不相交。
  */
 
-//判断一个单项链表是否存在环
-bool checkCycle(const node* head)
+//判断一个单项链表是否存在环，快慢指针，双指针都是解决问题的好办法
+bool checkCircle(const node* head)
 {
     if(head==NULL)                  //首先检查这个
         return false;
@@ -1849,7 +2553,7 @@ node* FindLoopPort(node *head)
 bool connectionList(const node* h1, const node* h2) {
     if (h1 == NULL || h2 == NULL)           //首先检查这个
         return false;
-    if (!checkCycle(h1) && !checkCycle(h2)) { //都没环
+    if (!checkCircle(h1) && !checkCircle(h2)) { //都没环
         while (h1->next != NULL) h1 = h1->next;
         while (h2->next != NULL) h2 = h2->next;
         if (h1 == h2)
@@ -1876,6 +2580,60 @@ bool connectionList(const node* h1, const node* h2) {
     return false;
 }
 
+//algorithm3: 先遍历得到两条链表的长度信息，先让长度更长的移动一段距离，再同时开始运动
+//algorithm4:
+unsigned int GetListLength(ListNode* pHead);
+
+ListNode* FindFirstCommonNode( ListNode *pHead1, ListNode *pHead2)
+{
+    //
+    unsigned int nLength1 = GetListLength(pHead1);
+    unsigned int nLength2 = GetListLength(pHead2);
+    int nLengthDif = nLength1 - nLength2;
+    
+    ListNode* pListHeadLong = pHead1;
+    ListNode* pListHeadShort = pHead2;
+    if(nLength2 > nLength1)
+    {
+        pListHeadLong = pHead2;
+        pListHeadShort = pHead1;
+        nLengthDif = nLength2 - nLength1;
+    }
+    
+    //
+    for(int i = 0; i < nLengthDif; ++ i)
+        pListHeadLong = pListHeadLong->succ;
+    
+    while((pListHeadLong != NULL) &&
+          (pListHeadShort != NULL) &&
+          (pListHeadLong != pListHeadShort))
+    {
+        pListHeadLong = pListHeadLong->succ;
+        pListHeadShort = pListHeadShort->succ;
+    }
+    
+    
+    ListNode* pFisrtCommonNode = pListHeadLong;
+    
+    return pFisrtCommonNode;
+}
+
+unsigned int GetListLength(ListNode* pHead)
+{
+    unsigned int nLength = 0;
+    ListNode* pNode = pHead;
+    while(pNode != NULL)
+    {
+        ++ nLength;
+        pNode = pNode->succ;
+    }
+    
+    return nLength;
+}
+
+
+
+
 //问题：在二叉树中找出和为某一值的所有路径(树）
 //算法：与Leetcode combination sum I的类似，使用回溯剪枝法，利用堆栈和深度优先搜索策略
 /*
@@ -1889,7 +2647,8 @@ bool connectionList(const node* h1, const node* h2) {
  我们不难看出保存路径的数据结构实际上是一个栈结构，因为路径要与递归调用状态一致，
  而递归调用本质就是一个压栈和出栈的过程。
  */
-void FindPath(
+//递归1
+void FindPath_(
               BinaryTreeNode*   pTreeNode,    // a node of binary tree
               int               expectedSum,  // the expected sum
               int&              currentSum,   // the sum of path
@@ -1900,6 +2659,7 @@ void FindPath(
     
     currentSum += pTreeNode->m_nValue;
     path.push_back(pTreeNode->m_nValue);
+    //这里没有采用stack而是采用vector原因在于我们要遍历栈中的元素，而栈不提供迭代器的功能
     
     // if the node is a leaf, and the sum is same as pre-defined,
     // the path is what we want. print the path
@@ -1914,14 +2674,60 @@ void FindPath(
     
     // if the node is not a leaf, goto its children
     if(pTreeNode->m_pLeft)
-        FindPath(pTreeNode->m_pLeft, expectedSum, currentSum, path);
+        FindPath_(pTreeNode->m_pLeft, expectedSum, currentSum, path);
     if(pTreeNode->m_pRight)
-        FindPath(pTreeNode->m_pRight, expectedSum, currentSum, path);
+        FindPath_(pTreeNode->m_pRight, expectedSum, currentSum, path);
     
     // when we finish visiting a node and return to its parent node,
     // we should delete this node from the path and
     // minus the node's value from the current sum
     currentSum -= pTreeNode->m_nValue;
+    path.pop_back();
+}
+
+//递归2， 剑指offer
+void FindPath(BinaryTreeNode* pRoot, int expectedSum, std::vector<int>& path, int& currentSum);
+
+void FindPath(BinaryTreeNode* pRoot, int expectedSum)
+{
+    if(pRoot == NULL)
+        return;
+    
+    std::vector<int> path;
+    int currentSum = 0;
+    FindPath(pRoot, expectedSum, path, currentSum);
+}
+
+void FindPath
+(
+ BinaryTreeNode*   pRoot,
+ int               expectedSum,
+ std::vector<int>& path,
+ int&              currentSum
+ )
+{
+    currentSum += pRoot->m_nValue;
+    path.push_back(pRoot->m_nValue);
+
+    bool isLeaf = pRoot->m_pLeft == NULL && pRoot->m_pRight == NULL;
+    if(currentSum == expectedSum && isLeaf)
+        //找到了满足条件的方案，打印出来，这其实与遍历的思想完全一致，相当于VISIT函数
+    {
+        printf("A path is found: ");
+        std::vector<int>::iterator iter = path.begin();
+        for(; iter != path.end(); ++ iter)
+            printf("%d\t", *iter);
+        
+        printf("\n");
+    }
+    
+    if(pRoot->m_pLeft != NULL)
+        FindPath(pRoot->m_pLeft, expectedSum, path, currentSum);
+    if(pRoot->m_pRight != NULL)
+        FindPath(pRoot->m_pRight, expectedSum, path, currentSum);
+    
+    //在返回父节点之前，在路径上删除当前节点，并在currentSum中减去当前节点的值
+    currentSum -= pRoot->m_nValue;
     path.pop_back();
 }
 
@@ -2085,7 +2891,7 @@ struct BSTreeNode
 
 typedef BSTreeNode DoubleList;
 DoubleList * pHead;
-DoubleList * pListIndex; //始终指向双向链表的最后一个节点
+DoubleList * pLastNodeInlist; //始终指向双向链表的最后一个节点
 
 void convertToDoubleList(BSTreeNode * pCurrent);
 // 创建二元查找树
@@ -2118,24 +2924,22 @@ void addBSTreeNode(BSTreeNode * & pCurrent, int value)
 }
 
 // 遍历二元查找树  中序
-void ergodicBSTree(BSTreeNode * pCurrent)
+void inorderBSTree(BSTreeNode * pCurrent)
 {
-    if (NULL == pCurrent)
-    {
+    if (NULL == pCurrent){
         return;
     }
-    if (NULL != pCurrent->m_pLeft)
-    {
-        ergodicBSTree(pCurrent->m_pLeft);
+    if (NULL != pCurrent->m_pLeft){
+        inorderBSTree(pCurrent->m_pLeft);
     }
+    // 节点接到链表尾部，假设之前访问过的结点已经调整为一个双向链表，且最后一个元素是
+    // 已链接元素的最大值，那么只需要将当前结点连接至双向链表的最后一个结点即可
     
-    // 节点接到链表尾部，假设之前访问过的结点已经调整为一个双向链表，那么
-    //       只需要将当前结点连接至双向链表的最后一个结点即可
     convertToDoubleList(pCurrent);
+    
     // 右子树为空
-    if (NULL != pCurrent->m_pRight)
-    {
-        ergodicBSTree(pCurrent->m_pRight);
+    if (NULL != pCurrent->m_pRight){
+        inorderBSTree(pCurrent->m_pRight);
     }
 }
 
@@ -2143,16 +2947,16 @@ void ergodicBSTree(BSTreeNode * pCurrent)
 void  convertToDoubleList(BSTreeNode * pCurrent)
 {
     
-    pCurrent->m_pLeft = pListIndex; //使当前结点的左指针指向双向链表中最后一个结点
-    if (NULL != pListIndex) ////使双向链表中最后一个结点的右指针指向当前结点
+    pCurrent->m_pLeft = pLastNodeInlist; //使当前结点的左指针指向双向链表中最后一个结点
+    if (NULL != pLastNodeInlist) ////使双向链表中最后一个结点的右指针指向当前ƒ结点
     {
-        pListIndex->m_pRight = pCurrent;
+        pLastNodeInlist->m_pRight = pCurrent;
     }
     else //若最后一个元素不存在，此时双向链表尚未建立，因此将当前结点设为双向链表头结点
     {
         pHead = pCurrent;
     }
-    pListIndex = pCurrent; //将当前结点设为双向链表中最后一个结点
+    pLastNodeInlist = pCurrent; //将当前结点设为双向链表中最后一个结点
     cout<<pCurrent->m_nValue<<endl;
 }
 
@@ -2391,7 +3195,7 @@ int median ( vector<int>& S1, int lo1, int n1, vector<int>& S2, int lo2, int n2 
 }
 
 //问题：在无序向量中，若有一半以上的元素同为m, 则称之为主流数（majority）
-//算法：减而治之
+//算法1：减而治之
 int majEleCandidate ( vector<int> A );
 bool majEleCheck ( vector<int> A, int maj );
 
@@ -2415,6 +3219,70 @@ bool majEleCheck ( vector<int> A, int maj ) { //验证候选者是否确为众�
         if ( A[i] == maj ) occurrence++; //每遇到一次maj，均更新计数器
     return 2 * occurrence > A.size(); //根据最终的计数值，即可判断是否的确当选
 }
+
+//algorithm2: 只需要判断中位数是不是众数即可。两步：找到中位数，判断中位数是不是众数
+bool g_bInputInvalid = false;
+
+bool CheckInvalidArray(int* numbers, int length)
+{
+    g_bInputInvalid = false;
+    if(numbers == NULL && length <= 0)
+        g_bInputInvalid = true;
+    
+    return g_bInputInvalid;
+}
+
+bool CheckMoreThanHalf(int* numbers, int length, int number)
+{
+    int times = 0;
+    for(int i = 0; i < length; ++i)
+    {
+        if(numbers[i] == number)
+            times++;
+    }
+    
+    bool isMoreThanHalf = true;
+    if(times * 2 <= length)
+    {
+        g_bInputInvalid = true;
+        isMoreThanHalf = false;
+    }
+    
+    return isMoreThanHalf;
+}
+
+int partition ( int* _elem, int lo, int hi ) ;
+int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数n/2满不满足条件即可
+{
+    if(CheckInvalidArray(numbers, length))
+        return 0;
+    
+    int middle = length >> 1;
+    int start = 0;
+    int end = length - 1;
+    int index = partition(numbers, start, end);
+    while(index != middle)
+    {
+        if(index > middle)
+        {
+            end = index - 1;
+            index = partition(numbers, start, end);
+        }
+        else
+        {
+            start = index + 1;
+            index = partition(numbers, start, end);
+        }
+    }
+    
+    int result = numbers[middle];
+    if(!CheckMoreThanHalf(numbers, length, result))
+        result = 0;
+    
+    return result;
+}
+
+
 
 
 //问题：排序
@@ -2523,6 +3391,79 @@ public:
         return s2.top();
     }
 };
+
+//写成模板、标准类的形式
+template <typename T>
+class StackWithMin {
+public:
+    StackWithMin(void) {}
+    virtual ~StackWithMin(void) {}
+    
+    T& top(void);
+    const T& top(void) const;
+    
+    void push(const T& value);
+    void pop(void);
+    
+    const T& min(void) const;
+    
+    bool empty() const;
+    size_t size() const;
+    
+private:
+    std::stack<T>   m_data;     //
+    std::stack<T>   m_min;      //
+};
+
+template <typename T> void StackWithMin<T>::push(const T& value)
+{
+    //
+    m_data.push(value);
+    
+    if(m_min.size() == 0 || value < m_min.top())
+        m_min.push(value);
+    else
+        m_min.push(m_min.top());
+}
+
+template <typename T> void StackWithMin<T>::pop()
+{
+    assert(m_data.size() > 0 && m_min.size() > 0);
+    
+    m_data.pop();
+    m_min.pop();
+}
+
+
+template <typename T> const T& StackWithMin<T>::min() const
+{
+    assert(m_data.size() > 0 && m_min.size() > 0);
+    
+    return m_min.top();
+}
+
+template <typename T> T& StackWithMin<T>::top()
+{
+    return m_data.top();
+}
+
+template <typename T> const T& StackWithMin<T>::top() const
+{
+    return m_data.top();
+}
+
+template <typename T> bool StackWithMin<T>::empty() const
+{
+    return m_data.empty();
+}
+
+template <typename T> size_t StackWithMin<T>::size() const
+{
+    return m_data.size();
+}
+
+
+
 
 //问题：使用两个堆栈来实现队列
 //算法：一个负责入队，一个负责出队
@@ -3080,6 +4021,89 @@ void shiftRight(int* A, int n, int k)
     std::reverse(A+k, A+n);
     std::reverse(A, A+n);
 }
+
+
+//problem: 复制复杂链表结构
+//algorithm：在原始链表上面clone再分离
+struct ComplexListNode
+{
+    int                 m_nValue;
+    ComplexListNode*    m_pNext;
+    ComplexListNode*    m_pSibling;
+};
+//          -----------------
+//         \|/              |
+//  1-------2-------3-------4-------5
+//  |       |      /|\             /|\
+//  --------+--------               |
+//          -------------------------
+void CloneNodes(ComplexListNode* pHead);
+void ConnectSiblingNodes(ComplexListNode* pHead);
+ComplexListNode* ReconnectNodes(ComplexListNode* pHead);
+
+ComplexListNode* Clone(ComplexListNode* pHead)
+{
+    CloneNodes(pHead);
+    ConnectSiblingNodes(pHead);
+    return ReconnectNodes(pHead);
+}
+
+void CloneNodes(ComplexListNode* pHead)
+{
+    ComplexListNode* pNode = pHead;
+    while(pNode != NULL)
+    {
+        ComplexListNode* pCloned = new ComplexListNode();
+        pCloned->m_nValue = pNode->m_nValue;
+        pCloned->m_pNext = pNode->m_pNext;
+        pCloned->m_pSibling = NULL;
+        
+        pNode->m_pNext = pCloned;
+        
+        pNode = pCloned->m_pNext;
+    }
+}
+
+void ConnectSiblingNodes(ComplexListNode* pHead)
+{
+    ComplexListNode* pNode = pHead;
+    while(pNode != NULL)
+    {
+        ComplexListNode* pCloned = pNode->m_pNext;
+        if(pNode->m_pSibling != NULL)
+        {
+            pCloned->m_pSibling = pNode->m_pSibling->m_pNext;
+        }
+        
+        pNode = pCloned->m_pNext;
+    }
+}
+
+ComplexListNode* ReconnectNodes(ComplexListNode* pHead)
+{
+    ComplexListNode* pNode = pHead;
+    ComplexListNode* pClonedHead = NULL;
+    ComplexListNode* pClonedNode = NULL;
+    
+    if(pNode != NULL)
+    {
+        pClonedHead = pClonedNode = pNode->m_pNext;
+        pNode->m_pNext = pClonedNode->m_pNext;
+        pNode = pNode->m_pNext;
+    }
+    
+    while(pNode != NULL)
+    {
+        pClonedNode->m_pNext = pNode->m_pNext;
+        pClonedNode = pClonedNode->m_pNext;
+        
+        pNode->m_pNext = pClonedNode->m_pNext;
+        pNode = pNode->m_pNext;
+    }
+    
+    return pClonedHead;
+}
+
 
 
 #endif

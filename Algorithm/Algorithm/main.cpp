@@ -4,9 +4,20 @@
 #include <time.h>
 #include "algorithms.h"
 #include "leetcode.h"
+int N = 0;
+int nCheck = 0;
+int nSolu = 0;
 
 int main( int argc, char* argv[] ) {
     
+    N = 5;
+    char pStr[] = "wangbo";
+    Permutation(pStr);
+    
+    //placeQueens(N);
+    //Astar_main();
+    
+    return 0;
     
     /*
     Print1ToMaxOfNDigits_1(4);

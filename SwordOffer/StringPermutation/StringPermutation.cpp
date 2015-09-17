@@ -16,7 +16,7 @@ void Permutation(char* pStr)
     Permutation(pStr, pStr);
 }
 
-void Permutation(char* pStr, char* pBegin)
+void Permutation(char* pStr, char* pBegin)//pStrzhi'xinag
 {
     if(*pBegin == '\0')
     {
