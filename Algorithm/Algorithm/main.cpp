@@ -10,14 +10,40 @@ int nSolu = 0;
 
 int main( int argc, char* argv[] ) {
     
-    N = 5;
-    char pStr[] = "wangbo";
-    Permutation(pStr);
+    int A[] = {1,3,4,5,6,7,8,9};
+    maxqueue_main();
+    int a[] = { 1, 2, 3, 4, 6, 7, 12 };
+    int lower = my_lower_bound(a , 7, 7);
+    
+    vector<interval> vi;
+    interval i1(1,2);
+    interval i2(2, 4);
+    interval i3(6, 8);
+    interval i4(8, 12);
+    interval i5(7, 9);
+    interval target(-1, 12);
+    vi.push_back(i1);
+    vi.push_back(i2);
+    vi.push_back(i3);
+    vi.push_back(i4);
+    vi.push_back(i5);
+    bool t = intervalCoverage(vi, target);
+    
+    bool s = false;
+    return 0;
+    
+    
+    //bfs_main();
+    
+    //general_main();
+    //N = 5;
+    //char pStr[] = "wangbo";
+    //Permutation(pStr);
     
     //placeQueens(N);
     //Astar_main();
     
-    return 0;
+    //return 0;
     
     /*
     Print1ToMaxOfNDigits_1(4);
@@ -80,7 +106,7 @@ int main( int argc, char* argv[] ) {
     */
     // int A[] = {1};
     //evenOddPartition(A, 6);
-    return 0;
+    //return 0;
     /*
     WordDictionary wd;
     wd.addWord("abc");
@@ -92,6 +118,7 @@ int main( int argc, char* argv[] ) {
     wd.search(".a");
     wd.search("a.");
     //test:
+     
     vector<vector<int> > matrix(3);
     matrix = { {0,-2,-7,0}, {9,2,-6,2}, {-4,1,-4,1}, {-1, 8, 0, -2}};//这是横着排的，想着矩阵在内存中的存储顺序
     vector<int> col0 = matrix[0];
@@ -99,6 +126,7 @@ int main( int argc, char* argv[] ) {
     int nrow = (int) matrix.size();
     int ncol = (int) matrix[0].size();
     int ab = maxSubMatrix(matrix, nrow);
+    
     //test:
     int i = 21;
     int j = 11;

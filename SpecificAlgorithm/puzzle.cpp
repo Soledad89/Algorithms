@@ -2,7 +2,7 @@
 #include<queue>
 #include<fstream>
 using namespace std; 
-const int size = 362880 ; 
+const int size = 362880;
 int fact( int n )   //calculate the fact of the number of n 
 {
     int sum = 1 ; 
@@ -13,7 +13,7 @@ int fact( int n )   //calculate the fact of the number of n
 			sum*= i ; 
 	return sum ; 
 }
-int hash(const int state[9],int n) // ½«È«ÅÅÁĞÓ³ÉäÎª¶ÔÓ¦µÄhashÖµ(±ä½øÖÆÊı) 
+int hash(const int state[9],int n) // å°†å…¨æ’åˆ—æ˜ å°„ä¸ºhashå€¼ï¼Œå˜ç›¸è¿›æ•° 
 {
     int count = 0 ,res = 0 ; 
     for ( int i = 0 ; i < n ; i ++)
@@ -33,7 +33,7 @@ struct node
     int board[9];
     int space ; 
 };
-void get_node(int sum,node &tmp)   //Í¨¹ıhashÖµ¼ÆËã¶ÔÓ¦µÄ×´Ì¬ 
+void get_node(int sum,node &tmp)   //é€šè¿‡hashå€¼è®¡ç®—å¯¹åº”çš„çŠ¶æ€
 {
     for ( int i = 0 ; i < 9 ; i ++ ) 
     	tmp.board[i] = 0 ; 
@@ -63,7 +63,7 @@ void get_node(int sum,node &tmp)   //Í¨¹ıhashÖµ¼ÆËã¶ÔÓ¦µÄ×´Ì¬
 int f[size] , d[size] ;
 int goal_state[9][2] = {{1,1},{0,0},{0,1},{0,2},{1,2},{2,2},{2,1},{2,0},{1,0}};
 
-int h( const int board[9] ) //hº¯Êı£ºÃ¿¸öÊı×Öµ½ÆäÖÕµãËùĞè²½Êı 
+int h( const int board[9] ) //æ¯ä¸ªæ•°å­—åˆ°å…¶ç»ˆç‚¹æ‰€éœ€çš„æ­¥æ•° 
 {
     int dis = 0 ; 
     for ( int i = 0 ; i < 9 ; i ++ ) 
@@ -100,7 +100,7 @@ void a_Star( const node &start)
     open.push(u);
     color[u] = 1; 
     node tmp,cur ; 
-    while ( !open.empty())   //A*Ëã·¨Ö÷Òª²¿·Ö 
+    while ( !open.empty())   //A*Ã‹Ã£Â·Â¨Ã–Ã·Ã’ÂªÂ²Â¿Â·Ã– 
     {
         u = open.top();
         if ( u==target ) 
@@ -122,14 +122,14 @@ void a_Star( const node &start)
                  	tmp.space = a*3 + b;                
                   	swap(tmp.board[k], tmp.board[tmp.space]);                
                    	int v = hash(tmp.board,9);                
-                    if(color[v] == 1 && (d[u] + 1) < d[v]){//½áµãÔÚopen±íÖĞ                    
+                    if(color[v] == 1 && (d[u] + 1) < d[v]){//èŠ‚ç‚¹åœ¨openè¡¨ä¸­                 
                     	move_[v] = i;                    
                      	f[v] = f[v] - d[v] + d[u] + 1;                   
                       	d[v] = d[u] + 1;                    
                        	parent[v] = u;                                       
                         open.push(v);                
                 	}                
-                 	else if(color[v] == 2 && (d[u]+1)<d[v]){//½áµãÔÚclosed±íÖĞ                   
+                 	else if(color[v] == 2 && (d[u]+1)<d[v]){//èŠ‚ç‚¹åœ¨closedè¡¨ä¸­                 
                   		move_[v] = i;                    
                     	f[v] = f[v] - d[v] + d[u] + 1;                  
                      	d[v] = d[u] + 1;                    
@@ -137,7 +137,7 @@ void a_Star( const node &start)
                        	open.push(v);                    
                         color[v] = 1;                
                     }                
-                    else if(color[v] == 0){  //½áµãÎªÎ´À©Õ¹½áµã                    
+                    else if(color[v] == 0){  //                   
                         move_[v] = i;                    
                         d[v] = d[u] + 1;                    
                         f[v] = d[v] + h(tmp.board);                    
@@ -150,7 +150,7 @@ void a_Star( const node &start)
         }        
     }       
 }           
-bool judge( const int a[9] )  //ÅĞ¶Ï³õÊ¼×´Ì¬µÄÄæĞòÊı£¬ÒÔÈ·¶¨ÊÇ·ñÓĞ½â 
+bool judge( const int a[9] )  //åˆ¤æ–­åˆå§‹çŠ¶æ€çš„é€†åºæ•°ï¼Œä»¥ç¡®ä¿æœ‰è§£
 {
     int count = 0 ; 
     for ( int i = 0 ; i < 9 ; i ++ ) 
@@ -196,7 +196,7 @@ int main ( int argc , char * args[] )
      	fout << "no solution" << endl ; 
      return 0 ;    
 }                         
-void print( int u )//Êä³öº¯Êı 
+void print( int u )//ÃŠÃ¤Â³Ã¶ÂºÂ¯ÃŠÃ½ 
 {
     node tmp ; 
     get_node(u,tmp);

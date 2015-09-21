@@ -7,9 +7,12 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <sstream>
 #include <vector>
+#include <bitset>
+#include <map>
 #include <queue>
 #include <exception>
 #include <assert.h>
@@ -43,6 +46,386 @@ struct BinaryTreeNode{              // a node in the binary tree
     BinaryTreeNode(int nv = 0, BinaryTreeNode* pl = NULL, BinaryTreeNode* rl = NULL):
     m_nValue(nv), m_pLeft(pl), m_pRight(rl) {}
 };
+
+//problem: 判断一点是否在多边形内
+//algorithm: 射线交点判奇法
+// 方法：求解通过该点的水平线与多边形各边的交点
+// 结论：单边交点为奇数，成立!
+struct point
+{
+    double x, y;
+};
+
+bool PtInPolygon(point p, vector<point> ptPolygon, int nCount)
+{
+    int nCross = 0;
+    for (int i = 0; i < nCount; i++)
+    {
+        point p1 = ptPolygon[i];
+        point p2 = ptPolygon[(i + 1) % nCount];
+        // 求解 y=p.y 与 p1p2 的交
+        if ( p1.y == p2.y ) // p1p2 与 y=p0.y平行
+            continue;
+        if ( p.y < min(p1.y, p2.y) ) // 交点在p1p2延长线上
+            continue;
+        if ( p.y >= max(p1.y, p2.y) ) // 交点在p1p2延长线上
+            continue;
+        // 求交点的 X 坐标 -----------------------------
+        double x = (double)(p.y - p1.y) * (double)(p2.x - p1.x) / (double)(p2.y - p1.y) + p1.x;
+        
+        if ( x > p.x )
+            nCross++; // 只统计单边交点
+    }
+        // 单边交点为偶数，点在多边形之外 ---
+    return (nCross % 2 == 1);
+}
+
+//algorithm2: 向量乘积法
+//A，B，C 在逆时针方向
+//如果D在ABC之外，返回false，否则返回true
+//注：此处依赖于A、B、C的位置关系，其位置不能调换
+double Product(point A, point B, point C)
+{
+    return (B.x - A.x) * (C.y - A.y) - (C.x - A.x) * (B.y - A.y);
+}
+
+bool isInTriangle(point A, point B, point C, point D)
+{
+    if (Product(A, B, D) >= 0 && Product(B, C, D) >= 0 && Product(C, A, D) 	 >= 0)
+    {
+        return true;
+    }
+    return false;
+}
+
+//algorithm3: 7行代码解决问题
+//http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+int pnpoly(int nvert, float *vertx, float *verty, float testx, float testy)
+{
+    int i, j, c = 0;
+    for (i = 0, j = nvert-1; i < nvert; j = i++) {
+        if ( ((verty[i]>testy) != (verty[j]>testy)) &&
+            (testx < (vertx[j]-vertx[i]) * (testy-verty[i]) / (verty[j]-verty[i]) + vertx[i]) )
+            c = !c;
+    }
+    return c;
+}
+
+//problem: lower_bound 和 upper_bound的实现
+//algorithm:
+/*
+ int point[10] = {1,3,7,7,9};
+ int tmp = upper_bound(point, point + 5, 7) - point;
+ //按从小到大，7最多能插入数组point的哪个位置
+ tmp = lower_bound(point, point + 5, 7) - point;
+ //按从小到大，7最少能插入数组point的哪个位置
+ */
+int my_lower_bound(int *array, int size, int key)
+{
+    int first = 0, last = size-1;
+    int middle, pos = 0;       //需要用pos记录第一个大于等于key的元素位置
+    
+    while(first < last)
+    {
+        middle = (first+last)/2;
+        if(array[middle] < key){      //若中位数的值小于key的值，我们要在右边子序列中查找，这时候pos可能是右边子序列的第一个
+            first = middle + 1;
+            pos = first;
+        }
+        else{
+            last = middle;           //若中位数的值大于等于key，我们要在左边子序列查找，但有可能middle处就是最终位置，所以我们不移动last,
+            pos = last;              //而是让first不断逼近last。
+        }
+    }
+    return pos;
+}
+int my_upper_bound(int *array, int size, int key)
+{           //upper_bound返回的是最后一个大于等于val的位置，也是有一个新元素val进来时的插入位置。
+    int first = 0, last = size-1;
+    int middle, pos = 0;
+    
+    while(first < last)
+    {
+        middle = (first+last)/2;
+        if(array[middle] > key){     //当中位数大于key时，last不动，让first不断逼近last
+            last = middle;
+            pos = last;
+        }
+        else{
+            first = middle + 1;     //当中位数小于等于key时，将first递增，并记录新的位置
+            pos = first;
+        }
+    }
+    return pos;
+}
+
+//problem: 编程之美区间重合判断
+/*
+ 1. 给定一个源区间[x,y]和N个无序的目标区间[x1,y1] [x2,y2] ... [xn,yn]，
+    判断源区间[x,y]是不是在目标区间内。
+ 2. 给定一个窗口区域和系统界面上的N个窗口，判断这个窗口区域是否被已有的窗口覆盖。
+ */
+//algorithm:
+struct interval{
+    int low, high;
+    interval(int l=0, int h=0):low(l), high(h){}
+
+};
+
+struct {
+    bool operator()(const interval &v1, const interval &v2)
+    {
+        return v1.low < v2.low;
+    }
+} intervalLess;
+
+
+int BinarySearchLower(vector<interval> arrayInterval, int len, int target)//注意咱们搜索的数为刚好小于key的那个值
+{
+    
+    int low = 0, pos = 0;
+    int high = len-1;
+    while(low < high){
+        int mid = (low + high)/2;
+        if(arrayInterval[mid].low < target) {
+            low = mid + 1;
+            pos = low;
+        }
+        else
+        {
+            high = mid;
+            pos = high;
+        }
+    }
+    if (arrayInterval[pos].low > target)    //这一句特别关键，当相等时或者高出数组的最大边缘时，这时不需要减去1，只有当目标值比当前最小插入点处的元素小时，就需要往前移动一位。
+        return pos-1;
+    else
+        return pos;        //返回结果为在哪段中
+}
+
+bool intervalCoverage(vector<interval> vIntervals, interval tInterval)
+{
+    bool flag = false;
+    
+    int n = (int)vIntervals.size();
+    if (n <= 0)
+        return flag;
+    
+    sort(vIntervals.begin(), vIntervals.end(), intervalLess);
+    int cnt = 0; //合并以后的区间数
+    int lastHigh = vIntervals[0].high;
+    
+    //合并区间
+    for(int i=1; i < n; i++){
+        if(lastHigh >= vIntervals[i].low && lastHigh < vIntervals[i].high)
+            lastHigh = vIntervals[i].high;
+        else{
+            vIntervals[cnt].high = lastHigh;
+            vIntervals[++cnt].low = vIntervals[i].low;
+            lastHigh = vIntervals[i].high;
+        }
+        
+    }
+    vIntervals[cnt++].high = lastHigh;
+    
+    int sLow = BinarySearchLower(vIntervals, cnt, tInterval.low);
+ 
+    //注意这里实现了类似于lower_bound的函数
+    int sHigh = BinarySearchLower(vIntervals, cnt, tInterval.high);
+
+    
+    if(sLow == sHigh && tInterval.high <= vIntervals[sLow].high)
+        //注意要判断
+        flag = true;
+
+    return flag;
+}
+
+
+//problem: 不用除法，求N个整数数组中N-1个整数的最大乘积
+//algorithm: 统计分析规律
+//我刚开始想的就是分析乘积是正还是负，但是考虑到可能产生大数，所以觉得难度就增加了，结果
+//发现可以统计正负号的方法
+void subarrayMultiplication(int array[], int size)
+{
+    int zeroNum = 0;
+    int negativeNum = 0;
+    int positiveNum = 0;
+    int maxNegative = INT_MIN;
+    int minPositive = INT_MAX;
+    int zeroIndex = 0;
+    int minNegative = 0;
+    for(int i = 0; i < size; ++i) {
+        if(array[i] == 0) {
+            ++zeroNum;
+            zeroIndex = i;
+        }
+        else if(array[i] < 0) {
+            ++negativeNum;
+            if(array[i] > maxNegative)
+                maxNegative = array[i];
+            if(array[i] < minNegative)
+                minNegative = array[i];
+        }
+        else {
+            ++positiveNum;
+            if(array[i] < minPositive)
+                minPositive = array[i];
+        }
+    }
+    
+    //如果数组中包含两个或者两个以上0，那么子数组的乘积肯定为0
+    if(zeroNum >= 2) {
+        printf("all subArray elements' product is equal to zero");
+        return;
+    }
+    
+    //如果数组中只包含一个0，那么分两个情况：
+    //1.去除该0元素其余所有数的乘积为正，那么去除该0元素后所得的子数组乘积最大
+    //2.去除该0元素其余所有数的乘积为负，那么子数组最大的乘积为0，子数组中必须包含0元素
+    if(zeroNum == 1) {
+        if(negativeNum % 2 == 0) {
+            printf("the sunArray elements' indexs is except: %d\n", zeroIndex);
+        }
+        else {
+            printf("the subArray must have the index %d of element\n", zeroIndex);
+        }
+        
+        return;
+    }
+    
+    //如果数组中有偶数个负数：
+    //1.假定数组中存在正元素，则去掉最小正元素即可得到子数组的最大乘积
+    //2.假定数组中不存在正元素，则需要去掉最小的负数，即绝对值最大的负数
+    //如果数组中有奇数个负数：
+    //则只需要去掉值最大的负数，及绝对值最小的负数
+    if(negativeNum % 2 == 0 && positiveNum > 0) {  //需考虑没有正元素的情况
+        printf("the subArray elements' indexs in except: %d\n", minPositive);
+    }
+    else if(negativeNum % 2 == 0 && positiveNum == 0) {
+        printf("the subArray elements' indexs is except: %d\n", minNegative);
+    }
+    else {
+        printf("the subArray elements' indexs is except: %d\n", maxNegative);
+    }
+    
+}
+
+
+
+//problem:求N的阶乘的末尾有多少个零，N的阶乘的二进制表示最低位1的位置
+//algorithm: N的阶乘可以表示为2^x * 3^y * 5^z。零的个数即为min(x,z)，由于x肯定远大于z所以只需要求5的个数z，二进制表示最低位1即为求x
+void nFactor(int N) {   //N!含有质因子为5的个数
+    int ret = 0;
+    for(int i = 1; i <= N; i++)
+    {
+        int j = i;
+        while(j % 5 ==0)
+        {
+            ret++;
+            j /= 5;
+        }
+    }
+}
+int lowestOne(int N)  //N!含有质因子为2的个数
+{
+    int Ret = 0;
+    while(N)
+    {
+        N >>= 1;
+        Ret += N;
+    }
+    return Ret;
+}
+
+//problem:
+//algorithm: 用STL中的list来模拟双向链表的结构以及删除工作，只需在迭代器指向末尾节点时，将其指向的下一个节点设置为头结点即可
+//
+int LastRemaining_Solution1(unsigned int n, unsigned int m)
+{
+    if(n < 1 || m < 1)
+        return -1;
+    
+    unsigned int i = 0;
+    
+    list<int> numbers;
+    for(i = 0; i < n; ++ i)
+        numbers.push_back(i);
+    
+    list<int>::iterator current = numbers.begin();
+    while(numbers.size() > 1)
+    {
+        for(int i = 1; i < m; ++ i)
+        {
+            current ++;
+            if(current == numbers.end())
+                current = numbers.begin();
+        }
+        
+        list<int>::iterator next = ++ current;
+        if(next == numbers.end())
+            next = numbers.begin();
+        
+        -- current;
+        numbers.erase(current);
+        current = next;
+    }
+    
+    return *(current);
+}
+
+//
+int LastRemaining_Solution2(unsigned int n, unsigned int m)
+{
+    if(n < 1 || m < 1)
+        return -1;
+    
+    int last = 0;
+    for (int i = 2; i <= n; i ++)
+        last = (last + m) % i;
+    
+    return last;
+}
+
+
+//problem: 判断一个五位纸牌是不是一个顺子
+//algorithm: 分别排序之后，求出0的个数以及gap的数目，判断zero的个数与gap的数目是否相等，相等则是一个顺子
+int compare__(const void *arg1, const void *arg2);
+
+bool IsContinuous(int* numbers, int length)
+{
+    if(numbers == NULL || length < 1)
+        return false;
+    
+    qsort(numbers, length, sizeof(int), compare__); //其实这里可以用hash来排序，但是由于数据量比较小，优势不明显，所以采用常用的排序算法
+    
+    int numberOfZero = 0;
+    int numberOfGap = 0;
+
+    for(int i = 0; i < length && numbers[i] == 0; ++i)
+        ++ numberOfZero;
+    
+    int small = numberOfZero;
+    int big = small + 1;
+    while(big < length)
+    {
+        //
+        if(numbers[small] == numbers[big])  //如果有相同的元素，那么肯定不会是顺子
+            return false;
+        
+        numberOfGap += numbers[big] - numbers[small] - 1;
+        small = big;
+        ++big;
+    }
+    
+    return (numberOfGap > numberOfZero) ? false : true;
+}
+
+int compare__(const void *arg1, const void *arg2)
+{
+    return *(int*)arg1 - *(int*)arg2;
+}
+
 
 //problem: 找到数组中唯一出现一次的两个整数
 //algorithm: 利用异或的结果将数组分为两个部分，怎么分组才能使一个数字在其中一组，而另一个数字在另一组，而且保证每一组中其余的元素都是配对出现的
@@ -309,32 +692,33 @@ knight k;
 bool visited[8][8];         //访问标记(关闭列表)
 int xs,ys,xt,yt,ans;                               //起点(x1,y1),终点(x2,y2),最少移动次数ans
 int dirs[8][2]={{-2,-1},{-2,1},{2,-1},{2,1},{-1,-2},{-1,2},{1,-2},{1,2}};//8个移动方向
-priority_queue<knight> que;//最小优先级队列(开启列表)
+priority_queue<knight> priQueue;//最小优先级队列(开启列表)
 
 bool in(const knight & a){                         //判断knight是否在棋盘内
-    if(a.x<0 || a.y<0 || a.x>=8 || a.y>=8)
+    if(a.x < 0 || a.y < 0 || a.x >= 8  || a.y >= 8)
         return false;
     return true;
 }
 int Heuristic(const knight &a){                    //manhattan估价函数
-    return (abs(a.x-xt)+abs(a.y-yt))*10;
+    return (abs(a.x-xt) + abs(a.y-yt)) * 10;
 }
 void Astar(){             //A*算法
-    knight s,t;
-    while(!que.empty()){
-        s = que.top(), que.pop(), visited[s.x][s.y] = true;
-        if(s.x == xt && s.y == yt){                 //算法终止条件
-            ans = s.step;
+    knight current, next;
+    while(!priQueue.empty()){
+        current = priQueue.top(), priQueue.pop(), visited[current.x][current.y] = true;
+        if(current.x == xt && current.y == yt){                 //算法终止条件
+            ans = current.step;
             break;
         }
-        for(int i = 0; i < 8; i++){
-            t.x = s.x+dirs[i][0],t.y = s.y+dirs[i][1];
-            if(in(t) && !visited[t.x][t.y]){    //依次判断八个位置的属性是否满足要求，再压入队列中
-                t.g = s.g + 23;                 //23表示根号5乘以10再取其ceil
-                t.h = Heuristic(t);
-                t.f = t.g + t.h;
-                t.step = s.step + 1;
-                que.push(t);
+        for(int i = 0; i < 8; i++){ //这里与下面的暴力搜索不一样，这是启发式的
+            next.x = current.x+dirs[i][0];
+            next.y = current.y+dirs[i][1];
+            if(in(next) && !visited[next.x][next.y]){    //依次判断八个位置的属性是否满足要求，再压入队列中
+                next.g = current.g + 23;             //23表示根号5乘以10再取其ceil
+                next.h = Heuristic(next);
+                next.f = next.g + next.h;
+                next.step = current.step + 1;
+                priQueue.push(next);
             }
         }
     }
@@ -345,8 +729,8 @@ int Astar_main(){   //测试
         xs=line[0]-'a',ys=line[1]-'1',xt=line[3]-'a',yt=line[4]-'1';
         memset(visited,false,sizeof(visited));
         k.x=xs,k.y=ys,k.g=k.step=0,k.h=Heuristic(k),k.f=k.g+k.h;
-        while(!que.empty()) que.pop();
-        que.push(k);
+        while(!priQueue.empty()) priQueue.pop();
+        priQueue.push(k);
         Astar();
         printf("To get from %c%c to %c%c takes %d knight moves.\n",line[0],line[1],line[3],line[4],ans);
     }
@@ -354,11 +738,13 @@ int Astar_main(){   //测试
 }
 
 
-//algorithm2: BFS
+//algorithm2: BFS，广度优先搜索，
+//也可以是广度优先搜索，只需要把其中的队列改为堆栈就是深度优先搜索
+//如果改为优先队列，那就是启发式搜索，类似Astar算法
 int n,sx,sy,ex,ey;
-int vis[305][305];
+int accessed[305][305];
 int direction[8][2] = {-1,-2,-2,-1,-2,1,-1,2,1,-2,2,-1,2,1,1,2};
-struct blank
+struct grid
 {
     int x,y,step;
 };
@@ -367,38 +753,37 @@ int check(int x,int y)
 {
     if(x<0 || x>=n || y<0 || y>=n)
         return 1;
-    return vis[x][y];
+    return accessed[x][y];
 }
 
 void bfs()
 {
-    memset(vis,0,sizeof(vis));
-    blank a,next;
-    queue<blank> Q;  //深度优先搜索
-    int i;
-    a.x = sx;
-    a.y = sy;
-    a.step = 0;
-    vis[sx][sy] = 1;
-    Q.push(a);
+    memset(accessed, 0, sizeof(accessed));
+    grid current,next;
+    queue<grid> Q;  //深度优先搜索
+    current.x = sx;
+    current.y = sy;
+    current.step = 0;
+    accessed[sx][sy] = 1;
+    Q.push(current);
     while(!Q.empty())
     {
-        a = Q.front();
+        current = Q.front();
         Q.pop();
-        if(a.x == ex && a.y == ey)
+        if(current.x == ex && current.y == ey)
         {
-            printf("%d\n",a.step);
+            printf("%d\n",current.step);
             return;
         }
-        for(i = 0;i<8;i++)
+        for(int i = 0;i<8;i++)
         {
-            next = a;
-            next.x = a.x+direction[i][0];
-            next.y = a.y+direction[i][1];
+            next = current;
+            next.x = current.x+direction[i][0];
+            next.y = current.y+direction[i][1];
             if(check(next.x,next.y))
                 continue;
-            next.step = a.step+1;
-            vis[next.x][next.y] = 1;
+            next.step = current.step+1;
+            accessed[next.x][next.y] = 1;
             Q.push(next);
         }
     }
@@ -416,6 +801,11 @@ int bfs_main()
     
     return 0;
 }
+
+
+//problem: 八数码问题，九宫格问题
+//algorithm: 深度优先或者Astar/A*/A star.
+
 
 //problem:环形打印出一个矩阵
 //algorithm:画图来理清思路
@@ -694,20 +1084,20 @@ template<typename T> T CQueue<T>::deleteHead()
 }
 
 
-//problem: 知道先序排列的数组和中序排列的数组，重构原二叉搜索树
+//problem: 知道先序排列的数组和中序排列的数组，重构/重建原二叉搜索树rebuild
 //algorithm: 递归
-BinaryTreeNode* ConstructCore(int* startPreorder, int* endPreorder, int* startInorder, int* endInorder);
+BinaryTreeNode* rebuild(int* startPreorder, int* endPreorder, int* startInorder, int* endInorder);
 
 BinaryTreeNode* Construct(int* preorder, int* inorder, int length)
 {
     if(preorder == NULL || inorder == NULL || length <= 0)
         return NULL;
     
-    return ConstructCore(preorder, preorder + length - 1,
+    return rebuild(preorder, preorder + length - 1,
                          inorder, inorder + length - 1);
 }
 
-BinaryTreeNode* ConstructCore( int* startPreorder, int* endPreorder,
+BinaryTreeNode* rebuild( int* startPreorder, int* endPreorder,
                                int* startInorder, int* endInorder)
 {
     // 前序遍历的第一个节点是根节点的值
@@ -739,18 +1129,116 @@ BinaryTreeNode* ConstructCore( int* startPreorder, int* endPreorder,
     if(leftLength > 0)
     {
         // 构建左子树
-        root->m_pLeft = ConstructCore(startPreorder + 1, leftPreorderEnd,
+        root->m_pLeft = rebuild(startPreorder + 1, leftPreorderEnd,
                                       startInorder, rootInorder - 1);
     }
     if(leftLength < endPreorder - startPreorder)
     {
         // 构建右子树
-        root->m_pRight = ConstructCore(leftPreorderEnd + 1, endPreorder,
+        root->m_pRight = rebuild(leftPreorderEnd + 1, endPreorder,
                                        rootInorder + 1, endInorder);
     }
     
     return root;
 }
+
+//编程之美上面的源代码
+// 定义树的长度。为了后序调用实现的简单，我们直接用宏定义了树节点的总数
+#define TREELEN 6
+struct NODE
+{
+    NODE* pLeft;		// 左节点
+    NODE* pRight;		// 右节点
+    char chValue;		// 节点值
+};
+
+void ReBuild(char* pPreOrder,		//前序遍历结果
+             char* pInOrder,			//中序遍历结果
+             int nTreeLen,			//树长度
+             NODE** pRoot)			//根节点
+{
+    
+    //检查边界条件
+    if(pPreOrder == NULL || pInOrder == NULL)
+    {
+        return;
+    }
+    
+    // 获得前序遍历的第一个节点
+    NODE* pTemp = new NODE;
+    pTemp -> chValue = *pPreOrder;
+    pTemp -> pLeft = NULL;
+    pTemp -> pRight = NULL;
+    
+    // 如果节点为空，把当前节点复制到根节点
+    if(*pRoot == NULL)
+    {
+        *pRoot = pTemp;
+    }
+    
+    // 如果当前树长度为1，那么已经是最后一个节点
+    if(nTreeLen == 1)
+    {
+        return;
+    }
+    
+    // 寻找子树长度
+    char* pOrgInOrder = pInOrder;
+    char* pLeftEnd = pInOrder;
+    int nTempLen = 0;
+    
+    // 找到左子树的结尾
+    while(*pPreOrder != *pLeftEnd)
+    {
+        if(pPreOrder == NULL || pLeftEnd == NULL)
+        {
+            return;
+        }
+        
+        nTempLen++;
+        
+        // 记录临时长度，以免溢出
+        if(nTempLen > nTreeLen)
+        {
+            break;
+        }
+        
+        pLeftEnd++;
+    }
+    
+    // 寻找左子树长度
+    int nLeftLen = 0;
+    nLeftLen = (int)(pLeftEnd - pOrgInOrder);
+    
+    // 寻找右子树长度
+    int nRightLen = 0;
+    nRightLen = nTreeLen - nLeftLen - 1;
+    
+    // 重建左子树
+    if(nLeftLen > 0)
+    {
+        ReBuild(pPreOrder + 1, pInOrder, nLeftLen, &((*pRoot) -> pLeft));
+    }
+    
+    // 重建右子树
+    if(nRightLen > 0)
+    {
+        ReBuild(pPreOrder + nLeftLen + 1, pInOrder + nLeftLen + 1,
+                nRightLen, &((*pRoot) -> pRight)); 
+    }
+    
+}
+
+// 示例的调用代码
+void rebuild_main(int argc, char* argv[])
+{
+    char szPreOrder[TREELEN]={'a', 'b', 'd', 'c', 'e', 'f'};
+    char szInOrder[TREELEN]={'d', 'b', 'a', 'e', 'c', 'f'};
+    
+    NODE* pRoot = NULL;
+    ReBuild(szPreOrder, szInOrder, TREELEN, &pRoot);
+}
+
 
 //problem:替换字符串中的空格为其他的字符
 //algorithm:从后往前，依次移位，但是首先得确定最终替换后的字符的长度是多少
@@ -1373,6 +1861,7 @@ void FindContinuousSequence(int n)
 {
     if(n < 3)
         return;
+    
     int small = 1;
     int big = 2;
     int middle = (1 + n) / 2;
@@ -1793,8 +2282,8 @@ int Add(int num1, int num2)
     int sum, carry;
     do
     {
-        sum = num1 ^ num2;
-        carry = (num1 & num2) << 1;
+        sum = num1 ^ num2;          //这是不考虑进位情况下的结果
+        carry = (num1 & num2) << 1; //向左移动一位表明了进位的性质
         
         num1 = sum;
         num2 = carry;
@@ -2009,6 +2498,24 @@ char firstSingleLetter(char* s) { //其实就是hash的思想
     }
     return ' ';
 }
+//algorithm: 利用bitset
+bool CompareString(string long_str, string short_str)   //字符串包含
+{
+    bitset<26> flag;    //利用bitset类
+    for(int i=0; i<long_str.size(); ++i)
+    {
+        // flag.set(n)置第n位为1
+        flag.set(long_str[i]-'A');
+    }
+    for(int i=0; i<short_str.size(); ++i)
+    {
+        // flag.test(n)判断第n位是否为1
+        if(!flag.test(short_str[i]-'A'))
+            return false;
+    }
+    return true;
+}
+
 //算法2：hash映射，使用ASCII键值
 char FirstNotRepeatingChar(char* pString)
 {
@@ -2017,8 +2524,9 @@ char FirstNotRepeatingChar(char* pString)
     
     const int tableSize = 256;
     unsigned int hashTable[tableSize];
-    for(unsigned int i = 0; i < tableSize; ++ i)
-        hashTable[i] = 0;
+    memset(hashTable, 0, sizeof(hashTable));
+    //for(unsigned int i = 0; i < tableSize; ++ i)
+    //    hashTable[i] = 0;
     
     char* pHashKey = pString;
     while(*(pHashKey) != '\0')
@@ -2034,6 +2542,75 @@ char FirstNotRepeatingChar(char* pString)
     }
     
     return *pHashKey;
+}
+
+//problem: 变位词的判断
+//algorithm: 先对字符串排序，然后判断两个字符串是否相等
+// 自定义序函数（二元谓词）
+bool charCompare(char i, char j)
+{
+    return i > j;
+}
+bool wordsReorder(string s1, string s2)
+{
+    // 采用泛型算法对s1,s2排序，sort()采用的是快速排序算法
+    sort(s1.begin(), s1.end(), charCompare);
+    sort(s2.begin(), s2.end(), charCompare);
+    if(!s1.compare(s2)) // 相等返回0
+        return true;
+    else
+        return false;
+}
+//problem: 找出特定单词的所有变位词的集合
+//algorithm: 先得到每个单词的标示（也就是其排序之后的字符串），然后按照标示进行排序
+/*
+ *  map是C++中的关联容器，map会自动排序，unordered_map不会自动排序，根据不同的需求选择
+ *   按关键字有序
+ *   关键字不可重复
+ */
+map<string, string> word;
+
+/* 自定义比较函数（用于排序） */
+bool myfunction(char i, char j)
+{
+    return i < j;
+}
+
+/*
+ *对每个单词排序
+ *排序后字符串作为关键字，原单词作为值
+ *存入map中
+ */
+void sign_sort(const char* dic)
+{
+    // 文件流
+    ifstream in(dic);
+    if(!in)
+    {
+        cout << "Couldn't open file: " + string(dic) << endl;
+        return;
+    }
+    
+    string aword;
+    string asign;
+    while(in >> aword)
+    {
+        asign = aword;
+        sort(asign.begin(), asign.end(), myfunction);
+        // 若标识不存在，创建一个新map元素，若存在，加在值后面
+        word[asign] += aword + " ";
+    } 
+    in.close(); 
+}
+
+void wordsExchange(vector<string> &vWords, map<string, string> &mWords) {
+    int n = (int) vWords.size();
+    for (int i = 0; i < n ; i++) {
+        string value = vWords[i];
+        string key = value;             //key保存的是变位词，value是原始的单词
+        sort(key.begin(), key.end(), charCompare);
+        mWords[key] += value + ' ';
+    }
 }
 
 //问题：二叉树的层次遍历算法
@@ -2070,7 +2647,7 @@ void PrintFromTopToBottom(BTreeNode *pTreeRoot)
     // insert the root at the tail of queue
     dequeTreeNode.push_back(pTreeRoot);
     
-    while(dequeTreeNode.size())
+    while(!dequeTreeNode.empty())
     {
         // get a node from the head of queue
         BTreeNode *pNode = dequeTreeNode.front();
@@ -2087,6 +2664,34 @@ void PrintFromTopToBottom(BTreeNode *pTreeRoot)
             dequeTreeNode.push_back(pNode->m_pRight);
     }
 }
+//也可以用数组
+void PrintNodeByLevel(BTreeNode* root)
+{
+    if(root == NULL)
+        return;
+    vector<BTreeNode*> vec;		//这里我们使用STL 中的vector来代替数组，可利用
+    //到其动态扩展的属性
+    vec.push_back(root);
+    int cur = 0;
+    int last = 1;
+    while(cur < vec.size())
+    {
+        last = (int)vec.size();		//新的一行访问开始，重新定位last于当前行最后
+								//一个节点的下一个位置
+        while(cur < last)
+        {
+            cout << vec[cur] -> m_nValue << " ";		//访问节点
+            if(!vec[cur] -> m_pLeft)		//当前访问节点的左节点不为空则压入
+                vec.push_back(vec[cur] -> m_pLeft);
+            if(!vec[cur] -> m_pRight)		//当前访问节点的右节点不为空则压入，
+                //注意左右节点的访问顺序不能颠倒
+                vec.push_back(vec[cur] -> m_pRight);
+            cur++;
+        }
+        cout << endl;		//当cur == last,说明该层访问结束，输出换行符
+    }
+}
+
 
 //算法2：
 /*我们知道树是图的一种特殊退化形式。
@@ -2234,20 +2839,21 @@ node* listSearch(node* head, int k) {
     return q;
     
 }
+
 //问题：求二叉树中节点的最大距离...
 //算法：dynanmic programming
 // 数据结构定义
-struct NODE
+struct NODE_
 {
-    NODE* pLeft;            // 左子树
-    NODE* pRight;          // 右子树
+    NODE_* pLeft;            // 左子树
+    NODE_* pRight;          // 右子树
     int nMaxLeft;          // 左子树中的最长距离
     int nMaxRight;         // 右子树中的最长距离
     char chValue;        // 该节点的值
 };
 int nMaxLen;
 // 寻找树中最长的两段距离
-void FindMaxLen(NODE* pRoot)
+void FindMaxLen(NODE_* pRoot)
 {
     // 遍历到叶子节点，返回
     if(pRoot == NULL){
@@ -2780,6 +3386,8 @@ int maxSubArray2(int A[], int n) {
     }
     return result;
 }
+
+
 //problem: obstain the maximum sum of the sub-matrix
 //algorithm: dynanmic programming, 2D DP，下面这段代码是错的，但是思想是对的，利用积分图
 //int maxSubMatrix(vector<vector<int> >& matrix) {
@@ -2808,18 +3416,23 @@ int maxSubMatrix(vector<vector<int> > a, int n){
     
     int max_sum = INT_MIN;
     int * b = new int [n];
-    
+    int rowLast = 0;
+    int colLast = 0;
     for(int j = 0;j < n;j++)
     {
         for(int i = 0; i < n; i++)
             b[i]= 0;
-        for(int i = j; i < n; i++)
+        for(int i = j; i < n; i++) {
             for(int k = 0;k < n;k++)
                 b[k] += a[k][i]; //换成行相加，效率更高，缓存友好
-        //其实这还能优化，用一个三维的数组来记录中间值，可以避免重复的运算
-        int sum = maxSubArray(b,n);
-        if(sum > max_sum)
-            max_sum = sum;
+            //其实这还能优化，用一个三维的数组来记录中间值，可以避免重复的运算
+            int sum = maxSubArray(b,n);
+            if(sum > max_sum) {
+                max_sum = sum;
+                rowLast = j;
+                colLast = i;
+            }
+        }
     }
     delete []b;
     return max_sum;
@@ -2879,6 +3492,107 @@ private:
     vector<int> p;
     vector<int> q;
 };
+
+//problem: 将上面的最小值栈推广到最大值队列
+//algorithm: 用两个栈可以实现一个队列，而其中的一个栈是上述的最大栈（最小的类似），所以最大的队列包含了底层4个基本栈
+template<typename T>
+class MaxStack {
+public:
+    void Push(const T& value) {
+        data_.push(value);
+        if (max_element_.empty()) {
+            max_element_.push(value);
+        } else if (value >= max_element_.top()) {
+            max_element_.push(value);
+        }
+    }
+    T Top() {
+        return data_.top();
+    }
+    void Pop() {
+        if (data_.top() == max_element_.top()) {
+            max_element_.pop();
+        }
+        data_.pop();
+    }
+    bool Empty() {
+        return data_.empty();
+    }
+    T Max() {
+        if (!max_element_.empty()) {
+            return max_element_.top();
+        }
+        return -1;
+    }
+private:
+    std::stack<T> data_;
+    std::stack<T> max_element_;
+};
+
+template<typename T>
+class MaxQueue {
+public:
+    void Push(const T& value) {
+        push_stack_.Push(value);
+    }
+    T Front() {
+        if (pop_stack_.empty()) {
+            while (!push_stack_.Empty()) {
+                pop_stack_.Push(push_stack_.Top());
+                push_stack_.Pop();
+            }
+        }
+        return pop_stack_.Top();
+    }
+    void Pop() {
+        if (pop_stack_.Empty()) {
+            while (!push_stack_.Empty()) {
+                pop_stack_.Push(push_stack_.Top());
+                push_stack_.Pop();
+            }
+        }
+        pop_stack_.Pop();
+    }
+    bool IsEmpty() {
+        return push_stack_.Empty() && pop_stack_.Empty();
+    }
+    T Max() {
+        if (!push_stack_.Empty() && !pop_stack_.Empty()) {
+            return push_stack_.Max() > pop_stack_.Max() ? push_stack_.Max() : pop_stack_.Max();
+        } else if (push_stack_.Empty() && !pop_stack_.Empty()) {
+            return pop_stack_.Max();
+        } else if (!push_stack_.Empty() && pop_stack_.Empty()) {
+            return push_stack_.Max();
+        } else {
+            //      throw RUNTIME_ERROR;
+        }
+        return -1;
+    }
+private:
+    MaxStack<T> push_stack_;
+    MaxStack<T> pop_stack_;
+};
+void maxqueue_main() {
+    MaxQueue<int> max_queue;
+    max_queue.Push(1);
+    max_queue.Push(2);
+    max_queue.Push(6);
+    max_queue.Push(4);
+    max_queue.Push(5);
+    max_queue.Push(2);
+    printf("max %d\n", max_queue.Max());
+    max_queue.Pop();
+    printf("max %d\n", max_queue.Max());
+    max_queue.Pop();
+    printf("max %d\n", max_queue.Max());
+    max_queue.Pop();
+    printf("max %d\n", max_queue.Max());
+    max_queue.Pop();
+    printf("max %d\n", max_queue.Max());
+    max_queue.Pop();
+    printf("max %d\n", max_queue.Max());
+}
+
 
 //问题：把二元查找树转变成排序的双向链表
 //算法：中序递归
@@ -2991,6 +3705,19 @@ int anagramMatch(char* t, char* p){
 
 //问题：bitmap的使用
 //算法：
+/*简述bitmap的原理：(以字符串是否包含为例)
+ int dictionary = 0; 用来保存32个bit;
+ 
+ setbit:
+    for x in string1:
+        dictionary = dictionary | 0x01 << x - 'a';
+ getbit:
+    for x in string2:
+        if dictionary != dictionary | 0x01 << x - 'a';
+            break;
+        else
+            YES;
+ */
 #define BYTESIZE 8  //定义每个Byte中有8个Bit位
 void SetBit(char *p, int posi)
 {
@@ -3003,27 +3730,27 @@ void SetBit(char *p, int posi)
     return;
 }
 
-void BitMapSortDemo(int* num)
+void BitMapSortDemo(int* data, int n, int maxElement)
 {
     //为了简单起见，我们不考虑负数
     
-
-    const int BufferLen = 2;      //BufferLen这个值是根据待排序的数据中最大值确
+    const int BufferLen = maxElement / 8 + 1;
+    //BufferLen这个值是根据待排序的数据中最大值确
     //待排序中的最大值是14，因此只需要2个Bytes(16个Bit)
     char *pBuffer = new char[BufferLen];
     
     //要将所有的Bit位置为0，否则结果不可预知。
     memset(pBuffer,0,BufferLen);
-    for(int i = 0; i < 9; i++)
+    for(int i = 0; i < n; i++)    //
     {
         //首先将相应Bit位上置为1
-        SetBit(pBuffer,num[i]);
+        SetBit(pBuffer,data[i]);
     }
     
     //输出排序结果
-    for(int i=0; i < BufferLen; i++)//每次处理一个字节(Byte)
+    for(int i=0; i < BufferLen; i++)    //每次处理一个字节(Byte)
     {
-        for(int j=0; j< BYTESIZE;j++)//处理该字节中的每个Bit位
+        for(int j=0; j< BYTESIZE;j++)   //处理该字节中的每个Bit位
         {
             //判断该位上是否是1，进行输出，这里的判断比较笨。
             //首先得到该第j位的掩码（0x01＜＜j），将内存区中的
@@ -3037,6 +3764,7 @@ void BitMapSortDemo(int* num)
         pBuffer++;
     }
 }
+
 
 
 //问题：建立Trie树
@@ -3708,13 +4436,51 @@ int countOnes1 ( unsigned int n ) { //
 
 //问题：求最大公约数
 //算法：辗转相除法
-int gcdEU(int a, int b)
+int gcd1(int a, int b)
 {
     while (true) {
         if (0 == a) return b;
         if (0 == b) return a;
         if (a > b)         a %= b;
         else               b %= a;
+    }
+}
+//上述除法的计算需要很多的时钟周期，改为减法
+int gcd2(int x, int y)
+{
+    if(x < y)
+        return gcd2(y, x);
+    if(y == 0)
+        return x;
+    else
+        return gcd2(x - y, y);
+}
+//减法造成递归的深度加深，能不能融合gcd1和gcd2,采用
+inline bool IsEven(int x) {
+    return (x & 1) == 0;
+}
+int gcd3(int x, int y)
+{
+    if(x < y)
+        return gcd3(y, x);
+    if(y == 0)
+        return x;
+    else
+    {
+        if(IsEven(x))
+        {
+            if(IsEven(y))
+                return (gcd3(x >> 1, y >> 1) << 1);
+            else
+                return gcd3(x >> 1, y);
+        }
+        else
+        {
+            if(IsEven(y))
+                return gcd3(x, y >> 1);
+            else
+                return gcd3(y, x - y);
+        }
     }
 }
 
@@ -3854,7 +4620,7 @@ void ShellSort(int a[], int n){
 }
 
 //algorithm: counting sort
-#define SIZE 65453  //计数排序的一个缺点就是必须先知道数列的最大值
+#define SIZE 65453  //计数排序的一个缺点就是必须先知道数列的最大值，比如对一串字母序列进行排序
 void countingSort(int A[], int B[], int n){
     int C[SIZE];
     memset(C, 0, sizeof(int)*SIZE);
@@ -3864,7 +4630,7 @@ void countingSort(int A[], int B[], int n){
     for (int i = 0; i < SIZE; i++)
         C[i] = C[i] + C[i-1];
     
-    for (int i = n-1; i >= 0; i--)
+    for (int i = n-1; i >= 0; i--)  //从数组的末尾往开头扫描，依次处理
     {
         B[C[A[i]]] = A[i];
         C[A[i]] = C[A[i]] - 1;
@@ -3872,37 +4638,132 @@ void countingSort(int A[], int B[], int n){
 }
 
 
-//问题: binsearch lower bound
+//问题: binsearch
 //算法: binary search
-int binsearch_lowerbound(int A[], const int x, int lo, int hi){
-    while (lo < hi) {
-        int mid = (lo + hi)>>1;
-        (x < A[mid]) ? mid = hi : lo = mid + 1;
-    }
-    return lo;
-}
-int binsearch2(int A[], const int x, int lo, int hi)
+
+//两种写法的差异如下：search1和search2
+int search1(int array[], int n, int v)  //左闭右闭
 {
-    while (1 < hi - lo) {
-        int mid = (lo + hi) >> 1;
-        (x < A[mid])? hi = mid : lo = mid;
+    int left, right, middle;
+    
+    left = 0, right = n - 1;    ///差别1
+    
+    while (left <= right)       //差别2
+    {
+        middle = (left + right) / 2;
+        if (array[middle] > v){
+            right = middle - 1; //差别3
+        }
+        else if (array[middle] < v){
+            left = middle + 1;
+        }
+        else{
+            return middle;
+        }
     }
-    return (x == A[lo]) ? lo : -1;
-}
-int binsearch(int A[], const int x, int lo, int hi)
-{
-    while (lo < hi) {
-        int mid = (lo + hi) >> 1;
-        if (x < A[mid])
-            hi = mid;
-        else if (A[mid] < x)
-            lo = mid + 1;
-        else
-            return mid;
-    }
+    
     return -1;
 }
+
+int search2(int array[], int n, int v)  //左闭右开
+{
+    int left, right, middle;
+    
+    left = 0, right = n;   ///差别1
+    
+    while (left < right)    //差别2
+    {
+        middle = left + (right - left) / 2;
+        
+        if (array[middle] > v)
+        {
+            right = middle; //差别3
+        }
+        else if (array[middle] < v)
+        {
+            left = middle + 1;
+        }
+        else
+        {
+            return middle;
+        }
+    }
+    
+    return -1;
+}
+
+
+
+//不适用递归，如果存在返回数组位置，不存在则返回-1
+int binSearch3(int arry[],int len,int value)
+{
+    //如果传入的数组为空或者数组长度<=0那么就返回-1。防御性编程
+    if(arry == NULL||len<=0)
+        return -1;
+    
+    int start = 0;
+    int end = len-1;
+    
+    while(start<=end)//判断清是否有=
+    {
+        int mid = start + (end-start)/2;
+        if(arry[mid] == value)
+            return mid;
+        else if(value < arry[mid])
+            end = mid - 1;        //这里的减一与判断条件中的等号一一对应，这里有减号，前面就要有等号，比如1，2，3，4要找1，因为/符号是向下取整
+        else
+            start = mid + 1;
+    }
+    return -1;
+    
+}
+
+int BinarySearchRecursion(int arry[],int &value,int &start,int &end)
+{
+    if(start>end)
+        return -1;
+    
+    int mid=start+(end-start)/2;
+    if(arry[mid]==value)
+        return mid;
+    else if(value<arry[mid])
+    {
+        end = mid - 1;
+        return BinarySearchRecursion(arry,value,start,end);
+    }
+    else
+    {
+        start = mid + 1;
+        return BinarySearchRecursion(arry,value,start,end);
+    }
+}
+
+int BinarySearchRecursion(int arry[],int &len,int &value)
+{
+    //如果传入的数组为空或者数组长度<=0那么就返回-1。防御性编程
+    if(arry==NULL||len<=0)
+        return -1;
+    int start=0;
+    int end=len-1;
+    return  BinarySearchRecursion(arry,value,start,end);
+}
+
+void binSearch_main()
+{
+    int arry[]={1,2,3,4,5,6,7,8};
+    int len=sizeof(arry)/sizeof(int);
+    int especteNum1=4;
+    int especteNum2=9;
+    int index=binSearch3(arry,len,especteNum1);
+    cout<<"index:"<<index<<endl;
+    
+    int index2=BinarySearchRecursion(arry,len,especteNum2);
+    cout<<"index2:"<<index2<<endl;
+
+}
+
 //problem: shifted Binary Search 3, 4, 5, 6, 7, 8, 1, 2
+//algorithm: recursion
 int shiftedBinsearch(int a[], int x, int low, int high) {
     
     if (low > high) return -1;
@@ -3916,7 +4777,28 @@ int shiftedBinsearch(int a[], int x, int low, int high) {
         return shiftedBinsearch(a, x, low, mid - 1);
     return -1;
 }
-
+//algorithm2: nonrecursion，这与上面的二分查找类似
+int bsearch_rotate(int a[], int n, int t)
+{
+    int low = 0, high = n-1;
+    while (low <= high) {
+        int mid = low + (high-low) / 2;
+        if (t == a[mid])
+            return mid;
+        if (a[mid] >= a[low]) { //数组左半有序
+            if (t >= a[low] && t < a[mid])
+                high = mid - 1;
+            else
+                low = mid + 1;
+        } else {       //数组右半段有序
+            if (t > a[mid] && t <= a[high])
+                low = mid + 1;
+            else
+                high = mid - 1;
+        }
+    }
+    return -1;
+}
 
 
 //问题：去除一个数组中相同的值
@@ -4103,6 +4985,52 @@ ComplexListNode* ReconnectNodes(ComplexListNode* pHead)
     
     return pClonedHead;
 }
+
+//
+//problem: 只用一个变量来解决中国象棋将帅问题
+//algorithm: 利用位运算，
+#define HALF_BITS_LENGTH 4
+// 这个值是记忆存储单元长度的一半，在这道题里是4bit
+#define FULLMASK 255
+// 这个数字表示一个全部bit的mask，在二进制表示中，它是11111111。
+#define LMASK (FULLMASK << HALF_BITS_LENGTH)
+// 这个宏表示左bits的mask，在二进制表示中，它是11110000。
+#define RMASK (FULLMASK >> HALF_BITS_LENGTH)
+// 这个数字表示右bits的mask，在二进制表示中，它表示00001111。
+#define RSET(b, n) (b = ((LMASK & b) ^ n))
+// 这个宏，将b的右边设置成n
+#define LSET(b, n)  (b = ((RMASK & b) ^ (n << HALF_BITS_LENGTH)))
+// 这个宏，将b的左边设置成n
+#define RGET(b) (RMASK & b)
+// 这个宏得到b的右边的值
+#define LGET(b) ((LMASK & b) >> HALF_BITS_LENGTH)
+// 这个宏得到b的左边的值
+#define GRIDW 3
+// 这个数字表示将帅移动范围的行宽度。
+
+int general_main()
+{
+    unsigned char b;
+    for(LSET(b, 1); LGET(b) <= GRIDW * GRIDW; LSET(b, (LGET(b) + 1)))
+        for(RSET(b, 1); RGET(b) <= GRIDW * GRIDW; RSET(b, (RGET(b) + 1)))
+            if(LGET(b) % GRIDW != RGET(b) % GRIDW)
+                printf("A = %d, B = %d\n", LGET(b), RGET(b));
+    
+    return 0;
+}
+
+//algorithm2:
+struct {
+    unsigned char a:4;
+    unsigned char b:4;
+}i;
+void general_main2(){
+    for (i.a = 1; i.a<9; i.a++)
+        for (i.b = 1; i.b<9; i.b++)
+            if (i.a % 3 == i.b % 3)
+                printf("A = %d, B = %d\n", i.a, i.b);
+}
+
 
 
 

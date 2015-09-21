@@ -31,6 +31,162 @@ struct TreeNode {
 };
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
+
+//problem:实现LRU cache
+//algorithm: 采用hashmap
+
+class LRUCache{
+private:
+    struct CacheNode
+    {
+        int key;
+        int value;
+    };
+    
+    int maxSize ;
+    list<CacheNode> cacheList;
+    unordered_map<int, list<CacheNode>::iterator > mp;
+    //这个用map开销是236ms,用unordered_map的开销是156ms，看来unordered_map的效率确实高
+public:
+    LRUCache(int capacity) {
+        maxSize = capacity;
+    }
+    
+    int get(int key) {
+        unordered_map<int, list<CacheNode>::iterator >::iterator it = mp.find(key);
+        if(it == mp.end())      //没有命中
+        {
+            return -1;
+        }
+        else  //在cache中命中了
+        {
+            list<CacheNode>::iterator listIt = mp[key];
+            CacheNode newNode;
+            newNode.key = key;
+            newNode.value = listIt->value;
+            cacheList.erase(listIt);               //先删除命中的节点
+            cacheList.push_front(newNode);   //将命中的节点放到链表头部
+            mp[key] = cacheList.begin();
+        }
+        return cacheList.begin()->value;
+    }
+    
+    void set(int key, int value) {
+        unordered_map<int, list<CacheNode>::iterator >::iterator it = mp.find(key);
+        if(it==mp.end())   //没有命中
+        {
+            if(cacheList.size()==maxSize)  //cache满了
+            {
+                mp.erase(cacheList.back().key);
+                cacheList.pop_back();
+            }
+            CacheNode newNode;
+            newNode.key = key;
+            newNode.value = value;
+            cacheList.push_front(newNode);
+            mp[key] = cacheList.begin();
+        }
+        else  //命中
+        {
+            list<CacheNode>::iterator listIt = mp[key];
+            cacheList.erase(listIt);               //先删除命中的节点
+            CacheNode newNode;
+            newNode.key = key;
+            newNode.value = value;
+            cacheList.push_front(newNode);   //将命中的节点放到链表头部
+            mp[key] = cacheList.begin();
+        }
+    }
+};
+
+
+
+//problem: valid sudoku
+//algorithm:
+bool check(char ch, bool used[9]) {
+    if (ch == '.') return true;
+    if (used[ch-'1']) return false;
+    used[ch-'1'] = true;
+    
+    return true;
+}
+bool isValidSudoku(const vector<vector<char> > &board){
+    bool used[9];
+    for (int i = 0; i < 9; i++){
+        fill(used, used + 9, false);
+        
+        for (int j = 0; j < 9; j++) //检测每一行
+            if (!check(board[i][j], used))
+                return false;
+        
+        fill(used, used + 9, false);
+        
+        for (int j = 0; j < 9; j++) //检测每一列
+            if (!check(board[j][i], used))
+                return false;
+    }
+    
+    for (int r = 0; r < 3; r++)//检测9个小格子
+        for (int c = 0; c < 3; c++) {
+            fill(used, used + 9, false);
+            
+            for (int i = r*3; i < r * 3 + 3; i++)
+                for (int j = c*3; j < c * 3 + 3; j++)
+                    if (!check(board[i][j], used))
+                        return false;
+            
+        }
+    
+    return true;
+}
+
+//problem: sudoku solver/ sudoku puzzle
+//algorithm: 深度优先搜索DFS，回溯
+/*
+ 思路：（借助网上的讨论）因为题目输入保证有且只有一个解，所以试探每一个格子的时候，
+ 只需要考虑当前行、列、矩形框满足条件，满足就进入下一个格子试探，不满足回溯。
+ 注意判断一个格子落入哪个矩形框的设计
+ */
+bool isValidSudoku(vector<vector<char> > &board,int x,int y){
+    for(int j=0;j<9;j++)                        //当前行
+        if(j != y && board[x][j] == board[x][y])
+            return false;
+    
+    for(int i=0;i<9;i++)
+        if(i != x && board[i][y] == board[x][y])//当前列
+            return false;
+    
+    int gridRow = x/3 * 3, gridCol = y/3 * 3;   //当前小框
+    for(int i=0;i<3;i++)
+        for(int j=0;j<3;j++)
+            if(gridRow + i != x && gridCol + j != y
+               && board[gridRow + i][gridCol + j] == board[x][y])
+                return false;
+    return true;
+}
+
+bool solveSudokuSingle(vector<vector<char> > &board){
+    for(int i=0;i<9;i++)
+        for(int j=0;j<9;j++)
+            if(board[i][j] == '.'){
+                for(int k=1;k<=9;k++){
+                    board[i][j] = '0' + k;          //从最小的添加起
+                    if(isValidSudoku(board,i,j) && solveSudokuSingle(board))
+                        return true;
+                    if ( k == 9)                   //如果不满足
+                        board[i][j] = '.';      //则回溯，重要的是要重新将这一位清零
+                }
+                return false;
+            }
+    return true;
+}
+
+void solveSudoku(vector<vector<char> > &board) {
+    solveSudokuSingle(board);
+}
+
+
+
 //problem: twosum
 //algorithm: 利用hash，直接用STL提供unordered_map中的hash内核
 vector<int> twoSum(vector<int> &num, int target)
@@ -86,11 +242,82 @@ bool FindNumbersWithSum(int data[], int length, int sum,
     return found;
 }
 
+
+//problem: 3sum, sum3==target
+//algorithm: double pointer
+vector<vector<int> > threeSum(vector<int> & num, const int target)
+{
+    vector<vector<int> > result;
+    if (num.size() < 3) return result;
+    sort(num.begin(), num.end());
+    
+    auto last = num.end();
+    for (auto i = num.begin(); i < last - 2; ++i)
+    {
+        auto j = i + 1;
+        if (i > num.begin() && *i == *(i-1)) continue;  //跳过重复的元素
+        auto k = last - 1;
+        while (j < k)
+        {
+            if (*i + *j + *k < target)
+            {
+                ++j;
+                while ( *j == *(j - 1) && j < k ) ++j;
+            }
+            else if ( *i + *j + *k > target)
+            {
+                --k;
+                while (*k == *(k + 1) && j < k) --k;
+            }
+            else
+            {
+                result.push_back({*i, *j, *k});
+                ++j;
+                --k;
+                while ( *j == *(j - 1) && *k == *(k + 1) && j < k) ++j;
+            }
+        }
+    }
+    return result;
+}
+//problem: 有时候不能找到精确的3sum，可以找近似的3sum
+//algorithm: 双指针夹逼，找之和与target之差最小的组合
+
+int threeSumClosest(vector<int> &num, int target)
+{
+    int result = 0;
+    int min_gap = INT_MAX;
+    sort(num.begin(), num.end());
+    for (auto a = num.begin(); a != prev(num.end(), 2); ++a)
+    {
+        auto b = next(a);
+        auto c = prev(num.end());
+        
+        while (b < c)
+        {
+            const int sum = *a + *b + *c;
+            const int gap = abs(sum - target);
+            
+            if (gap < min_gap)
+            {
+                result = sum;
+                min_gap = gap;
+            }
+            
+            if (sum < target) ++b;
+            else              --c;
+        }
+    }
+    return result;
+}
+
+
+
 //problem: reimplement strstr
 //algorithm: the most efficient algorithm is KMP, but you must make sure you can
-//do it right, in interview, brute force is the one.
+//do it right, in interview, brutal force is the one.
 int MystrStr(char* haystack, char* needle){
-    if (*needle == NULL) return 0;
+    if ( needle == NULL) return 0;
     
     const char* p1;
     const char* p2;
@@ -108,8 +335,27 @@ int MystrStr(char* haystack, char* needle){
             p2++;
         }
         
-        if(*p2 == NULL) return p1_old-haystack; //注意返回的是在haystack中的索引
+        if( p2 == NULL) return (int) (p1_old-haystack); //注意返回的是在haystack中的索引
         p1 = p1_old + 1;
+    }
+    return -1;
+}
+
+int myStrStr_(char *string, char *substring) {
+    if (substring == NULL || string == NULL)
+        return -1;
+    int len1 = (int) strlen(string);
+    int len2 = (int) strlen(substring);
+    if (len1 < len2)
+        return -1;
+    for (int i = 0; i <= len1 - len2; i++) {
+        int j = 0;
+        for (; j < len2; j++){
+            if (string[i + j] != substring[j])
+                break;
+        }
+        if (j == len2)
+            return i;
     }
     return -1;
 }
@@ -275,7 +521,7 @@ int divide(int dividend, int divisor) {
 
 //对比：基于partition的思想的速度更快，但是其需要修改原数组，而且其需要一次性将所有数据都读入内存
 //不适合于大数据量的情况，而基于红黑树或堆的思想不需要修改原始数组，而且可以从辅助存储空间（磁盘）中
-//每次读入一个数字，根据GEtLeastNumbers的方式判断是不是要放入容器leastNumbers中，这种思路只要求
+//每次读入一个数字，根据GetLeastNumbers的方式判断是不是要放入容器leastNumbers中，这种思路只要求
 //内存能够容纳leastNumbers即可。
 
 int findKthLargest(vector<int>& nums, int k){
@@ -354,7 +600,7 @@ void GetLeastNumbers_Solution(const vector<int>& data, intSet& leastNumbers, int
             
             if(*iter < *(leastNumbers.begin()))
             {
-                leastNumbers.erase(iterGreatest);
+                leastNumbers.erase(iterGreatest); //擦除最大值
                 leastNumbers.insert(*iter);
             }
         }
@@ -623,6 +869,7 @@ int LongestCommonSubstring(const char * strA, const char * strB)
 
 //问题：longest increasing subsequence(LIS)
 //算法：动态规划，复杂度为O(n2)
+//f[i] = max(f[j] + 1, 1), j < i && A[j] <= A[i]
 int lis(int A[], int n){
     int *f = new int[n];
     int len = 1;
@@ -1351,7 +1598,7 @@ bool Increment(char* number)
 void PrintNumber(char* number)
 {
     bool isBeginning0 = true;
-    int nLength = strlen(number);
+    int nLength = (int)strlen(number);
     
     for(int i = 0; i < nLength; ++ i)
     {
@@ -1495,6 +1742,809 @@ int candy(vector<int> &ratings) {
 //algorithm:
 
 
+//----------------------------------------------------------------
+
+
+/*
+
+
+
+
+
+
+
+
+
+
+void connet(TreeLinkNode *root, TreeLinkNode *sibling){
+    if (root = NULL)
+        return ;
+    else
+        root->next = sibling;
+    
+    connet(root->left , root->right);
+    if (sibling)
+        connet(root->right, sibling->left);
+    else
+        connet(root->right, NULL);
+}
+
+int evalRPN(vector<string> &tokens){
+    stack<string> s;
+    for (auto token: tokens){
+        if (!is_operator(token))
+            s.push(token);
+        else {
+            int y = stoi(s.top());
+            s.pop();
+            int x = stoi(s.top());
+            s.pop();
+            if (token[0] == '+')	x += y;
+            else if (token[0] == '-')	x -= y;
+            else if (token[0] == '*')	x *= y;
+            else						x /= y;
+            s.push(to_string(x));
+        }
+    }
+    return stoi(s.top());
+}
+
+bool is_operator(const string *op){
+    return op.size() == 1 && string("+-/*").find(op) != string::npos;
+}
+
+unsigned int binary_to_gray(unsigned int n)
+{
+    return n ^ (n >> 1);
+}
+
+
+vector<int> grayCode(int n)
+{
+    vector<int> result;
+    const size_t size = 1 << n;
+    result.reserve(size);
+    for (size_t i = 0; i < size; ++i)
+        result.push_back(binary_to_gray(i));
+    return result;
+}
+
+
+bool hasPathSum(TreeNode* root, int sum){
+    if (root == NULL) return false;
+    
+    if (root->left == NULL && root->right == NULL)
+        return sum == root->val;
+    
+    return hasPathSum(root->left, sum - root->val) ||
+    hasPathSum(root->right, sum - root->val);
+}
+
+
+bool isMatch(const char *s, const char *p){
+    if (*p == '\0') return *s == '\0';
+    
+    //next char is not '*', then must current characters
+    if (*(p+1) != '*'){
+        if (*p == *s || (*p == '.'&& *s != '\0')){
+            return isMatch(s + 1, p + 1);
+        }else { //next char is '*'
+            while (*p == *s || (*p == '.' && *s != '\0')){
+                if (isMatch(s, p+2))
+                    return true;
+                s++;
+            }
+            return isMatch(s, p+2);
+        }
+    }
+}
+
+
+
+bool isMatch_iterate(const char *s, const char *p){
+    bool star = false;
+    const char *str, *ptr;
+    for (str = s, ptr = p; *str != '\0'; str++, ptr++){
+        switch (*ptr){
+            case '?':
+                break;
+            case '*':
+                star = true;
+                s = str, p = ptr;
+                while (*p == '*')
+                    p++;//skip continuous '*'
+                if (*p == '\0') return true;
+                str = s - 1;
+                ptr = p - 1;
+                break;
+            default:
+                if (*str != *ptr){
+                    //如果前面没有‘*’，则匹配不成功
+                    if (!star)
+                        return false;
+                    s++;
+                    str = s- 1;
+                    ptr = p -1;
+                }
+        }
+    }
+    while (*ptr == '*')
+        ptr++;
+    return (*ptr == '\0');
+}
+
+bool isPalindrome(string s){
+    transform(s.begin(), s.end(), s.begin(), ::tolower);
+    auto left = s.begin(), right = prev(s.end());
+    while(left < right){
+        if (!::isalnum(*left))
+            ++left;
+        else if (!::isalnum(*right))
+            --right;
+        else if (*left != *right)
+            return false;
+        else {
+            left++;
+            right--;
+        }
+        
+    }
+    return true;
+}
+
+
+int lengthOfLastWord(const char *s)
+{
+    int len = 0;
+    while (*s){
+        if (*s++ != ' ')
+            ++len;
+        else if (*s && *s != ' ')
+            len = 0;
+    }
+    return len;
+}
+
+
+ListNode* listDetectCycle(ListNode* head){
+    ListNode* slow = head, *fast = head;
+    while (fast && fast->next)
+    {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast){
+            ListNode * slow2 = head;
+            while (slow2 != slow){
+                slow2 = slow2->next;
+                slow = slow->next;
+            }
+            return slow2;
+        }
+    }
+    return NULL;
+}
+
+
+bool listHasCycle(ListNode* head){
+    ListNode *slow = head;
+    ListNode *fast = head;
+    while (fast && fast->next){
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) return true;
+    }
+    
+    return false;
+}
+
+string longestCommonPrefix(vector<string> &strs){
+    if (strs.empty()) return "";
+    
+    for (int idx = 0; idx < strs[0].size(); ++idx){
+        for (int i = 1; i < strs.size(); ++i){
+            if (strs[i][idx] != strs[0][idx])
+                return strs[0].substr(0,idx);
+        }
+    }
+    return strs[0];
+}
+
+
+int longestConsecutive(const vector<int> &num)
+{
+    unordered_map<int, bool> used;
+    int longest = 0;
+    for (auto i : num)
+    {
+        if (used[i]) continue;
+        int length = 0;
+        used[i] = true;
+        for (int j = i + 1; used.find(j) != used.end(); ++j)
+        {
+            used[j] = true;
+            ++length;
+        }
+        
+        for (int j = i - 1; used.find(j) != used.end(); --j)
+        {
+            used[j] = true;
+            ++length;
+        }
+        longest = max(longest, length);
+    }
+    return longest;
+}
+
+
+int longestValidParentheses(string s)
+{
+    int max_len = 0, last = -1;
+    stack<int> lefts;
+    
+    for (int i = 0; i < s.size(); ++i)
+    {
+        if (s[i] == '(')
+            lefts.push(i);
+        else {
+            if (lefts.empty())
+                last = i;
+            else {
+                lefts.pop();
+                if (lefts.empty())
+                    max_len = max(max_len, i-last);
+                else
+                    max_len = max(max_len, i-lefts.top());
+            }
+        }
+    }
+    return max_len;
+}
+
+void mergeSortedArray(int A[], int m, int B[], int n){
+    int ia = m - 1, ib = n - 1, icur = m + n - 1;
+    while (ia >= 0 && ib >= 0){
+        A[icur--] = A[ia] >= B[ib] ? A[ia--] : B[ib--];
+    }
+    
+    while (ib >= 0){
+        A[icur--] = B[ib--];
+    }
+}
+
+ListNode *mergeTwoLists(ListNode *l1, ListNode *l2){
+    if (l1 == NULL) return l2;
+    if (l2 == NULL) return l1;
+    
+    ListNode dummy(-1);
+    ListNode *p = &dummy;
+    for (; l1 != NULL && l2 != NULL; p = p -> next){
+        if (l1->val > l2->val){
+            p->next = l2;
+            ls = l2->next;
+        }else{
+            p->next = l1;
+            l1 = l1->next;
+        }
+    }
+    p->next = l1 != NULL ? l1 : l2;
+    return dummy.next;
+}
+
+
+int minimumDepthofBinaryTree(const TreeNode *root, bool hasbrother){
+    if (!root) return hasbrother ? INT_MAX : 0;
+    
+    return 1 + min(minimumDepthofBinaryTree(root->left, root->right != NULL),
+                   minimumDepthofBinaryTree(root->right, root->left != NULL));
+}
+
+int maxDepthOfBinaryTree(TreeNode* root){
+    if (root == NULL) return 0;
+    
+    return max(maxDepthOfBinaryTree(root->left), maxDepthOfBinaryTree(root->right)) + 1;
+}
+
+char* myStrStr(const char* haystack, const char* needle){
+    if (*needle == NULL) return (char*)haystack;
+    
+    const char* p1;
+    const char* p2;
+    const char* p1_advance = haystack;
+    
+    for (p2 = &needle[1]; *p2; ++p2){
+        p1_advance++;
+    }
+    
+    for (p1 = haystack; *p1_advance; p1_advance++){
+        char* p1_old = (char*) p1;
+        p2 = needle;
+        while (*p1 && *p2 && *p1 == *p2){
+            p1++;
+            p2++;
+        }
+        
+        if(*p2 == NULL) return p1_old;
+        p1 = p1_old + 1;
+    }
+    return NULL;
+}
+
+
+ListNode* partitionList(ListNode* Head, int x)
+{
+    ListNode left_dummy(-1);
+    ListNode right_dummy(-1);
+    
+    auto left_cur = &left_dummy;
+    auto right_cur = &right_dummy;
+    
+    for (ListNode *cur = Head; cur; cur = cur->next)
+    {
+        if (cur->val < x){
+            left_cur->next = cur;
+            left_cur = cur;
+        }
+        else{
+            right_cur->next = cur;
+            right_cur = cur;
+        }
+        left_cur->next = right_dummy.next;
+        right_cur->next = nullptr;
+    }
+}
+
+
+
+void pathSum(TreeNode* root , int gap, vector<int> &cur,
+             vector<vector<int> > &result){
+    if (root == NULL) return ;
+    
+    cur.push_back(root->val);
+    
+    if (root->left == NULL && root->right == NULL) {
+        if (gap == root->val)
+            result.push_back(cur);
+    }
+    pathSum(root->left, gap - root->val, cur, result);
+    pathSum(root->right, gap - root->val, cur, result);
+    
+    cur.pop_back();
+}
+
+
+vector<int> preorderTraversal(TreeNode *root){
+    vector<int> result;
+    const TreeNode *p;
+    stack<const TreeNode *> s;
+    
+    p = root;
+    if (p != NULL) s.push(p);
+    
+    while (!s.empty()) {
+        p = s.top();
+        s.pop();
+        result.push_back(p->val);
+        
+        if ( p->right != NULL) s.push(p->right);
+        if ( p->left != NULL) s.push(p->left);
+    }
+    return result;
+}
+
+
+
+ListNode* removeDuplicatesFromSortedList(ListNode * head)
+{
+    ListNode* pre = head;
+    if (head == nullptr)
+        return nullptr;
+    ListNode* cur;
+    
+    for (cur = pre->next; cur != nullptr; cur = cur->next)
+    {
+        if (cur->val == pre->val){
+            pre->next = cur->next;
+            delete cur;
+        }
+        else
+            pre = cur;
+    }
+    return head;
+}
+
+ListNode* removeDuplicatesFromLists2(ListNode* head)
+{
+    if (head->next == nullptr)
+        return head;
+    ListNode dummy(INT_MIN);//头节点
+    dummy.next = head;
+    ListNode *prev = &dummy, *cur = head;
+    while(cur != nullptr){
+        bool duplicated = false;
+        while (cur->next!=nullptr && cur->val == cur->next->val){
+            duplicated = true;
+            ListNode *temp = cur;
+            cur = cur->next;
+            delete temp;
+        }
+        if (duplicated){//删除重复的最后一个元素
+            ListNode* temp = cur;
+            cur = cur->next;
+            delete temp;
+            continue;
+        }
+        prev->next = cur;
+        prev = prev->next;
+        cur = cur->next;
+    }
+    prev->next = cur;
+    return dummy.next;
+}
+
+
+
+ListNode* removeNthFromList(ListNode* head, int n)// 只扫描了一次
+{
+    ListNode dummy(-1);
+    dummy.next = head;
+    
+    ListNode* p = &dummy;
+    ListNode* q = &dummy;
+    
+    for (int i = 0; i < n; i++)
+        q = q->next;
+    
+    while (q->next)
+    {
+        q = q->next;
+        p = p->next;
+    }
+    
+    ListNode* tmp;
+    tmp = p->next;
+    p->next = p->next->next;
+    delete tmp;
+    return dummy.next;
+}
+
+
+
+//找到中间节点，把后半节链表reverse，然后合并成一个大的链表
+ListNode* reverse(ListNode* head);
+void reorderList(ListNode* head){
+    if (head == NULL || head->next == NULL)
+        return;
+    ListNode* slow = head;
+    ListNode* fast = head;
+    ListNode* prev = NULL;
+    while (fast && fast->next){
+        prev = slow;
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    
+    prev->next = NULL;
+    slow = reverse(slow);
+    ListNode* cur = head;
+    while (cur->next){
+        ListNode* tmp = cur->next;
+        cur->next = slow;
+        slow = slow->next;
+        cur->next->next = tmp;
+        cur = tmp;
+    }
+    cur->next = slow;
+}
+
+ListNode* reverse(ListNode* head){
+    if (head == NULL || head->next == NULL)
+        return head;
+    
+    ListNode* prev = head;
+    ListNode* tmp = head->next;
+    ListNode* cur = tmp->next;
+    head->next = NULL;
+    while(cur->next){
+        tmp->next = prev;
+        prev = tmp;
+        tmp = cur;
+        cur = cur->next;
+    }
+    tmp->next = prev;
+    cur->next = tmp;;
+    return cur;
+}
+
+
+
+ListNode *reverseLinkedList2(ListNode *head, int m, int n)
+{
+    ListNode dummy(-1);
+    dummy.next = head;
+    
+    ListNode *prev = &dummy;
+    for (int i = 0; i < m - 1; ++i)
+        prev = prev -> next;
+    ListNode* const head2 = prev;
+    
+    prev = head2->next;
+    ListNode *cur = prev->next;
+    for (int i = m; i < n; i++){
+        prev->next = cur->next;
+        cur->next = head2->next;
+        head2->next = cur;
+        cur = prev->next;
+    }
+    return dummy.next;
+}
+
+
+
+
+void rotateImage(vector<vector<int> > & matrix)
+{
+    const int n = matrix.size();
+    
+    for (int i = 0; i < n; ++i){
+        for (int j = 0; j < n-1; ++j)
+            swap(matrix[i][j], matrix[n - 1 - j][n - 1 - i]);
+    }
+    
+    for (int i = 0; i < n/2; ++i)
+        for (int j = 0; j < n; ++j)
+            swap(matrix[i][j], matrix[n-1-i][j]);
+}
+
+
+
+ListNode* rotateRightList(ListNode *head, int k){
+    if (head == NULL || k == 0)
+        return head;
+    
+    int len = 1;
+    ListNode* p = head;
+    while (p->next){
+        len++;
+        p = p->next;
+    }
+    
+    k = len - k % len;
+    p->next = head;
+    for (int step = 0; step < k; step++)
+        p = p->next;
+    
+    head = p->next;
+    p->next = NULL;
+    return head;
+}
+
+
+void setMatrixZeros(vector<vector<int> > &matrix)
+{
+    const size_t m = matrix.size();
+    const size_t n = matrix[0].size();
+    vector<bool> row(m, false);
+    vectro<bool> col(n, false);
+    
+    for (size_t i = 0; i < m; ++i)
+    {
+        for (size_t j = 0; j < n; ++j)
+            if (matrix[i][j] == 0)
+                row[i] = col[j] = true;
+    }
+    
+    for (size_t i = 0; i < m ; ++i)
+        if (row[i])
+            fill(&matrix[i][0], &matrix[i][0] + n, 0);
+    
+    for (size_t j = 0; j < n; ++j)
+        if (col[j]){
+            for (size_t i = 0; i < m; ++i)
+                matrix[i][j] = 0;
+        }
+}
+
+
+int singleNumber(int A[], int n){
+    int x = 0;
+    for (size_t i = 0; i < n; i++)
+        x ^= A[i];
+    return x;
+}
+
+
+int singleNumber2(int A[], int n){
+    const int W = sizeof(int) * 8;
+    int count[W];
+    fill_n(&count[0], W, 0);
+    for (int i = 0; i < n; i++){
+        for (int j = 0; j < W; j++){
+            count[j] += (A[i] >> j) & 1;
+            count[j] %= 3;
+        }
+    }
+    
+    int result = 0;
+    for(int i = 0; i < W; i++)
+        result += (count[i] << i);
+    
+    return result;
+}
+
+
+
+int sumNumbers(TreeNode *root, int sum) {
+    if (root == NULL)
+        return 0;
+    if (root->left == NULL && root->right == NULL)
+        return sum * 10 + root->val;
+    
+    return sumNumbers(root->left, sum * 10 + root->val) +
+    sumNumbers(root->right, sum * 10 + root->val);
+}
+
+
+ListNode* swapNodesInList(ListNode* head){
+    if (!head || !head->next)
+        return head;
+    ListNode dummy(-1);
+    dummy.next = head;
+    ListNode* prev = &dummy;
+    ListNode* cur = prev->next;
+    ListNode* next = cur->next;
+    while(next)
+    {
+        prev->next = next;
+        cur->next = next->next;
+        next->next = cur;
+        
+        prev = cur;
+        cur = cur->next;
+        next = cur ? cur->next : NULL;
+    }
+    return dummy.next;
+}
+
+
+
+
+
+
+
+int trappingRainWater(int A[], int n)
+{
+    int *max_left = new int[n]();
+    int *max_right = new int[n]();
+    
+    for (int i = 1; i < n ; i++)
+    {
+        max_left[i] = max(max_left[i-1], A[i-1]);
+        max_right[n - i - 1] = max(max_right[n - i], A[n - i]);
+    }
+    int sum = 0;
+    for (int i = 0; i < n; i++){
+        int height = min(max_left[i], max_right[i]);
+        if (height > A[i])  sum += height - A[i];
+    }
+    
+    delete[] max_left;
+    delete[] max_right;
+    return sum;
+}
+
+
+int trappingRainWater2(int a[], int n)
+{
+    int max = 0;
+    for (int i = 0; i < n; i++){
+        if (A[i] > A[max]) max = i;
+    }
+    
+    int water = 0;
+    for (int i = 0, peak = 0; i < max; i++){
+        if (A[i] > peak) peak = A[i];
+        else
+            water += peak - A[i];
+    }
+    
+    for (int i = n - 1, top = 0; i > max; i--){
+        if (A[i] > top) top = A[i];
+        else
+            water += = top - A[i];
+    }
+    
+    return water;
+}
+
+
+
+
+
+
+                
+                
+                
+                
+int removeElement(int A[], int n, int target)
+    {
+        int index = 0;
+        int i;
+        for (i = 0; i < n; ++i)
+        {
+            if (A[i] != elem) 
+                A[index++] = A[i];
+        }
+        return index;
+    }
+                
+                
+                int remove_duplicates(int a[], int num)
+    {
+        if (num == 0) return 0;
+        int i, index = 0;
+        for (i = 1; i < num; i++)
+            if (a[index] != a[i])
+                a[++index] = a[i];
+        return index+1;
+    }
+                
+                int remove_duplicates2(int a[], int num)
+    {
+        if (num == 0) return 0;
+        int i, flag = 0, index = 0;
+        for (i = 1; i < num; i++)
+            if (a[index] != a[i])
+                a[++index] = a[i];
+            else{
+                if (a[i] == a[i+1])
+                    i++;
+                else
+                    a[++index] = a[i];
+            }
+        
+        return index+1;
+    }
+                
+                int remove_duplicates3(int a[], int num)
+    {
+        if (num < 3) return num;
+        int i, index = 2;
+        for (i = 2; i < num; i++)
+            if (a[i] != a[index-2])
+                a[index++] = a[i];
+        return index;
+    }
+                
+                
+                
+                int search_in_rotated_sorted_array(int x, int A[], int num)
+    {
+        int first = 0, last = num;
+        while (first != last)
+        {
+            const int mid = first + (last - first) / 2;
+            if (A[mid] == x)
+                return mid;
+            if (A[first] <= A[mid])
+            {
+                if (A[first] <= x && x < A[mid])
+                    last = mid;
+                else
+                    first = mid + 1;
+            }
+            else
+            {
+                if (A[mid] < x && x <= A[last - 1])
+                    first = mid - 1;
+                else
+                    last = mid;
+            }
+        }
+        return -1;
+        
+    }
+*/
+        
 
 //problem:
 //algorithm:
@@ -1526,3 +2576,4 @@ int candy(vector<int> &ratings) {
 
 //problem:
 //algorithm:
+
