@@ -5,6 +5,7 @@
 #include <list>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <iostream>
 #include <fstream>
@@ -48,8 +49,43 @@ struct BinaryTreeNode{              // a node in the binary tree
     m_nValue(nv), m_pLeft(pl), m_pRight(rl) {}
 };
 
+//problem:  求字符串中最长的重复字符串longest duplicate
+//algorithm:    后缀树
+int pstrcmp(const void **p, const void **q)
+{   return strcmp((char*)(*p), (char*)*q); }
+
+int comlen(char *p, char *q)
+{	int i = 0;
+    while (*p && (*p++ == *q++))
+        i++;
+    return i;
+}
+
+#define M 1
+#define MAXN 5000000
+char c[MAXN], *a[MAXN];
+
+int longdup_main()
+{   int i, ch, n = 0, maxi, maxlen = -1;
+    while ((ch = getchar()) != EOF) {
+        a[n] = &c[n];
+        c[n++] = ch;
+    }
+    c[n] = 0;
+    
+    qsort(a, n, sizeof(char *), pstrcmp);
+    for (i = 0; i < n-M; i++)
+        if (comlen(a[i], a[i+M]) > maxlen) {
+            maxlen = comlen(a[i], a[i+M]);
+            maxi = i;
+        }
+    printf("%.*s\n", maxlen, a[maxi]);
+    return 0;
+}
+
+
 //problem: 编程珠玑 pearls
-//algorithm: 用自己设计的hash函数来统计一个文件中每个单词的数目，当然可以用map和unordered_map来实现
+//algorithm: 用自己设计的hash函数来统计一个文件中每个单词的数目，当然可以用unordered_map来实现, 底层都是用的hash，也可以用map，底层用的红黑树
 int wordsNum_main() {
     map<string, int> words; //也可以换成unordered_map
     map<string, int>::iterator iter;
@@ -60,7 +96,8 @@ int wordsNum_main() {
         cout << iter->first << " "<< iter->second << "\n";
     return 0;
 }
-
+//algorithm: 自己设计的hash函数来实现，pearls
+//hashtable的数据结构就是一个包涵单向链的二维数组
 namespace wordsStat {
     typedef struct wordNode *pWordNode;
     typedef struct wordNode {
@@ -71,10 +108,11 @@ namespace wordsStat {
     
     #define NHASH 29989
     #define MULT 31
-    pWordNode bin[NHASH];
+    pWordNode bin[NHASH];   //每一个hash节点保留的是一个指针，指向一个单词节点
     
     unsigned int hash(char *p)
-    {	unsigned int h = 0;
+    {
+        unsigned int h = 0;
         for ( ; *p; p++)
             h = MULT * h + *p;
         return h % NHASH;
@@ -85,10 +123,11 @@ namespace wordsStat {
     pWordNode freenode;
     
     pWordNode nmalloc()
-    {	if (nodesleft == 0) {
-        freenode = (pWordNode)malloc(NODEGROUP*sizeof(node));
-        nodesleft = NODEGROUP;
-    }
+    {
+        if (nodesleft == 0) {
+            freenode = (pWordNode)malloc(NODEGROUP*sizeof(node));
+            nodesleft = NODEGROUP;
+        }
         nodesleft--;
         return freenode++;
     }
@@ -98,17 +137,19 @@ namespace wordsStat {
     char *freechar;
     
     char *smalloc(int n)
-    {	if (charsleft < n) {
-        freechar = (char*)malloc(n+CHARGROUP);
-        charsleft = n+CHARGROUP;
-    }
+    {
+        if (charsleft < n) {
+            freechar = (char*)malloc(n+CHARGROUP);
+            charsleft = n+CHARGROUP;
+        }
         charsleft -= n;
         freechar += n;
         return freechar - n;
     }
     
     void incword(char *s)
-    {	pWordNode p;
+    {
+        pWordNode p;
         int h = hash(s);
         for (p = bin[h]; p != NULL; p = p->next)
             if (strcmp(s, p->word) == 0) {
@@ -119,12 +160,13 @@ namespace wordsStat {
         p->count = 1;
         p->word = smalloc((int)(strlen(s)+1));
         strcpy(p->word, s);
-        p->next = bin[h];
+        p->next = bin[h]; //每次新插入的元素都放在链表的第一个节点前面, bin[h]里面保存的就是单链表的头指针
         bin[h] = p;
     }
     
     int wordsStat_main()
-    {	int i;
+    {
+        int i;
         pWordNode p;
         char buf[100];
         for (i = 0; i < NHASH; i++)
