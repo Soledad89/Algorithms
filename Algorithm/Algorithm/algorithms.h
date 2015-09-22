@@ -13,6 +13,7 @@
 #include <vector>
 #include <bitset>
 #include <map>
+#include <set>
 #include <queue>
 #include <exception>
 #include <assert.h>
@@ -46,6 +47,300 @@ struct BinaryTreeNode{              // a node in the binary tree
     BinaryTreeNode(int nv = 0, BinaryTreeNode* pl = NULL, BinaryTreeNode* rl = NULL):
     m_nValue(nv), m_pLeft(pl), m_pRight(rl) {}
 };
+
+//problem: 编程珠玑 pearls
+//algorithm: 用自己设计的hash函数来统计一个文件中每个单词的数目，当然可以用map和unordered_map来实现
+int wordsNum_main() {
+    map<string, int> words; //也可以换成unordered_map
+    map<string, int>::iterator iter;
+    string t;
+    while (cin >> t)
+        words[t]++;
+    for ( iter =words.begin(); iter != words.end(); iter++)
+        cout << iter->first << " "<< iter->second << "\n";
+    return 0;
+}
+
+namespace wordsStat {
+    typedef struct wordNode *pWordNode;
+    typedef struct wordNode {
+        char *word;
+        int count;
+        pWordNode next;
+    } wordNode;
+    
+    #define NHASH 29989
+    #define MULT 31
+    pWordNode bin[NHASH];
+    
+    unsigned int hash(char *p)
+    {	unsigned int h = 0;
+        for ( ; *p; p++)
+            h = MULT * h + *p;
+        return h % NHASH;
+    }
+    
+    #define NODEGROUP 1000      //避免多次分配，一次分配多一点的内存
+    int nodesleft = 0;
+    pWordNode freenode;
+    
+    pWordNode nmalloc()
+    {	if (nodesleft == 0) {
+        freenode = (pWordNode)malloc(NODEGROUP*sizeof(node));
+        nodesleft = NODEGROUP;
+    }
+        nodesleft--;
+        return freenode++;
+    }
+    
+    #define CHARGROUP 10000
+    int charsleft = 0;
+    char *freechar;
+    
+    char *smalloc(int n)
+    {	if (charsleft < n) {
+        freechar = (char*)malloc(n+CHARGROUP);
+        charsleft = n+CHARGROUP;
+    }
+        charsleft -= n;
+        freechar += n;
+        return freechar - n;
+    }
+    
+    void incword(char *s)
+    {	pWordNode p;
+        int h = hash(s);
+        for (p = bin[h]; p != NULL; p = p->next)
+            if (strcmp(s, p->word) == 0) {
+                (p->count)++;
+                return;
+            }
+        p = nmalloc();
+        p->count = 1;
+        p->word = smalloc((int)(strlen(s)+1));
+        strcpy(p->word, s);
+        p->next = bin[h];
+        bin[h] = p;
+    }
+    
+    int wordsStat_main()
+    {	int i;
+        pWordNode p;
+        char buf[100];
+        for (i = 0; i < NHASH; i++)
+            bin[i] = NULL;
+        while (scanf("%s", buf) != EOF)
+            incword(buf);
+        for (i = 0; i < NHASH; i++)
+            for (p = bin[i]; p != NULL; p = p->next)
+                printf("%s %d\n", p->word, p->count);
+        return 0;
+    }
+}
+
+//problem: 优先队列的实现priority_queue的实现
+//algorithm: 用堆来实现，其中两个重要的siftup and siftdown函数
+template<class T>
+class priqueue {
+private:
+    int n, maxsize;
+    T *x;
+    void swap(int i, int j) {
+        T t = x[i];
+        x[i] = x[j];
+        x[j] = t;
+    }
+    
+public:
+    priqueue(int m) {
+        maxsize = m;
+        x = new T[maxsize + 1];
+        n = 0;
+    }
+    
+    void insert(T t) {      //这里就是利用下面的siftup的方法
+        int i, p;
+        x[++n] = t;
+        for (i = n; i > 1 && x[p=i/2] > x[i]; i = p)
+            swap(p, i);
+    }
+    
+    T extractmin(){         //这里利用下面的siftdown的方法
+        int i, c;
+        T t = x[1];
+        x[i] = x[n--];
+        for (i = 1; (c = 2*i) <= n; i = c) {
+            if (c+1 <= n && x[c+1] < x[c])
+                c++;
+            if (x[i] <= x[c])
+                break;
+            swap(c, i);
+        }
+        return t;
+    }
+};
+template<class T>
+void heapsort(vector<T> &x) {
+    int num = x.size();
+    priqueue<T> pq;
+    for (int i = 0; i < num; i++)
+        pq.insert(x[i]);
+    for (int i = 0; i < num; i++)
+        x[i] = pq.extractmin();
+}
+
+namespace heapsort_ {
+    
+    #define MAX 200000
+
+    void swap( int *data, int i, int j)
+    {
+        int temp = data[i];
+        data[i] = data[j];
+        data[j] = temp;
+    }
+
+    //siftup比较好理解，将每一个元素都与自己的父亲比较，如果自己的值小于父亲的值，就互换，直到到堆顶，或父亲的值小于自己的值为止。
+    void siftup(int *data, int n )
+    {
+        int i = n;
+        int p;
+        while( 1 )
+        {
+            if ( i == 1 ) break;
+            p = i/2;
+            if( data[p] <= data[i]) break;
+            swap( data, i, p );
+            i = p;
+        }
+    }
+
+    //这里的n其实意义不大，是指n之后的数据是符合要求的，n之前的数据可能不满足小根堆的要求，调整的方法也是从堆顶开始，初步向小调整
+    void siftdown( int *data, int n)
+    {
+        int i = 1;
+        int c = 0;
+        while( 1 )
+        {
+            c = 2 * i;
+            if( c > n ) break;
+            //取两个孩子中较小的一个与自己作比较
+            if( c + 1 <= n && data[ c + 1] < data[c] )
+                c++;
+            
+            //如果孩子的值小于自己的值，则互换
+            if( data[i] <= data[c] )
+                break;
+            swap( data, c, i);
+            i = c;
+        }
+    }
+
+    int heapsort_main()
+    {
+        double BegTime, EndTime;
+        int data[ MAX + 1];
+        int data2[ MAX + 1];
+        data2[0] = 0;
+        int i= 0;
+        srand(5);
+        for( i = 1; i <= MAX; i++ )
+            data[i] = rand() % 500;
+        
+        memcpy( data2, data, MAX+1);
+        BegTime = clock();
+        //建堆
+        for( i = 2; i <= MAX; i++ )
+            siftup(data,i);
+        
+        //从后向前调整
+        for( i =MAX; i >= 2; i--)
+        {
+            swap(data, 1, i);
+            siftdown(data, i - 1 );
+        }
+        EndTime = clock();
+        printf("HeapSort:%gms\n", (EndTime - BegTime) / 1000);
+        
+        BegTime = clock();
+        sort(data2, data2 + MAX + 1);
+        EndTime = clock();
+        printf("sort: %gms\n", (EndTime - BegTime) / 1000);
+        
+        
+        printf("\n");
+        return 0;
+    }
+}
+
+//problem: 堆排序中的两个最重要的函数siftup和siftdown
+//algorithm:
+// heap[0]用来存储数组中堆数据的长度，堆数据heap[1]...heap[heapLength]
+// 所以数组的实际长度是heapLength+1，我们只对从数组索引为1开始的heapLength个数据进行操作
+void siftUp(int* heap, int index)
+{
+    int heapLength = heap[0];
+    
+    if (index < 1 || index > heapLength)
+        return;
+    
+    bool done = false;
+    while(!done && index > 1)
+    {
+        if (heap[index] > heap[index / 2])
+        {
+            int temp = heap[index];
+            heap[index] = heap[index / 2];
+            heap[index / 2] = temp;
+        }
+        else
+        {
+            done = true;            //这里也可以不用引入额外变量，直接用break
+        }
+        
+        index /= 2;
+    }
+}
+void siftDown(int* heap, int index)
+{
+    int heapLength = heap[0];
+    
+    if (index < 1 || index * 2 > heapLength)
+        return;
+    
+    bool done = false;
+    while(!done && index * 2 <= heapLength)
+    {
+        index *= 2;
+        
+        if (index + 1 <= heapLength && heap[index + 1] > heap[index])
+            index += 1;
+        
+        if (heap[index] > heap[index / 2])
+        {
+            int temp = heap[index];
+            heap[index] = heap[index / 2];
+            heap[index / 2] = temp;
+        }
+        else
+        {
+            done = true;
+        }
+    }
+}
+
+//problem: 产生m个0——n-1的随机数，不能重复random number
+//algorithm: 利用一个set来保证不重复以及有序
+void genSets(int m, int n){
+    set<int> s;
+    while (s.size() < m)
+        s.insert(rand() % n);
+    set<int>::iterator  iter;
+    for (iter = s.begin(); iter != s.end(); iter++){
+        cout << *iter << endl;
+    }
+}
+
 
 //problem: 判断一点是否在多边形内
 //algorithm: 射线交点判奇法
@@ -4191,8 +4486,6 @@ template <typename T> size_t StackWithMin<T>::size() const
 }
 
 
-
-
 //问题：使用两个堆栈来实现队列
 //算法：一个负责入队，一个负责出队
 class DoubleStack2Queue {
@@ -4272,6 +4565,7 @@ void k_min ( int * arr , int len , int k )
         }
     }
 }
+
 //堆排序
 void heap_sort(int *arr,int len)
 {
