@@ -12,16 +12,247 @@
 #include <bitset>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <queue>
 #include <exception>
 #include <assert.h>
 #include <math.h>
 #include <string.h>
+#include "algorithms.h"
 
 using namespace std;
 
+
+int main17() {
+    int m = 6;
+    int n = reverseBits2(m);
+    return 0;
+}
+
+int main16() {
+    vector<vector<int> > matrix1 = {{1,2,3,4,5},{6,7,8,9,10},{11,12,13,14,15},{16,17,18,19,20},{21,22,23,24,25}};
+    vector<vector<int> > matrix = {{1,1}};
+
+    vector<int> tmp = {1, 2, 3, 4};
+    int m = lower_bound(tmp.begin(), tmp.end(), 1) - tmp.begin();
+    vector<vector<int> > matrix3 = {{1, 4}, {2, 5}};
+    bool b = searchMatrix(matrix1, 19);
+
+    return 0;
+}
+
+
+
+
+///////////
+int longestConsecutive2(vector<int>& nums) {
+    int n = (int)nums.size();
+    if ( n == 0 || n == 1)
+        return n;
+    unordered_set<int>  setnum;
+    setnum.insert(nums.begin(), nums.end());
+    
+//    for (int i = 0; i < n; i++) {
+//        setnum.insert(nums[i]);
+//    }
+    
+    int max = 0;
+    int count;
+    for (int i = 0; i < n; i++) {
+        count = 1;
+        int curincrease = nums[i] + 1;
+        while(setnum.find(curincrease) != setnum.end()) {
+            count++;
+            setnum.erase(curincrease);
+            curincrease++;
+            
+        }
+        
+        int curdecrease = nums[i] - 1;
+        while (setnum.find(curdecrease) != setnum.end()) {
+            count++;
+            setnum.erase(curdecrease);
+            curdecrease--;
+            
+        }
+        
+        if (count > max)
+            max = count;
+    }
+    return max;
+}
+
+int longestConsecutive(vector<int>& nums) {
+    int n = nums.size();
+    if ( n == 0 || n == 1)
+        return n;
+    sort(nums.begin(), nums.end());
+    int max = 0;
+    int cur = 1;
+    for (int i = 1; i < n; i++) {
+        if ( nums[i] == nums[i-1]) {
+            if ( i == n - 1 && cur > max)
+                max = cur;
+            continue;
+        }
+        
+        if (nums[i] == nums[i - 1] + 1 ) {
+            cur++;
+            if (i == n-1 && cur > max)
+                max = cur;
+        } else
+        {
+            if ( cur > max) {
+                max = cur;
+            }
+            cur = 1;
+        }
+    }
+    return max;
+}
+
+int main13() {
+    vector<char> s = {'a', 'b'};
+    vector<vector<char> > vv;
+    vv.push_back(s);
+    s = {'c','d'};
+    vv.push_back(s);
+    
+    string str = "cab";
+    vector<string> vString;
+    vString.push_back(str);
+    
+    //findWords(vv, vString);
+    
+    vector<int> nums = {9,1,-3,2,4,8,3,-1,6,-2,-4,7};
+    int m = longestConsecutive2(nums);
+    return 0;
+}
+
+
+
+/*
+ Problem Description
+ The highest building in our city has only one elevator. A request list is made up with N positive numbers. The numbers denote at which floors the elevator will stop, in specified order. It costs 6 seconds to move the elevator up one floor, and 4 seconds to move down one floor. The elevator will stay for 5 seconds at each stop.
+ 
+ For a given request list, you are to compute the total time spent to fulfill the requests on the list. The elevator is on the 0th floor at the beginning and does not have to return to the ground floor when the requests are fulfilled.
+ Input
+ There are multiple test cases. Each case contains a positive integer N, followed by N positive numbers. All the numbers in the input are less than 100. A test case with N = 0 denotes the end of input. This test case is not to be processed.
+ Output
+ Print the total time on a single line for each test case.
+ Sample Input
+ 1 2
+ 3 2 3 1
+ 0
+ */
+
+int main12() {
+    int up = 6;
+    int down = 4;
+    int wait = 5;
+    int num = 0;
+
+    int prev;       //initial pos
+    int cur;
+    int sum;        //sum time
+    while (cin >> num) {
+        prev = 0; cur =0; sum = 0;
+        if (num == 0) break;
+        while (num--) {
+            cin >> cur;
+            if (cur > prev) {
+                sum += (cur - prev) * up + wait;
+                prev = cur;
+            }
+            else if (cur < prev){
+                sum += (prev - prev) * down + wait;
+                prev = cur;
+            }
+        }
+        cout << sum << endl;
+    }
+    return 0;
+}
+/*
+ Problem Description : right most digit
+ Given a positive integer N, you should output the most right digit of N^N.
+ Input
+ The input contains several test cases. The first line of the input is a single integer T which is the number of test cases. T test cases follow.
+ Each test case contains a single positive integer N(1<=N<=1,000,000,000).
+ Output
+ For each test case, you should output the rightmost digit of N^N.
+ Sample Input
+ 2
+ 3
+ 4
+ Sample Output
+ 7
+ 6
+ 
+ Hint
+ 
+ In the first case, 3 * 3 * 3 = 27, so the rightmost digit is 7.
+ In the second case, 4 * 4 * 4 * 4 = 256, so the rightmost digit is 6.
+ */
+
+int main_rightmostdigit()
+{
+    int n;
+    cin>>n;
+    while (n--)
+    {
+        int m;
+        cin>>m;
+        int a[10][5]={      //如99^99 可转化为求99个9相乘后最低位是什么，而同一个数连乘结果是具有周期性的，周期不大于10,这里是5
+            {0,0,0,0,0},
+            {1,1,1,1,1},
+            {6,2,4,8,6},
+            {1,3,9,7,1},
+            {6,4,6,4,6},
+            {5,5,5,5,5},
+            {6,6,6,6,6},
+            {1,7,9,3,1},
+            {6,8,4,2,6},
+            {1,9,1,9,1}};
+        cout<<a[m%10][m%4]<<endl;
+    }
+    return 0;
+}
+
+//更简洁
+int main_oj_rightmostdigit()
+{
+    int n; int s,a,b,num;
+    scanf("%d",&n);
+    while(n--)
+    {
+        
+        scanf("%d",&num);
+        a=num%10;
+        b=num%4;
+        if(b==0)
+            b=4;
+        printf("%d\n",(int)pow((double)a,b)%10);
+    }
+    return 0;
+}
+
+
+
+
 //一般做法：fib
-int fibllic(int n)  {
+
+/*
+ Problem Description
+ There are another kind of Fibonacci numbers: F(0) = 7, F(1) = 11, F(n) = F(n-1) + F(n-2) (n>=2).
+ Input
+ Input consists of a sequence of lines, each containing an integer n. (n < 1,000,000).
+ Output
+ Print the word "yes" if 3 divide evenly into F(n).
+ Print the word "no" if not.
+ */
+
+int fibllic1(int n)  {
     int a = 7;      //初始值都可以自己确定
     int b = 11;
     
@@ -34,21 +265,12 @@ int fibllic(int n)  {
     }
     return b;
 }
-/*
- Problem Description
- There are another kind of Fibonacci numbers: F(0) = 7, F(1) = 11, F(n) = F(n-1) + F(n-2) (n>=2).
- Input
- Input consists of a sequence of lines, each containing an integer n. (n < 1,000,000).
- Output
- Print the word "yes" if 3 divide evenly into F(n).
- Print the word "no" if not.
- */
- 
-int main()  {
+
+int main_wangbo()  {
     int tmp;
     
     while (cin >> tmp) {
-        tmp = fibllic(tmp);
+        tmp = fibllic1(tmp);
         if (tmp % 3 == 0)
             cout << "yes"<<endl;
         else
@@ -58,7 +280,15 @@ int main()  {
     
 }
 
-int main11()
+/*
+ 首先你要知道这个公式 (a+b)%c=(a%c+b%c)%c
+ 然后 从F(0)=7 F(1)=11开始 我们只要看每一个数对3取余的结果就好了
+ 设G(X) = F(X)%3
+ 那么就有 G(0)=1,G(1)=2 G(N)=(G(N-1)+G(N-2))%3  //取余肯定有重复的
+ 然后把前面几项你就会看到规律 1 2 0 2 2 1 0 1 1 2 0 2 2 ……
+ 所以是以8为周期的 然后第3项和第7项为0 所以就有了你给的代码啦
+ */
+int main_oj()
 {
     int n,c;
     while(scanf("%d",&n)!=EOF)
@@ -174,7 +404,7 @@ int main7()
 /*
  求若干数的最小公倍数
  */
-int gcd1(int a, int b)
+int gcd12(int a, int b)
 {
     while (true) {
         if (0 == a) return b;
@@ -184,9 +414,9 @@ int gcd1(int a, int b)
     }
 }
 
-int gcd3(int m, int n )
+int gcd32(int m, int n )
 {
-    return m / gcd1(m, n) * n;
+    return m / gcd12(m, n) * n;
 }
 
 
@@ -201,7 +431,7 @@ int main5() {
         int x;
         for (int j = 0; j < size; j++) {
             cin >> x;
-            partialGcd = gcd3(partialGcd, x);
+            partialGcd = gcd32(partialGcd, x);
         }
         cout << partialGcd << endl;
     }

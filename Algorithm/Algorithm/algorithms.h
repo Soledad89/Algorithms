@@ -45,14 +45,44 @@ struct BinaryTreeNode{              // a node in the binary tree
     BinaryTreeNode *m_pLeft;        // left child of node
     BinaryTreeNode *m_pRight;       // right child of node
     BinaryTreeNode() {};
-    BinaryTreeNode(int nv = 0, BinaryTreeNode* pl = NULL, BinaryTreeNode* rl = NULL):
-    m_nValue(nv), m_pLeft(pl), m_pRight(rl) {}
+    BinaryTreeNode(int nv = 0, BinaryTreeNode* pl = NULL, BinaryTreeNode* pr = NULL):
+    m_nValue(nv), m_pLeft(pl), m_pRight(pr) {}
 };
 
-//problem:  求字符串中最长的重复字符串longest duplicate
-//algorithm:    后缀树
-int pstrcmp(const void **p, const void **q)
-{   return strcmp((char*)(*p), (char*)*q); }
+
+//problem:  最长公共前缀,找到一串字符串的最长的公共前缀
+//algorithm:
+string longestCommonPrefix(vector<string>& strs) {
+    if (strs.empty()) return "";
+    
+    string first = strs[0];
+    for (int i = 0; i < first.size(); i++)
+    {
+        for (int j = 1; j < strs.size(); j++)
+            if (strs[j][i] != first[i])
+                return first.substr(0, i);
+        
+    }
+    return first;
+}
+
+
+//problem:  求字符串中最长的重复字符串longest duplicate， abcccddccc，最长为ccc
+//algorithm:    后缀数组，处理字符串的利器
+//后缀数组有两种方法求取：
+/*
+ 后缀数组生成的思路：
+ 方法一：最直接最简单的方法当然是把S的后缀都看作一些普通的字符串，按照一般字符串排序的方法对它们从小到大进行排序，即对A进行排序。最坏时间复杂度是O（n^2）。
+ 方法二：倍增算法(Doubling Algorithm)，它正是充分利用了各个后缀之间的联系，将构造后缀数组的最坏时间复杂度成功降至O(nlogn)。
+ */
+/*
+ 最朴素的算法是，让后缀数组之间两两比较，找出最长的公共字串(注意，这里的最长的公共字串必须是以首字符参与匹配的，如果首字母都不匹配，
+ 那么长度为0，eg后缀[0]和后缀[1]之间的首字母不匹配，则两者的最长公共字串长度为0)，但是时间复杂度为O(n^2).
+ */
+int pstrcmp(const void *p, const void *q)
+{   return strcmp(*(char**)p, *(char**)q); }
+int intcmp(const void *p, const void *q)    //都是这种形式，这是整数的比较
+{   return *(int*)p - *(int*)q; }
 
 int comlen(char *p, char *q)
 {	int i = 0;
@@ -62,18 +92,18 @@ int comlen(char *p, char *q)
 }
 
 #define M 1
-#define MAXN 5000000
-char c[MAXN], *a[MAXN];
+#define MAXN 100
+char c[MAXN], *a[MAXN]; //a中保存的就是字符串的后缀
 
 int longdup_main()
-{   int i, ch, n = 0, maxi, maxlen = -1;
+{   int i, ch, n = 0, maxi = 0, maxlen = -1;
     while ((ch = getchar()) != EOF) {
         a[n] = &c[n];
         c[n++] = ch;
     }
     c[n] = 0;
+    qsort(a , n, sizeof(char*), pstrcmp);//这一句gcc可以编译通过，而g++就会报错
     
-    qsort(a, n, sizeof(char *), pstrcmp);
     for (i = 0; i < n-M; i++)
         if (comlen(a[i], a[i+M]) > maxlen) {
             maxlen = comlen(a[i], a[i+M]);
@@ -82,7 +112,6 @@ int longdup_main()
     printf("%.*s\n", maxlen, a[maxi]);
     return 0;
 }
-
 
 //problem: 编程珠玑 pearls
 //algorithm: 用自己设计的hash函数来统计一个文件中每个单词的数目，当然可以用unordered_map来实现, 底层都是用的hash，也可以用map，底层用的红黑树
@@ -1624,7 +1653,7 @@ void ReplaceBlank(char string[], int length)///*length为字符串的最大值*/
 
 
 
-//problem: 二维数组中查找特定的数值
+//problem: 二维数组中查找特定的数值 search matrix
 //algorithm: 首先选举右上角的元素与target进行比较，如果大于target则该列被剔除
 //如果小于target则该行被剔除，这样每一步都会缩小查找空间
 //  1   2   8   9
@@ -1655,8 +1684,27 @@ bool Find(int* matrix, int rows, int columns, int number)
     
     return found;
 }
+bool searchMatrix(vector<vector<int>>& matrix, int target) {
+    
+    int m = matrix.size();
+    int n = matrix[0].size();
+    int row = 0, col = n - 1;
+    while ( row <= m-1 && col >= 0) {
+        if (matrix[row][col] > target)
+            col--;
+        else if (matrix[row][col] < target)
+            row++;
+        else
+            return true;
+        
+    }
+    return false;
+    
+}
+
+
 /*测试用例
-int matrix[][4] = 
+int matrix[][4] =
     {{1, 2, 8, 9}, {2, 4, 9, 12}, {4, 7, 10, 13}, {6, 8, 11, 15}};
     FIND((int*)matrix, 4, 4, 7);
  */
@@ -1730,19 +1778,7 @@ void * mymemmove(void *destaddr, const void *sourceaddr, unsigned length)
                     
     return destaddr;
 }
-int my_atoi(const char * a) {
-    
-    if (*a == '+')
-        return atoi(a+1);
-    else if (*a=='-')
-        return - atoi(a+1);
-    
-    const char *p = a;
-    int c = 0;
-    while (*p >= '0' && *p <= '9') {
-        c = c*10 + (*p - '0'); }
-    return c;
-}
+
 
 //problem: linkedlist sort
 //algorithm: use merge sort to sort a linked list, with no extra space used
@@ -1844,7 +1880,7 @@ Node * Merge3(Node *head1, Node *head2)
 }
 
 
-//problem: lowest common ancestor
+//problem: lowest common ancestor (LCA)
 //algorithm:
 
 //情况1：节点只有左指针、右指针，没有parent指针，root已知
@@ -1884,7 +1920,7 @@ BinaryTreeNode* findLowestCommonAncestor3(BinaryTreeNode* root , BinaryTreeNode*
         min = a->m_nValue , max = b->m_nValue;
     else
         min = b->m_nValue , max = a->m_nValue;
-    while(root)
+    while(root)         //这是迭代的标志while(root)
     {
         if(root->m_nValue >= min && root->m_nValue <= max)
             return root;
@@ -2048,6 +2084,24 @@ void deleteChars(char* s, char* d){
     *pSlow = '\0';
     
 }
+//algorithm: 原始的方法
+/* squeese: delete the string c in s */
+void squeese(char s[], char c[])
+{
+    int i, j, k;
+    
+    for ( i = k = 0; s[i] != '\0'; i++)
+    {
+        for ( j = 0; c[j] != '\0' && s[i] != c[j]; j++)
+            ;
+        if ( c[j] == '\0')
+            s[k++] = s[i];
+    }
+    s[k] = '\0';
+    
+}
+
+
 //problem: 给定链表的头指针和一个结点指针，在O(1)时间删除该结点
 //algorithm:
 /*删除之前，我们需要需要把给定的结点的下一个结点的数据拷贝到给定的结点中。
@@ -2148,6 +2202,37 @@ void evenOddPartition(int A[], int n) {
         j--;
     }
 }
+/*
+ Given an array with n objects colored red, white or blue, sort them so that objects of the same color are adjacent, with the colors in the order red, white and blue.
+ 
+ Here, we will use the integers 0, 1, and 2 to represent the color red, white, and blue respectively.
+ */
+//这也是用了partition的思想，用三个指针，只需要扫描一次就能将0-2的一串指数进行排序，如果是二进制的话就变成了partition，需要两个指针
+void sortColors(int A[], int n) {
+    int i = -1;
+    int j = -1;
+    int k = -1;
+    for(int p = 0; p < n; p ++)
+    {
+        //根据第i个数字，挪动0~i-1串。
+        if(A[p] == 0)
+        {
+            A[++k] = 2;    //2往后挪
+            A[++j] = 1;    //1往后挪
+            A[++i] = 0;    //0往后挪
+        }
+        else if(A[p] == 1)
+        {
+            A[++k] = 2;
+            A[++j] = 1;
+        }
+        else
+            A[++k] = 2;
+    }
+    
+}
+
+
 //algorithm: 利用函数指针，提高扩展性，只要是把
 void Reorder(int *pData, unsigned int length, bool (*func)(int));
 bool isEven(int n);
@@ -2258,7 +2343,6 @@ public:
         }
     }
 
-    
     // Adds a word into the data structure.
     void addWord(string word) {
         TrieNode* p = root;
@@ -2319,9 +2403,9 @@ public:
     }
 };
 
-class Trie {
+class Trie2 {
 public:
-    Trie() {
+    Trie2() {
         root = new TrieNode2();
         
     }
@@ -2364,11 +2448,153 @@ public:
 private:
     TrieNode2* root;
 };
-
 // Your Trie object will be instantiated and called as such:
 // Trie trie = new Trie();
 // trie.insert("somestring");
 // trie.search("key");
+
+
+//利用trie来统计词频
+
+//功能：统计一段英文的单词频率(文章以空格分隔，没有标点)
+//思路：trie节点保存单词频率，然后通过DFS按字典序输出词频
+//时空复杂度: O(n*len)(len为单词平均长度)
+//copyright@yansha 2011.10.25
+//updated@July 2011.10.26
+//程序尚不完善，有很多地方还需改进。
+#define num_of_letters 26
+#define max_word_length 20
+
+// 定义trie树节点
+struct Trie
+{
+    int count;
+    Trie *next[num_of_letters];
+};
+
+// 定义根节点
+Trie *root = NULL;
+
+/**
+ * 建立trie树，同时保存单词频率
+ */
+void create_trie(char *word)
+{
+    int len = strlen(word);
+    Trie *cur = root, *node;
+    int pos = 0;
+    
+    // 深度为单词长度
+    for(int i = 0; i < len; ++i)
+    {
+        // 将字母范围映射到0-25之间
+        pos = word[i] - 'a';
+        
+        // 如果当前字母没有对应的trie树节点则建立，否则处理下一个字母
+        if(cur->next[pos] == NULL)   //1、这里应该有个查找过程
+        {
+            node = (Trie *)malloc(sizeof(Trie));
+            node->count = 0;
+            
+            // 初始化next节点
+            for(int j = 0; j < num_of_letters; ++j)
+                node->next[j] = NULL;
+            
+            // 开始处理下一个字母
+            cur->next[pos] = node;
+        }
+        cur = cur->next[pos];
+    }
+    // 单词频率加1
+    cur->count++;
+}
+
+/**
+ * 大写字母转化成小写字母
+ */
+void upper_to_lower(char *word, int len)
+{
+    for (int i = 0; i < len; ++i)
+    {
+        if(word[i] >= 'A' && word[i] <= 'Z')
+            word[i] += 32;              //大写字母的ascll码在前
+    }
+}
+
+/**
+ * 处理输入
+ */
+void process_input()
+{
+    char word[max_word_length];
+    
+    // 打开统计文件(注意保持文件名一致)
+    FILE *fp_passage = fopen("passage.txt", "r");
+    assert(fp_passage);
+    
+    // 循环处理单词
+    while (fscanf(fp_passage, "%s", word) != EOF)
+    {
+        int len = strlen(word);
+        if (len > 0)
+            upper_to_lower(word, len);
+        create_trie(word);
+    }
+    fclose(fp_passage);
+}
+
+/**
+ * 深度优先遍历
+ */
+void trie_dfs(Trie *p, char *queue)
+{
+    for(int i = 0; i < num_of_letters; ++i)
+    {
+        if(p->next[i] != NULL)
+        {
+            // 定义队列头结点
+            char *head = queue;
+            
+            // 在末尾增加一个字母
+            while (*queue != '\0')
+                queue++;
+            *queue = (char)(i + 'a');
+            queue = head;
+            
+            // 在控制台打印单词及其频率
+            if (p->next[i]->count > 0)
+                printf("%s\t%d\n", queue, p->next[i]->count);
+            
+            trie_dfs(p->next[i], queue);
+            
+            // 在末尾去掉一个字母
+            head = queue;
+            while (*(queue+1) != '\0')
+                queue++;
+            *queue = '\0';
+            queue = head;
+        }
+    }
+}
+int main_trie()
+{
+    // 初始化trie树根节点
+    root = (Trie *)malloc(sizeof(Trie));
+    for(int j = 0; j < num_of_letters; ++j)
+        root->next[j] = NULL;
+    
+    // 处理输入
+    process_input();
+    
+    // 分配一个保存单词中间结果的队列
+    char *queue = (char*) calloc(max_word_length, sizeof(char));
+    
+    // 通过DFS打印结果
+    trie_dfs(root, queue);
+    system("pause");
+    return 0;
+}
+
 
 
 //问题：在从1到n的正数中1出现的次数，编程之美
@@ -2716,6 +2942,82 @@ int  myatoi(char s[]) {
     }
     return sum * sign;
 }
+
+int my_atoi(const char * a) {       //有一个问题是没有考虑溢出
+    
+    if (*a == '+')
+        return atoi(a+1);
+    else if (*a=='-')
+        return - atoi(a+1);
+    
+    const char *p = a;
+    int c = 0;
+    while (*p >= '0' && *p <= '9') {
+        c = c*10 + (*p - '0'); }
+    return c;
+}
+
+double my_atof(char s[])
+{
+    double val, power;
+    int i, sign;
+    
+    for ( i = 0; isspace(s[i]); i++)
+        ;
+    sign = (s[i] == '-' ? -1 : 1);
+    if ( s[i] == '-' || s[i] == '+')
+        i++;
+    
+    for (val = 0.0; isdigit(s[i]); i++)
+        val = 10.0 * val + (s[i] - '0');    //提取整数部分
+    if ( s[i] == '.')
+        i++;
+    
+    for ( power = 1.0; isdigit(s[i]); i++)  //提取小数部分
+    {
+        val = 10.0 * val + (s[i] - '0');
+        power *= 10.0;                      //记录小数的位数，方便之后移位
+    }
+    
+    return sign * val / power;
+}
+
+//problem:
+/* htoi: convert hexadecimal string to integer */
+/*eg 0X0811ABc3 */
+#define YES  1
+#define NO   0
+
+int htoi(char s[])
+{
+    int hexdigit = 0, i, index, n;
+    
+    i = 0;
+    if (s[i] == '0')
+    {
+        ++i;
+        if (s[i] == 'x' || s[i] == 'X')
+            ++i;
+    }
+    
+    n = 0;
+    index = YES;
+    for ( ; index == YES; ++i)
+    {
+        if (s[i] >= '0' && s[i] <= '9')
+            hexdigit = s[i] - '0';
+        else if (s[i] >= 'a' && s[i] <= 'f')
+            hexdigit = s[i] - 'a' + 10;
+        else if (s[i] >= 'A' && s[i] <= 'F')
+            hexdigit = s[i] - 'A' + 10;
+        else
+            index = NO;
+        if (index == YES)
+            n = 16 * n + hexdigit;
+    }
+    return n;
+}
+
 //July、2010、10/22。
 enum Status {kValid = 0, kInvalid};
 int g_nStatus = kValid;
@@ -2801,6 +3103,36 @@ void powerMatrix(int A[], int n, int* _r) {
         memcpy(_r, tmp, 4*sizeof(int));
     }
 }
+
+//一般做法：fib
+int fibllic(int n)  {
+    int a = 7;      //初始值都可以自己确定
+    int b = 11;
+    
+    if (n == 1) return a;
+    if (n == 2) return b;
+    
+    for (int i = 2; i < n; i++) {
+        b = a + b;
+        a = b - a;
+    }
+    return b;
+}
+
+int fibllic(int n, int n0, int n1)  {
+    int a = n0;      //初始值都可以自己确定
+    int b = n1;
+    
+    if (n == 0) return a;
+    if (n == 1) return b;
+    
+    for (int i = 1; i < n; i++) {
+        b = a + b;
+        a = b - a;
+    }
+    return b;
+}
+
 
 //问题：n个人围成一圈，顺序排号。从第一个人开始报数（从1到3报数），
 //凡报到3的人退出圈子，问最后留下的是原来第几号的那个人?
@@ -3437,7 +3769,38 @@ node *reverseList2(node *head)
 
     return head;
 }
+/*
+ Given a list, rotate the list to the right by k places, where k is non-negative.
+ 
+ For example:
+ Given 1->2->3->4->5->NULL and k = 2,
+ return 4->5->1->2->3->NULL.
+ */
 
+
+node* rotateRight(node* head, int k) {
+    if (head == NULL)
+        return NULL;
+    if (head->next == NULL)
+        return head;
+    node* tail = head;
+    node* p = head;
+    int len = 0;
+    while (p != NULL) {
+        len++;
+        tail = p;
+        p = p -> next;
+    }
+    k = k % len;
+    p = head;
+    for (int i = 0 ; i < len - k - 1; i++) {
+        p = p->next;
+    }
+    tail -> next = head;
+    head = p->next;
+    p->next = NULL;
+    return head;
+}
 
 //问题：给出俩个单向链表的头指针，比如h1，h2，判断这俩个链表是否相交。交点
 //算法：
@@ -3938,6 +4301,7 @@ struct BSTreeNode
     int m_nValue; // value of node
     BSTreeNode *m_pLeft; // left child of node
     BSTreeNode *m_pRight; // right child of node
+    BSTreeNode(int mv = 0, BSTreeNode* ml = NULL, BSTreeNode* mr = NULL): m_nValue(mv), m_pLeft(ml), m_pRight(mr) {}
 };
 
 typedef BSTreeNode DoubleList;
@@ -4009,6 +4373,36 @@ void  convertToDoubleList(BSTreeNode * pCurrent)
     }
     pLastNodeInlist = pCurrent; //将当前结点设为双向链表中最后一个结点
     cout<<pCurrent->m_nValue<<endl;
+}
+
+//单向排序链表转换为二叉排序树
+BSTreeNode* genBST(int start, int end, vector<BSTreeNode*> &treeNodes);
+BSTreeNode *sortedListToBST(node *head)
+{
+    vector<BSTreeNode*> treeNodes;
+    while (head != NULL)
+    {
+        BSTreeNode *p = new BSTreeNode(head->data);
+        treeNodes.push_back(p);
+        head = head->next;
+    }
+    return genBST(0, (int)treeNodes.size() - 1, treeNodes);
+}
+
+BSTreeNode* genBST(int start, int end, vector<BSTreeNode*> &treeNodes)
+{
+    if (start == end) return treeNodes[start];
+    else if (start+1 == end)
+    {
+        treeNodes[start]->m_pRight = treeNodes[end];
+        return treeNodes[start];
+    }
+    
+    int mid = (start+end)/2;
+    BSTreeNode* root = treeNodes[mid];
+    root->m_pLeft = genBST(start, mid-1, treeNodes);
+    root->m_pRight = genBST(mid+1, end, treeNodes);
+    return root;
 }
 
 
@@ -4769,7 +5163,30 @@ int countOnes1 ( unsigned int n ) { //
     return ones; //返回计数
 } //等效于glibc的内置函数int __builtin_popcount (unsigned int n)
 
+//problem: 翻转比特，bitreverse
+uint32_t reverseBits(uint32_t n) {
+    uint32_t res = 0;
+    for (int i = 0; i < 32; ++i) {
+        if (n & 1 == 1) {
+            res = (res << 1) + 1;
+            n = n >> 1;
+        } else {
+            res = res << 1;
+            n = (n >> 1);
+        }
+    }
+    return res;
+}
 
+uint32_t reverseBits2(uint32_t n) {
+    uint32_t m=0;
+    for(int i=0;i<32;i++){
+        m<<=1;
+        m = m|(n & 1);
+        n>>=1;
+    }
+    return m;
+}
 //问题：求最大公约数
 //算法：辗转相除法
 int gcd1(int a, int b)
@@ -4791,6 +5208,14 @@ int gcd2(int x, int y)
     else
         return gcd2(x - y, y);
 }
+
+//problem: 最小公倍数
+//algorithm: 通过最大公约数来求最小公倍数
+int gcd_3(int m, int n) {
+    return m / gcd1(m, n) * n;
+}
+
+
 //减法造成递归的深度加深，能不能融合gcd1和gcd2,采用
 inline bool IsEven(int x) {
     return (x & 1) == 0;

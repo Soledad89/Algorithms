@@ -32,6 +32,140 @@ struct TreeNode {
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
 
+/*
+ Given a binary search tree, write a function kthSmallest to find the kth smallest element in it.
+ 
+ Note:
+ You may assume k is always valid, 1 ≤ k ≤ BST's total elements.
+ 
+ Follow up:
+ What if the BST is modified (insert/delete operations) often and you need to find the kth smallest frequently? How would you optimize the kthSmallest routine?
+ 
+ Hint:
+ 
+ Try to utilize the property of a BST.
+ What if you could modify the BST node's structure?
+ The optimal runtime complexity is O(height of BST).
+ */
+class Solution_kthSmallest {
+public:
+    int kthSmallest(TreeNode* root, int k) {
+        if (root == NULL)
+            return 0;
+        int rootRank = getNodesNum(root->left) + 1;
+        if (rootRank == k)
+            return root->val;
+        else if (rootRank > k)
+            return kthSmallest(root->left, k);
+        else
+            return kthSmallest(root->right, k - rootRank);
+    }
+private:
+    
+    int getNodesNum(TreeNode * root) {  //计算树的节点数目
+        if (root == NULL)
+            return 0;
+        return getNodesNum(root->left) + getNodesNum(root->right) + 1;
+    }
+};
+//algorithm: 以上的解法遍历了多次节点，浪费，可以不用求左子树的节点数目
+
+/*
+ Given an unsorted array of integers, find the length of the longest consecutive elements sequence.
+ 
+ For example,
+ Given [100, 4, 200, 1, 3, 2],
+ The longest consecutive elements sequence is [1, 2, 3, 4]. Return its length: 4.
+ 
+ Your algorithm should run in O(n) complexity.
+ */
+
+//复杂度为O(nlogn)
+int longestConsecutive(vector<int>& nums) {
+    int n = nums.size();
+    if ( n == 0 || n == 1)
+        return n;
+    sort(nums.begin(), nums.end());         //排序之后再做
+    int max = 0;
+    int cur = 1;
+    for (int i = 1; i < n; i++) {
+        if ( nums[i] == nums[i-1]) {
+            if ( i == n - 1 && cur > max)
+                max = cur;
+            continue;
+        }
+        
+        if (nums[i] == nums[i - 1] + 1 ) {
+            cur++;
+            if (i == n-1 && cur > max)
+                max = cur;
+        } else
+        {
+            if ( cur > max) {
+                max = cur;
+            }
+            cur = 1;
+        }
+    }
+    return max;
+}
+//复杂度为O(n);
+
+int longestConsecutive2(vector<int>& nums) {
+    int n = (int)nums.size();
+    if ( n == 0 || n == 1)
+        return n;
+    unordered_set<int>  setnum;
+    //由于有查找的步骤，因此考虑使用set，如果用map的话，其底层结构是红黑树，所以复杂度也是O(nlogn)
+    setnum.insert(nums.begin(), nums.end());
+    
+    //    for (int i = 0; i < n; i++) {
+    //        setnum.insert(nums[i]);
+    //    }
+    
+    int max = 0;
+    int count;
+    for (int i = 0; i < n; i++) {
+        count = 1;
+        int curincrease = nums[i] + 1;
+        while(setnum.find(curincrease) != setnum.end()) {
+            count++;
+            setnum.erase(curincrease);
+            curincrease++;
+            
+        }
+        
+        int curdecrease = nums[i] - 1;
+        while (setnum.find(curdecrease) != setnum.end()) {
+            count++;
+            setnum.erase(curdecrease);
+            curdecrease--;
+            
+        }
+        
+        if (count > max)
+            max = count;
+    }
+    return max;
+}
+
+
+/*
+ Given a string S, you are allowed to convert it to a palindrome by adding characters in front of it. Find and return the shortest palindrome you can find by performing this transformation.
+ 
+ For example:
+ 
+ Given "aacecaaa", return "aaacecaaa".
+ 
+ Given "abcd", return "dcbabcd".
+ */
+string shortestPalindrome(string s) {
+    if (s == "")
+        return "";
+    string s_r = reverse(s.begin(), s.end());
+    
+}
+
 //problem:实现LRU cache
 //algorithm: 采用hashmap
 
@@ -98,6 +232,259 @@ public:
         }
     }
 };
+
+//problem: letter combinations
+//algorithm: dfs
+const vector<string> keyboard = { " ", "", "abc", "def", "ghi", "jkl","mno",
+    "pqrs", "tuv", "wxyz" };
+
+void dfs_letterCombination(const string &digits, size_t cur, string path, vector<string> &result) {
+    
+    if (cur == digits.size()) {
+        result.push_back(path);
+        return;
+    }
+    
+    for (auto c : keyboard[digits[cur] - '0']) {
+        dfs_letterCombination(digits, cur+1, path+c, result);
+    }
+}
+
+
+
+vector<string> letterCombination(const string &digits) {
+    vector<string>  result;
+    dfs_letterCombination(digits, 0, "", result);
+    return result;
+}
+
+//problem: word search
+//algorithm: dfs;
+/*
+ abcds
+ dfafa
+ fafaf
+ */
+//从中判断是否包含abcaf等
+//dfs一般都包含四个步骤：done, find, forward, backtracking, 再结合trie树可以降低复杂度
+bool dfs_wordSearch(const vector<vector<char> > &board, const string &word, int index, int x, int y, vector<vector<bool> > &visited) {
+    
+    //done
+    if (index == word.size())
+        return true;    //收敛条件
+    
+    //find
+    if (x < 0 || y < 0 || x >= board.size() || y >= board[0].size() || visited[x][y])
+        return false;   //越界，终止条件
+    if (board[x][y] != word[index])
+        return false;   //不相等，剪枝
+    
+    //forward
+    visited[x][y] = true;
+    bool ret = dfs_wordSearch(board, word, index+1, x-1, y, visited) || //上
+               dfs_wordSearch(board, word, index+1, x+1, y, visited) || //下
+               dfs_wordSearch(board, word, index+1, x, y-1, visited) || //左
+               dfs_wordSearch(board, word, index+1, x, y+1, visited);   //右
+    
+    //backtracking
+    visited[x][y] = false;  //回溯，保护现场
+    return ret;
+}
+bool wordSearch(vector<vector<char> > &board, string word) {
+    const int m = (int)board.size();
+    const int n = (int)board[0].size();
+    
+    vector<vector<bool> > visited(m, vector<bool>(n, false));
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++)
+            if (dfs_wordSearch(board, word, 0, i, j, visited))  //从每一个board blank出发
+                return true;
+    }
+    return false;
+}
+
+
+bool dfs(vector<vector<char> > &board, vector<vector<bool> > visited, string str, int current, int target, int x, int y);
+vector<string> findWords(vector<vector<char>>& board, vector<string>& words) {
+    int m = board.size();
+    int n = board[0].size();
+    int nw = words.size();
+    vector<string> result;
+    vector<vector<bool> > visited(m, vector<bool>(n, false));
+    int current = 0;
+    for (int i = 0; i < nw; i++) {
+        string str = words[i];
+        int target = str.size();
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (dfs(board, visited, str, current, target, i, j))
+                    result.push_back(str);
+            }
+        }
+    }
+    return result;
+}
+
+bool dfs(vector<vector<char> > &board, vector<vector<bool> > visited, string str, int current, int target, int x, int y)
+{
+    bool result = false;
+    if (current == target)
+        return true;
+    if (x < 0 || y < 0 || x >= board.size() || y >= board[0].size() || visited[x][y] )
+        return false;
+    
+    if (str[current] == board[x][y]) {
+        visited[x][y] = true;
+        result = dfs(board, visited, str, current + 1, target, x - 1, y) ||
+        dfs(board, visited, str, current + 1, target, x + 1, y) ||
+        dfs(board, visited, str, current + 1, target, x, y - 1) ||
+        dfs(board, visited, str, current + 1, target, x, y + 1);
+        visited[x][y] = false;
+    }
+    return result;
+}
+
+//采用高效的Trie
+class Solution_wordSearch {
+public:
+    struct TriNode {
+        TriNode *ch[26];
+        bool isWord;
+        TriNode() : isWord(false) {
+            for (auto &a : ch) a = NULL;
+        }
+    } *root;
+    
+    void insert(string word) {
+        TriNode *p = root;
+        for (auto &a : word) {
+            int i = a - 'a';
+            if (p->ch[i] == NULL) p->ch[i] = new TriNode();
+            p = p->ch[i];
+        }
+        p->isWord = true;
+    }
+    
+    bool isPrefix(string word) {
+        TriNode *p = root;
+        for (auto &a : word) {
+            int i = a - 'a';
+            if (p->ch[i] == NULL) return false;
+            p = p->ch[i];
+        }
+        return true;
+    }
+    
+    bool isWord(string word) {
+        TriNode *p = root;
+        for (auto &a : word) {
+            int i = a - 'a';
+            if (p->ch[i] == NULL) return false;
+            p = p->ch[i];
+        }
+        return p->isWord;
+    }
+    
+    Solution_wordSearch() {
+        root = new TriNode();
+    }
+    
+    bool isValid(vector<vector<char>> &board, vector<vector<bool>> &visit, int x, int y) {
+        int m = board.size(), n = board[0].size();
+        if (x < 0 || x >= m || y < 0 || y >= n || visit[x][y]) return false;
+        return true;
+    }
+    
+    bool dfs(vector<vector<char>> &board, vector<vector<bool>> &visit, set<string> &st, string &s, int x, int y) {
+        int dx[4] = {1, 0, -1, 0};
+        int dy[4] = {0, 1, 0, -1};
+        visit[x][y] = true;
+        int xx, yy;
+        for (int i = 0; i < 4; ++i) {
+            xx = x + dx[i]; yy = y + dy[i];
+            if (isValid(board, visit, xx, yy)) {
+                s.push_back(board[xx][yy]);
+                if (isWord(s)) st.insert(s);
+                if (isPrefix(s)) dfs(board, visit, st, s, xx, yy);
+                s.pop_back();
+            }
+        }
+        visit[x][y] = false;
+    }
+    
+    vector<string> findWords(vector<vector<char>>& board, vector<string>& words) {
+        vector<string> res;
+        if (board.empty() || board[0].empty() || words.empty()) return res;
+        for (auto &word : words) insert(word);
+        int m = board.size(), n = board[0].size();
+        vector<vector<bool>> visit(m, vector<bool>(n, false));
+        string s;
+        set<string> st;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                s.push_back(board[i][j]);
+                if (isWord(s)) st.insert(s);
+                if (isPrefix(s)) dfs(board, visit, st, s, i, j);
+                s.pop_back();
+            }
+        }
+        for (auto &word : st) res.push_back(word);
+        return res;
+    }
+};
+
+
+//problem: subsets
+//algorithm: dfs
+/*
+ 原数组中每一个元素在子集中有两种状态：要么存在、要么不存在。这样构造子集的过程中每个元素就有两种选择方法：选择、不选择，因此可以构造一颗二叉树来表示所有的选择状态：二叉树中的第i+1层第0层无节点表示子集中加入或不加入第i个元素，左子树表示加入，右子树表示不加入。所有叶节点即为所求子集。因此可以采用DFS的递归思想求得所有叶节点。
+ */
+//S为原数组，temp为当前子集，level为原数组中的元素下标亦为二叉树的层数，result为所求子集集合
+void subsets(vector<int> &S,vector<int> temp,int level,vector<vector<int> > &result)
+{
+    //如果是叶子节点则加入到result中
+    if(level == S.size())
+    {
+        result.push_back(temp);
+        return;
+    }
+    //对于非叶子节点，不将当前元素加入到temp中
+    subsets(S,temp,level + 1,result);
+    //将元素加入到temp中
+    temp.push_back(S[level]);
+    subsets(S,temp,level + 1,result);
+}
+
+//algorithm2: 位运算
+/*
+ 求子集问题就是求组合问题。数组中的n个数可以用n个二进制位表示，当某一位为1表示选择对应的数，为0表示不选择对应的数
+ */
+vector<vector<int> > subsets2(vector<int> &S,int n)
+{
+    //n个数有0~max-1即2^n中组合，1<<n表示2^n
+    int max = 1<<n;
+    vector<vector<int> >result;
+    for(int i = 0;i < max;i++)
+    {
+        vector<int> temp;
+        int idx = 0;
+        int j = i;
+        while(j > 0)
+        {
+            //判断最后一位是否为1，若为1则将对应数加入到当前组合中
+            if(j&1)
+            {
+                temp.push_back(S[idx]);
+            }
+            idx++;
+            //判断了这一位是否为1后要右移
+            j = j>>1;
+        }
+        //判断完了一种组合，加入到结果集中
+        result.push_back(temp);
+    }
+    return result;
+}
 
 
 
@@ -1080,6 +1467,49 @@ int minCutNums(string s) {
     }
     return f[0];
 }
+/*
+ Given a string S, you are allowed to convert it to a palindrome by adding characters in front of it. Find and return the shortest palindrome you can find by performing this transformation.
+ 
+ For example:
+ 
+ Given "aacecaaa", return "aaacecaaa".
+ 
+ Given "abcd", return "dcbabcd"
+ */
+string shortestPalindrome(string s)  {
+    string str = s;
+    reverse(str.begin(), str.end());
+    
+    int i, k;
+    int l = (int)s.length();
+    for (i = l; i >= 0; i-- ) {
+        string tmps1 = s.substr(0, i);
+        string tmps2 = str.substr(l - i);
+        if (tmps1.compare(tmps2) == 0)
+            break;
+    }
+    return str.substr(0,l - i) + s;
+    
+}
+//用KMP方法
+/*
+ 求字符串s的翻转s_rev
+ 将两个字符串进行拼接：{s}#{s_rev}
+ 找出新字符串中最长公共前缀后缀长度comLen
+ s_rev.substring(0, s.length() - comLen)就是在原字符串头部插入的子串部分
+ */
+string shortestPalindrome2(string s) {
+    string r = s;
+    reverse(r.begin(), r.end());
+    string t = s + "#" + r;
+    vector<int> p(t.size(), 0);
+    for (int i = 1; i < t.size(); ++i) {
+        int j = p[i - 1];
+        while (j > 0 && t[i] != t[j]) j = p[j - 1];
+        p[i] = (j += t[i] == t[j]);
+    }
+    return r.substr(0, s.size() - p[t.size() - 1]) + s;
+}
 
 //问题：Integer to English Words
 //算法：先处理999以内的数，再大的数就可以类推
@@ -1134,7 +1564,7 @@ int countNodes(TreeNode* root) {
 //算法：利用回溯剪枝法，使用DFS深度优先搜索策略
 void dfs(vector<int>& nums, int gap, int start, vector<int>& intermediate,
          vector<vector<int> >& result);
-vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+vector<vector<int> > combinationSum(vector<int>& candidates, int target) {
     sort(candidates.begin(), candidates.end());
     vector<vector<int> > result;
     vector<int> intermediate;
@@ -1450,7 +1880,7 @@ bool isSymmetric2(TreeNode* root) {
 
 //问题：longest common prefix
 //算法：
-string longestCommonPrefix(vector<string>& strs) {
+string longestCommonPrefix_(vector<string>& strs) {
     if (strs.empty()) return "";
     
     string first = strs[0];
@@ -1512,7 +1942,7 @@ void nextPermutation(vector<int>& nums) {
     
 }
 
-//problem: add two binary string
+//problem: add two binary string, string加法，字符串加法，下面有一个字符串乘法
 //Given two binary strings, return their sum (also a binary string)
 //algorithm: 下面的打印大数
 string addBinaryString(string a, string b){
@@ -1540,7 +1970,7 @@ string addBinaryString(string a, string b){
     return result;
 }
 
-//problem: 打印出n位的数,用字符数组来解决大数问题
+//problem: 打印出n位的数,用字符数组来解决大数问题，也可以用字符串类string来表示并计算大数
 //algorithm: 这也是个大数问题
 void PrintNumber(char* number);//关键问题在于前面的零不要打印出来
 bool Increment(char* number); //加一，最关键的问题是判断什么时候加到了最大值
@@ -1613,6 +2043,54 @@ void PrintNumber(char* number)
     
     printf("\n");
 }
+
+
+//problem: 大数的乘法，保存在两个string中
+//algorithm： 乘法的运算法则
+string strMultiply(string num1, string num2) {
+    
+    reverse(num1.begin(), num1.end());
+    reverse(num2.begin(), num2.end());
+    
+    if (("0" == num1) || ("0" == num2)) {
+        return "0";
+    }
+    
+    string result = "";
+    int i, j;
+    int flag = 0, steps = 0;
+    
+    for (int i = 0; i < num1.length(); ++i) {
+        int position = steps;
+        
+        for (int j = 0; j < num2.length(); ++j) {
+            int v = (num1[i] - '0') * (num2[j] - '0') + flag;
+            
+            if (position < result.length()) {
+                v += result[position] - '0';
+                result[position] = (v % 10) + '0';
+            }
+            else {
+                result.append(1, (v % 10) + '0');
+            }
+            
+            flag = v / 10;
+            ++position;
+        }
+        
+        if (flag > 0) {
+            result.append(1, flag + '0');
+        }
+        
+        flag = 0;
+        ++steps;
+    }
+    
+    reverse(result.begin(), result.end());
+    
+    return result;
+}
+
 
 //problem: add digits
 //algorithm:
@@ -2004,7 +2482,7 @@ void mergeSortedArray(int A[], int m, int B[], int n){
     int ia = m - 1, ib = n - 1, icur = m + n - 1;
     while (ia >= 0 && ib >= 0){
         A[icur--] = A[ia] >= B[ib] ? A[ia--] : B[ib--];
-    }
+    }BTreeNode
     
     while (ib >= 0){
         A[icur--] = B[ib--];
