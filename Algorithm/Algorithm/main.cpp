@@ -4,14 +4,15 @@
 #include <time.h>
 #include "algorithms.h"
 #include "leetcode.h"
+#include "clanguage.h"
 int N = 0;
 int nCheck = 0;
 int nSolu = 0;
 
 int main( int argc, char* argv[] ) {
     
-    
-    heapsort_::heapsort_main();
+    longdup_main();
+    //heapsort_::heapsort_main();
     
     int A[] = {1,3,4,5,6,7,8,9};
     maxqueue_main();
