@@ -233,6 +233,234 @@ public:
     }
 };
 
+//接下来我们讲一下BFS和DFS的应用，一个典型的例子
+namespace BFS_DFS {
+    
+    
+#define MAX 100
+typedef struct
+{
+    int edges[MAX][MAX];    //邻接矩阵
+    int n;                  //顶点数
+    int e;                  //边数
+}MGraph;
+
+bool visited[MAX];          //标记顶点是否被访问过
+
+void creatMGraph(MGraph &G)    //用引用作参数
+{
+    int i,j;
+    int s,t;                 //存储顶点编号
+    int v;                   //存储边的权值
+    for(i=0;i<G.n;i++)       //初始化
+    {
+        for(j=0;j<G.n;j++)
+        {
+            G.edges[i][j]=0;
+        }
+        visited[i]=false;
+    }
+    for(i=0;i<G.e;i++)      //对矩阵相邻的边赋权值
+    {
+        scanf("%d %d %d",&s,&t,&v);   //输入边的顶点编号以及权值
+        G.edges[s][t]=v;
+    }
+}
+
+void DFS(MGraph G,int v)      //深度优先搜索
+{
+    int i;
+    printf("%d ",v);          //访问结点v
+    visited[v]=true;
+    for(i=0;i<G.n;i++)       //访问与v相邻的未被访问过的结点
+    {
+        if(G.edges[v][i]!=0 && visited[i]==false)
+        {
+            DFS(G,i);           /////////////
+        }
+    }
+}
+
+void DFS_nonRecursive(MGraph G,int v)   //非递归实现
+{
+    stack<int> s;
+   
+    visited[v] = true;
+    s.push(v);
+    
+    while(!s.empty())
+    {
+        int i = s.top();          //取栈顶顶点
+        s.pop();
+        /////////////////VISITED
+        printf("%d ", i);
+        /////////////////VISITED
+       
+        for(int j=0;j<G.n;j++)  //访问与顶点i相邻的顶点
+        {
+            if(G.edges[i][j] != 0 && visited[j]==false)
+            {
+                visited[j]=true;
+                s.push(j);           //访问完后入栈
+
+            }
+        }
+
+    }
+}
+
+void BFS_nonRecursive(MGraph G,int v)      //广度优先搜索
+{
+    queue<int> Q;             //STL模板中的queue
+    visited[v] = true;
+    Q.push(v);
+    while(!Q.empty())
+    {
+        int i = Q.front();         //取队首顶点
+        Q.pop();
+        
+        printf("%d ", i);
+        
+        for(int j=0;j<G.n;j++)   //广度遍历
+        {
+            if(G.edges[i][j]!=0&&visited[j]==false)
+            {
+                visited[j]=true;
+                Q.push(j);
+            }
+        }
+    }
+}
+
+int main_BFSDFS(void)
+{
+    int n,e;    //建立的图的顶点数和边数
+    while(scanf("%d %d",&n,&e)==2&&n>0)
+    {
+        MGraph G;
+        G.n=n;
+        G.e=e;
+        creatMGraph(G);
+        DFS_nonRecursive(G,0);
+        printf("\n");
+        //    DFS1(G,0);
+        //    printf("\n");
+        //    BFS(G,0);
+        //    printf("\n");
+    }
+    return 0;
+}
+
+}
+
+//problem:对于一个有向图，请实现一个算法，找出两点之间是否存在一条路径。
+/*
+ 题目
+ 
+ 给定一个有向图，设计算法判断两结点间是否存在路径。
+ 
+ 解答
+ 
+ 根据题意，给定一个有向图和起点终点，判断从起点开始，是否存在一条路径可以到达终点。 考查的就是图的遍历，从起点开始遍历该图，如果能访问到终点， 则说明起点与终点间存在路径。稍微修改一下遍历算法即可。
+ 
+ 代码如下(在BFS基础上稍微修改)：
+ */
+
+struct UndirectedGraphNode {
+    int label;
+    vector<struct UndirectedGraphNode *> neighbors;
+    UndirectedGraphNode(int x) : label(x) {}
+};
+
+class Path {
+public:
+    bool checkPath(UndirectedGraphNode* a, UndirectedGraphNode* b) {
+        //map<UndirectedGraphNode*, bool> visited;//记录是否已经访问过
+        return atob(a,b) || atob(b,a);
+    }
+     
+    bool atob(UndirectedGraphNode* a, UndirectedGraphNode* b){//广度优先搜索
+        map<UndirectedGraphNode*, bool> flag;
+        queue<UndirectedGraphNode*> q;//队列保存节点
+        
+        q.push(a);//入列
+        flag[a] = true;//标记访问
+        
+        while(!q.empty()){
+            UndirectedGraphNode* curr = q.front();
+            q.pop();//出列
+            ////这就是广度遍历的VISIT
+            if (curr == b)
+                return true;
+            //////////////////
+            for(unsigned int i = 0; i < curr->neighbors.size(); ++i){
+                if(!flag[curr->neighbors[i]]) {
+                    q.push(curr->neighbors[i]);
+                    flag[curr->neighbors[i]] = true;    //push进去之后就意味着已经访问了
+                }   
+            }
+        }
+        return false;//找不到
+    }
+};
+
+namespace bfs_path_exit {
+
+    const int maxn = 100;
+    bool g[maxn][maxn], visited[maxn];      //要有一个标记是否visited
+    int n;
+    queue<int> q;
+
+    void init(){
+        memset(g, false, sizeof(g));
+        memset(visited, false, sizeof(visited));
+    }
+    bool route(int src, int dst){
+        q.push(src);
+        visited[src] = true;
+        while(!q.empty()){
+            int t = q.front();
+            q.pop();
+            if(t == dst) 
+                return true;
+            
+            for(int i=0; i<n; ++i)
+                if(g[t][i] && !visited[i]){
+                    q.push(i);
+                    visited[i] = true;
+                }
+        }
+        return false;
+    }
+    int main_bfs_pathExit(){
+        freopen("4.2.in", "r", stdin);  
+
+        init();
+        int m, u, v;
+        cin>>n>>m;
+        for(int i=0; i<m; ++i){
+            cin>>u>>v;
+            g[u][v] = true;
+        }
+        cout<<route(1, 6)<<endl;
+        fclose(stdin);
+        return 0;
+    }
+
+}
+
+//word ladder I
+/*
+Given two words (start and end), and a dictionary, find the length of shortest transformation sequence from start to end, such that:
+
+Only one letter can be changed at a time
+Each intermediate word must exist in the dictionary
+*/
+//bfs
+
+
+
+
 //problem: letter combinations
 //algorithm: dfs
 const vector<string> keyboard = { " ", "", "abc", "def", "ghi", "jkl","mno",
@@ -267,7 +495,8 @@ vector<string> letterCombination(const string &digits) {
  */
 //从中判断是否包含abcaf等
 //dfs一般都包含四个步骤：done, find, forward, backtracking, 再结合trie树可以降低复杂度
-bool dfs_wordSearch(const vector<vector<char> > &board, const string &word, int index, int x, int y, vector<vector<bool> > &visited) {
+bool dfs_wordSearch(const vector<vector<char> > &board, const string &word, 
+    int index, int x, int y, vector<vector<bool> > &visited) {
     
     //done
     if (index == word.size())
@@ -290,6 +519,9 @@ bool dfs_wordSearch(const vector<vector<char> > &board, const string &word, int 
     visited[x][y] = false;  //回溯，保护现场
     return ret;
 }
+
+
+
 bool wordSearch(vector<vector<char> > &board, string word) {
     const int m = (int)board.size();
     const int n = (int)board[0].size();
@@ -749,8 +981,8 @@ int myStrStr_(char *string, char *substring) {
 
 
 //problem: preorder\inordrer\postordre tree traveral recursive and non-recursive
-//algorithm: as follows
-void visit(TreeNode* node) {
+//algorithm: as follows树的遍历，树遍历
+void visit(TreeNode* node) {                //这个VISIT不简单
     printf("%d -> ", node->val);
 }
 void preorderRecursive(TreeNode * node)
@@ -760,7 +992,7 @@ void preorderRecursive(TreeNode * node)
     preorderRecursive(node->left);
     preorderRecursive(node->right);
 }
-void inorderRecursive(TreeNode* node) {
+void inorderRecursive(TreeNode* node) {         //这个相当于按照元素的大小由小到大的顺序访问
     if (node == NULL) return ;
     inorderRecursive(node->left);
     visit(node);
@@ -773,7 +1005,7 @@ void postorderRecursive(TreeNode* node) {
     visit(node);
 }
 
-void preorderNonrecursive(TreeNode * node) {
+void preorderNonrecursive(TreeNode * node) {    //树的前序遍历就是图的深度优先遍历
     stack<TreeNode *> s;
     s.push(node);
     while (!s.empty())
@@ -797,11 +1029,11 @@ void inorderNonrecursive(TreeNode * node)
         } else {
             cur = s.top(); s.pop();
             visit(cur);
-            cur = cur->right; //这与书上的异曲同工之妙
+            cur = cur->right;
         }
     }
 }
-//algorithm:dsa
+
 void inorderNonrecursive2(TreeNode* node){
     stack<TreeNode*> s;
     TreeNode* cur = node;
@@ -835,17 +1067,60 @@ void postorderNonrecursive(TreeNode * node) {
     }
 }
 
-void traverseLevel(TreeNode* node) {
+void traverseLevel(TreeNode* node) {            //树的层次遍历就相当于图的广度遍历
     queue<TreeNode*> q;
     TreeNode* cur;
     q.push(cur);
     while (!q.empty()) {
         cur = q.front(); q.pop();
         visit(cur);
-        if (!cur->left)     q.push(cur->left);
-        if (!cur->right)    q.push(cur->right);
+        if (!cur->left)
+            q.push(cur->left);
+        if (!cur->right)
+            q.push(cur->right);
     }
 }
+//在树的遍历中要记得举一反三，那个VISIT函数可以有多种，下面就列举一个例子，用inorder来拷贝一个BST中的元素
+//判断一个二叉树是不是BST
+
+//采用中序遍历将节点的值保存到一个数组中，然后判断数组是不是满足递增的条件
+static int index = 0;
+void copyBST(BinaryTreeNode* root, int array[]) {
+    if (root == NULL)
+        return;
+    copyBST(root->left, array);
+    array[index] = root->m_value;           //inorder中的VISIT函数的改版就OK了，太牛逼了
+    index++;                                //当然这里也可以用引用
+    copyBST(root->right, array);
+}
+bool checkBST(BinaryTreeNode* root) {
+    int* array = new int[index + 1];
+    copyBST(root, array);
+    for (int i = 1; i < index; i++) {
+        if (array[i] <= array[i-1])
+            return false;
+    }
+    return true;
+}
+//可以看出上面保存的数组其实没有必要，只需要比较后一个元素与前一个元素的大小关系
+static int last_printed = INT_MIN;
+bool checkBST2(BinaryTreeNode* root) {
+    if (root == NULL)
+        return true;
+    if (!checkBST2(root->m_pLeft))
+        return false;
+    
+    if (root->m_value <= last_printed)
+        return false;
+    last_printed = root->m_value;
+    
+    
+    if (!checkBST2(root->m_pRight))
+        return false;
+    return true;
+}
+
+
 
 
 //问题：rotate a image with O(1)
@@ -1511,6 +1786,118 @@ string shortestPalindrome2(string s) {
     return r.substr(0, s.size() - p[t.size() - 1]) + s;
 }
 
+
+//这空间复杂度为O(n)
+bool isPalindromeList(ListNode* pHead) {
+    // write code here
+    if(pHead == NULL)
+        return true;
+    stack<int> ss;
+    ListNode* p = pHead;
+    ListNode* q = pHead;
+    ss.push(p->val);
+    while(q->next != NULL && q->next->next != NULL)
+    {
+        p = p->next;
+        ss.push(p->val);
+        q = q->next->next;
+    }
+    if(q->next == NULL) //长度为奇数
+        ss.pop();
+    p = p->next;
+    while(!ss.empty())
+    {
+        if(ss.top() != p->val)
+            break;
+        p = p->next;
+        ss.pop();
+    }
+    if(ss.empty())
+        return true;
+    else
+        return false;
+}
+};
+
+bool isPalindromeList2(ListNode* pHead) {
+    // write code here
+    if (pHead == NULL)
+        return false;
+    vector<int> vList;
+    while (pHead) {
+        vList.push_back(pHead->val);
+        pHead = pHead->next;
+    }
+    int num = vList.size();
+    int i = 0, j = num - 1;
+    while(i < j) {
+        if (vList[i++] != vList[j--])
+            return false;
+    }
+    return true;
+}
+
+//这的空间复杂度是O(1)
+/*
+ Given a singly linked list, determine if it is a palindrome.
+ 
+ Follow up:
+ Could you do it in O(n) time and O(1) space?
+ 
+ 判断一个链表的所有元素是否为回文，本身没什么难度，但是O(1)的空间复杂度就麻烦点了：将链表分裂为两个等长的链表，然后逆序其中一个，最后逐个比较两个链表的每个元素，如果全部相等就是Palindrome lsit，但是需要考虑链表长度为奇数的情况。
+ */
+
+/*
+ 1. 获取链表的中点,使用龟兔算法的方法，两个指针，一个遍历速度是另外一个的两倍，找到中点
+ 2. 然后反转链表的后半部分
+ 3. 对比链表的前后两个部分是否一样
+ 4. 最后将原链表的后半部分反转恢复原来的链表(恢复作案现场)
+ */
+bool isPalindrome3(ListNode* head) {
+    if (head == nullptr) {
+        return true; // IMHO this should be false but is true in leetcode oj
+    }
+    if (head->next == nullptr) {
+        return true;
+    }
+    // get the len of the list, 链表奇数或者偶数节点需要判断（如果为奇数那么就删除最后的栈顶）。
+    int len = 0;
+    for (auto ptr = head; ptr != nullptr; ptr = ptr->next) {
+        len++;
+    }
+    // get the header of another half of the list
+    //这下面也可以用快慢指针，指向链表的中间节点，同样也要考虑奇偶性
+    int nl = len / 2;
+    auto ptr = head;
+    for (int i = 0; i != nl; ++i) {
+        ptr = ptr->next;
+    }
+    if (len % 2 != 0) { //
+        ptr = ptr->next;
+    }
+    // reverse another half
+    ListNode* pre = nullptr;
+    auto cur = ptr;
+    while (cur != nullptr) {
+        auto post = cur->next;
+        cur->next = pre;
+        pre = cur;
+        cur = post;
+    }
+    ptr = pre;
+    
+    // compare two half list
+    for (int i = 0; i != nl; ++i) {
+        if (ptr->val != head->val) {
+            return false;
+        }
+        ptr = ptr->next;
+        head = head->next;
+    }
+    return true;
+}
+
+
 //问题：Integer to English Words
 //算法：先处理999以内的数，再大的数就可以类推
 string convertHundred(int num);
@@ -1766,6 +2153,17 @@ bool wordBreak(string s, unordered_set<string>& wordDict) {
 }
 
 //问题：word break II
+/*
+Given a string s and a dictionary of words dict, add spaces in s to construct a sentence where each word is a valid dictionary word.
+
+Return all such possible sentences.
+
+For example, given
+s = "catsanddog",
+dict = ["cat", "cats", "and", "sand", "dog"].
+
+A solution is ["cats and dog", "cat sand dog"].
+*/
 //算法：使用动态规划，除了使用word break的代码之外，还需要一种数据结构来记录分词的位置
 void gen_path(const string &s, const vector<vector<bool> > &prev, int cur, vector<string> &path,
               vector<string> &result){
@@ -1809,6 +2207,9 @@ vector<string> wordBreak2(string s, unordered_set<string>& wordDict) {
 
 //问题：Largest Rectangle in Histogram
 //算法：利用堆栈来维护一个递增栈, 栈内存储的是高度递增的下标,使用一个栈的O(n)解法，代码非常简洁，栈内存储的是高度递增的下标。对于每一个直方图高度，分两种情况。1：当栈空或者当前高度大于栈顶下标所指示的高度时，当前下标入栈。否则，2：当前栈顶出栈，并且用这个下标所指示的高度计算面积。而这个方法为什么只需要一个栈呢？因为当第二种情况时，for循环的循环下标回退，也就让下一次for循环比较当前高度与新的栈顶下标所指示的高度，注意此时的栈顶已经改变由于之前的出栈。
+/*
+ 由于出栈的这些元素高度都是递增的，我们可以求出这些立柱中所围成的最大矩形。更妙的是，由于这些被弹出的立柱处于“波峰”之上(比如弹出i 到 i+k，那么所有这些立柱的高度都高于 i-1和 i+k+1的高度)，因此，如果我们使用之前所提的“左右延伸找立柱”的思路解，以这些立柱的高度作为整个矩形的高度时，左右延伸出的矩形所包含的立柱不会超出这段“波峰”，因为波峰外的立柱高度都比他们低。“波峰图”其实就是求解最大矩形的“孤岛”，它不会干扰到外部。
+ */
 int largestRectangleArea(vector<int> &height) {
     if(height.size() == 0) return 0;
     stack<int> st;
@@ -1840,6 +2241,137 @@ int largestRectangleArea2(vector<int> &height) {
     }
     return max;
 }
+
+/*
+ Given a 2D binary matrix filled with 0's and 1's, find the largest rectangle containing all ones and return its area
+ */
+class Solution_maximalRectangle {
+public:
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        int m = (int)matrix.size();
+        if (m == 0)
+            return 0;
+        int n = (int)matrix[0].size();
+        int max = -1;
+        for (int i = 0; i < m; i++) {
+            int* arr = new int[n];
+            for (int k = 0; k < n; k++) {
+                arr[k] = 0;
+            }
+            
+            for (int j = i; j < m; j++) {
+                for (int k = 0; k < n; k++) {
+                    arr[k] += matrix[j][k] - '0';
+                }
+                int maxsum = maximalArray(arr, n, j - i + 1) * (j - i + 1);
+                if (maxsum > max)
+                    max = maxsum;
+            }
+        }
+        return max;
+    }
+    
+private:
+    int maximalArray(int a[], int  n, int target) {
+        if (n == 0)
+            return -1;
+        
+        int max = 0;
+        int count = 0;
+        for (int i = 0; i < n; i++) {
+            if (a[i] == target)
+                count++;
+            else {
+                if (count > max)
+                    max = count;
+                count = 0;
+            }
+        }
+        return count > max ? count : max;
+        
+    }
+};
+
+/*
+ [Leetcode] Maximal Rectangle
+ Given a 2D binary matrix filled with 0's and 1's, find the largest rectangle containing all ones and return its area.
+ 
+ 给定一个矩阵中，只有0和1，求出这个矩阵的一个最大的子矩阵，其中只包含1.
+ 
+ 例如
+ 
+ 01101
+ 
+ 11010
+ 
+ 01110
+ 
+ 11110
+ 
+ 11111
+ 
+ 00000
+ 
+ 其实这个问题可以转化为Largest Rectangle in Histogram，先将上面的矩阵转化为：
+ 
+ 01101
+ 
+ 12010
+ 
+ 03110
+ 
+ 14210
+ 
+ 25321
+ 
+ 00000
+ 
+ 然后对每一行求直方图的最大面积。
+ */
+class Solution_maximalRectangle2 {
+public:
+    int maxArea(vector<int> &line) {
+        if (line.size() < 1) return 0;
+        stack<int> S;
+        line.push_back(0);
+        int sum = 0;
+        for (int i = 0; i < line.size(); i++) {
+            if (S.empty() || line[i] > line[S.top()]) S.push(i);
+            else {
+                int tmp = S.top();
+                S.pop();
+                sum = max(sum, line[tmp]*(S.empty()? i : i-S.top()-1));
+                i--;
+            }
+        }
+        return sum;
+    }
+    
+    int maximalRectangle(vector<vector<char> > &matrix) {
+        if (matrix.size() < 1) return 0;
+        int n = matrix.size();
+        if (n == 0) return 0;
+        int m = matrix[0].size();
+        if (m == 0) return 0;
+        vector<vector<int> > lines(n, vector<int>(m, 0));
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < m; ++j) {
+                if (i == 0) {
+                    lines[i][j] = ((matrix[i][j] == '1') ? 1 : 0);
+                } else {
+                    lines[i][j] += ((matrix[i][j] == '1') ? lines[i-1][j] + 1 : 0);
+                }
+            }
+        }
+        int maxRec = 0, tmpRec;
+        for (int i = 0; i < n; ++i) {
+            tmpRec = maxArea(lines[i]);
+            maxRec = (maxRec > tmpRec) ? maxRec : tmpRec;
+        }
+        return maxRec;
+    }
+};
+
 
 
 //问题：Symmetric tree
@@ -2102,14 +2634,16 @@ int addDigits(int num)
 //problem: 这题与add binary string 类似，都是用字符串、数组、链表来保存整数或二进制数，
 //用来进行计算
 //这样就可以计算特别大的数的和，整数不能表示，只能用字符串或者链表表示
-/*
+
+/* addlist listadd
  You are given two linked lists representing two non-negative numbers. The digits are stored in reverse order and each of their nodes contain a single digit. Add the two numbers and return it as a linked list.
  
  Input: (2 -> 4 -> 3) + (5 -> 6 -> 4)
  Output: 7 -> 0 -> 8
  */
 
-node *addTwoNumbers(node *l1, node *l2){
+
+node *addlist(node *l1, node *l2){
     node dummy(-1);
     int carry = 0;
     node *prev = &dummy;
@@ -2132,6 +2666,41 @@ node *addTwoNumbers(node *l1, node *l2){
     return dummy.next;
 }
 
+//链式加法
+ListNode* plusAB(ListNode* a, ListNode* b) {
+    // write code here
+    if (a == NULL || b == NULL)
+        return NULL;
+    
+    ListNode* head = new ListNode(-1);
+    ListNode* curr = head;
+    
+    int carry = 0;
+    while(a || b) {
+        int num1 = (a != NULL ? a->val : 0);
+        int num2 = (b != NULL ? b->val : 0);
+        int sum = (num1 + num2 + carry) % 10;
+        carry = (num1 + num2 + carry) / 10;
+        ListNode* c = new ListNode(sum);
+        curr->next = c;
+        if (a != NULL)
+            a = a->next;
+        if (b != NULL)
+            b = b->next;
+        curr = curr->next;
+    }
+    if (carry == 1) {
+        ListNode* end = new ListNode(carry);
+        curr->next = end;
+    }
+    
+    
+    return head->next;
+}
+
+/*
+ r如果是顺序存储怎么办????????????，两条链表的数目不相等，还可以在结尾添加零元素节点来解决问题
+ */
 //problem: String to Integer (atoi)
 //algorithm: 考虑各种情况，这个细节题，却是特别重要
 int myAtoi(char* str) {
@@ -2687,7 +3256,7 @@ ListNode* removeNthFromList(ListNode* head, int n)// 只扫描了一次
 
 
 
-//找到中间节点，把后半节链表reverse，然后合并成一个大的链表
+//找到中间节点，把后半节链表reverse，然后合并成一个大的链表, reverselist listreverse
 ListNode* reverse(ListNode* head);
 void reorderList(ListNode* head){
     if (head == NULL || head->next == NULL)
@@ -2821,6 +3390,8 @@ void setMatrixZeros(vector<vector<int> > &matrix)
                 matrix[i][j] = 0;
         }
 }
+ 
+ 
 
 
 int singleNumber(int A[], int n){

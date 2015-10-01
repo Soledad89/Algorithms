@@ -50,6 +50,576 @@ struct BinaryTreeNode{              // a node in the binary tree
 };
 
 
+//
+/*
+ 二叉搜索树建立、插入、删除、前继节点、后继节点
+*/
+//
+namespace BST {
+    
+
+    typedef struct Node
+    {
+        int key;                //键值
+        struct Node *left;		//左节点
+        struct Node *right;     //右节点
+        struct Node *father;	//父节点
+        int times;              //节点出现的次数
+    } Node, *pNode;
+
+    void creatBinarySearchTree(pNode &pBSTTree, int *ptr, int len);
+    void insertNode(pNode &pBSTTree, int value);
+    void mallocInitNode(pNode &pInsertNode, int value);
+    pNode findMinNode(pNode &pTree);
+    pNode findMaxNode(pNode &pTree);
+    pNode findPredecessor(pNode &pSearchNode);
+    pNode findSuccessor(pNode &pSearchNode);
+    void deleteNode(pNode& pdeleteNode);
+    void changeFatherChildNode(pNode& pdeleteNode, pNode& pNewChildNode);
+
+    int main_BST()
+    {
+        int a[] = {15,15, 6, 18, 3, 7, 17, 20, 2, 4, 13, 9};
+        int len = sizeof(a) / sizeof(int);
+        pNode pBSTTree = NULL;
+        pNode pPreNode = NULL;
+        pNode pSuccessor = NULL;
+        
+        /* 创建二叉查找树 */
+        creatBinarySearchTree(pBSTTree, a, len);
+        
+        /* 寻找二叉查找树中的最大值 */
+        cout << "最小值的节点为:" << findMinNode(pBSTTree)->key << endl;
+        cout << "最大值的节点为:" << findMaxNode(pBSTTree)->key << endl;
+        
+        /* 寻找某个节点的前驱节点 */
+        pPreNode = findPredecessor(pBSTTree->left->right);
+        if (NULL != pPreNode)
+        {
+            cout << "该节点的前驱节点为:" << pPreNode->key << endl;
+        }
+        else
+        {
+            cout << "该节点无前驱节点" << endl;
+        }
+        
+        /* 寻找某个节点的后继节点 */
+        pSuccessor = findSuccessor(pBSTTree->left->left->left);
+        if (NULL != pPreNode)
+        {
+            cout << "该节点的后继节点为:" << pSuccessor->key << endl;
+        }
+        else
+        {
+            cout << "该节点无后继节点" << endl;
+        }
+        
+        /* 删除某个节点 */
+        deleteNode(pBSTTree->right->right);
+        deleteNode(pBSTTree->left->left);
+        cout << "最小值的节点为:" << findMinNode(pBSTTree)->key << endl;
+        pSuccessor = findSuccessor(pBSTTree->left->left);
+        if (NULL != pPreNode)
+        {
+            cout << "该节点的后继节点为:" << pSuccessor->key << endl;
+        }
+        else
+        {
+            cout << "该节点无后继节点" << endl;
+        }
+        
+        free(pBSTTree);
+        pBSTTree = NULL;
+        return 0;
+    }
+
+    /* 创建一个二叉查找树 */
+    void creatBinarySearchTree(pNode &pBSTTree, int *ptr, int len)
+    {
+        for (int i = 0; i < len; i++)
+        {
+            insertNode(pBSTTree, *(ptr + i));
+        }
+    }
+
+
+    /* 插入一个节点，复杂度为O(nlogn) */
+    void insertNode(pNode &pBSTTree, int value)
+    {
+        pNode pInsertNode;
+        
+        /* 第一个节点，直接插入 */
+        if (NULL == pBSTTree)
+        {
+            mallocInitNode(pInsertNode, value);
+            pBSTTree = pInsertNode;
+            return;
+        }
+        
+        /* 如果键值已经存在的话，只需要times++ */
+        if (value == pBSTTree->key)
+        {
+            pBSTTree->times++;
+            return;
+        }
+        
+        /* 如果小于本节点的值，且该节点无左孩子 */
+        if ((NULL == pBSTTree->left) && (value < pBSTTree->key))
+        {
+            mallocInitNode(pInsertNode, value);
+            pInsertNode->father = pBSTTree;
+            pBSTTree->left = pInsertNode;
+            return;
+        }
+        
+        /* 如果大于本节点的值，且该节点无右孩子 */
+        if ((NULL == pBSTTree->right) && (value > pBSTTree->key))
+        {
+            mallocInitNode(pInsertNode, value);
+            pInsertNode->father = pBSTTree;
+            pBSTTree->right = pInsertNode;
+            return;
+        }
+        
+        /* 如果小于本节点的值，但是该节点已经有左孩子，那么就继续递归 */
+        if ((NULL != pBSTTree->left) && (value < pBSTTree->key))
+        {
+            insertNode(pBSTTree->left, value);
+        }
+        
+        /* 如果大于本节点的值，但是该节点已经有右孩子，那么就继续递归 */
+        if ((NULL != pBSTTree->right) && (value > pBSTTree->key))
+        {
+            insertNode(pBSTTree->right, value);
+        }
+    }
+
+    /* 创建新节点并初始化 */
+    void mallocInitNode(pNode &pInsertNode, int value)
+    {
+        pInsertNode = (pNode)malloc(sizeof(Node));
+        pInsertNode->key = value;
+        pInsertNode->father = NULL;
+        pInsertNode->left = NULL;
+        pInsertNode->right = NULL;
+        pInsertNode->times = 1;
+    }
+
+    /* 寻找二叉树中最小的节点和最大的节点 */
+    pNode findMinNode(pNode &pTree)
+    {
+        pNode pTemp = pTree;
+        while (NULL != pTemp->left)
+        {
+            pTemp = pTemp->left;
+        }
+        return pTemp;
+        
+        
+    }
+
+    pNode findMaxNode(pNode &pTree)
+    {
+        pNode pTemp = pTree;
+        while (NULL != pTemp->right)
+        {
+            pTemp = pTemp->right;
+        }
+        return pTemp;
+    }
+
+    /* 找出前驱节点 */
+    pNode findPredecessor(pNode &pSearchNode)
+    {
+        /* 如果左子树存在的话，则返回左子树中最大的节点，即为比它小的之中的最大的节点 */
+        if (NULL != pSearchNode->left)
+        {
+            return findMaxNode(pSearchNode->left);
+        }
+        
+        /* 如果左子树不存在的话，则需要往上找，直到找到目标节点是目标节点父亲节点的右孩子 */
+        pNode pTemp = pSearchNode;
+        while(pTemp != pTemp->father->right)
+        {
+            pTemp = pTemp->father;
+        }
+        return pTemp->father;
+    }
+
+    /* 找出后继节点 */
+    pNode findSuccessor(pNode &pSearchNode)
+    {
+        /* 如果右子树存在的话，则返回右子树中最小的节点，即为比它大的之中的最小的节点 */
+        if (NULL != pSearchNode->right)
+        {
+            return findMinNode(pSearchNode->right);
+        }
+        
+        /* 如果左子树不存在的话，则需要往上找，直到找到目标节点是目标节点父亲节点的左孩子 */
+        pNode pTemp = pSearchNode;
+        while(pTemp != pTemp->father->left)
+        {
+            pTemp = pTemp->father;
+        }
+        return pTemp->father;
+    }
+
+    void deleteNode(pNode& pdeleteNode)
+    {
+        /* 1.判断该节点的个数，如果节点的个数大于或等于1，则直接将该节点的个数-1 */
+        if (1 < pdeleteNode->times)
+        {
+            pdeleteNode->times--;
+            return;
+        }
+        /* 2.如果该节点只有一个，那么考虑删除 */
+        /* 2.1 如果该节点没有孩子，则直接删除 */
+        pNode pTemp = NULL;
+        if ((NULL == pdeleteNode->left) && (NULL == pdeleteNode->right))
+        {
+            changeFatherChildNode(pdeleteNode, pTemp);
+        }
+        /* 2.2 如果该节点只有一个孩子，那么直接用该孩子代替该节点 */
+        else if ((NULL == pdeleteNode->left) && (NULL != pdeleteNode->right))
+        {
+            changeFatherChildNode(pdeleteNode, pdeleteNode->right);
+        }
+        else if ((NULL == pdeleteNode->right) && (NULL != pdeleteNode->left))
+        {
+            changeFatherChildNode(pdeleteNode, pdeleteNode->left);
+        }
+        /* 2.3 如果该节点有两个孩子，那么考虑用该节点的前驱或者后继来代替该节点。在此，我们选择用前驱代替该节点 */
+        else
+        {
+            pTemp = findPredecessor(pdeleteNode);
+            pNode pRightChild = pdeleteNode->right;
+            changeFatherChildNode(pdeleteNode, pTemp);
+            pTemp->right = pRightChild;
+        }
+    }
+
+    void changeFatherChildNode(pNode& pdeleteNode, pNode& pNewChildNode)
+    {
+        if (pdeleteNode == pdeleteNode->father->right)
+        {
+            pdeleteNode->father->right = pNewChildNode;			
+        }
+        else
+        {
+            pdeleteNode->father->left = pNewChildNode;
+        }
+    }
+
+}//end of BST
+
+
+//
+/*
+ 对于一个元素各不相同且按升序排列的有序序列，请编写一个算法，创建一棵高度最小的二叉查找树
+ */
+BinaryTreeNode* buildMinimalTree(vector<int> A, int start, int end) {
+    if (start > end)
+        return NULL;
+    int mid = start + (end - start) / 2;
+    BinaryTreeNode* root = new BinaryTreeNode(A[mid]);
+    root->m_pLeft = buildMinimalTree(A, start, mid - 1);
+    root->m_pRight = buildMinimalTree(A, mid + 1, end);
+    return root;
+}
+
+BinaryTreeNode* buildMinBST(vector<int> A) {
+    int length = A.size();
+    if (length <= 0)
+        return NULL;
+    return buildMinimalTree(A, 0, length);
+    
+}
+
+//Floyd最短路径算法，其是动态规划算法
+//  A[i][j] = min(A[i][j], A[i][k] + A[k][j]) ( 0 <= k <= n-1)
+//  只需要六行代码，三行循环，三行松弛
+
+typedef struct
+{
+    char vertex[VertexNum];                      //顶点表
+    int edges[VertexNum][VertexNum];            //邻接矩阵,可看做边表
+    int n,e;                                    //图中当前的顶点数和边数
+}   MGraph;
+
+void Floyd(MGraph g)
+{
+　　int A[MAXV][MAXV];
+　　int path[MAXV][MAXV];     //保存路线
+　　int i,j,k,n=g.n;
+　　for(i=0;i<n;i++)
+    　　for(j=0;j<n;j++){
+            A[i][j]= g.edges[i][j];
+            path[i][j] = -1;
+    }
+　　for(k=0;k<n;k++)
+    　　for(i=0;i<n;i++)
+        　　for(j=0;j<n;j++)
+                if(A[i][j]>(A[i][k]+A[k][j])) {
+                    A[i][j]=A[i][k]+A[k][j];
+                    path[i][j]=k;
+                }
+}
+
+
+
+//problem:判断一个字符串是不是另一个字符串旋转得到的
+//algorithm:
+bool isSubstring(string s1, string s2){
+    if(s1.find(s2) != string::npos) return true;
+    else return false;
+}
+bool isRotation(string s1, string s2){
+    if(s1.length() != s2.length() || s1.length()<=0)
+        return false;
+    return isSubstring(s1+s1, s2);
+}
+
+int main_isrotation(){
+    string s1 = "apple";
+    string s2 = "pleap";
+    cout<<isRotation(s1, s2)<<endl;
+    //cout<<string::npos<<endl;
+    return 0;
+}
+
+//sorted stack  stacksorted stacksort
+void Qsort(stack<int> &s){
+    priority_queue< int,vector<int>,greater<int> > q;
+    while(!s.empty()){
+        q.push(s.top());
+        s.pop();
+    }
+    while(!q.empty()){
+        s.push(q.top());
+        q.pop();
+    }
+}
+
+stack<int> stackSort(stack<int> s){     //这采用的是插入排序，也可以考虑使用quicksort和mergesort将需要更多的额外空间
+    stack<int> t;
+    while(!s.empty()){
+        int data = s.top();
+        s.pop();
+        while(!t.empty() && data < t.top()){  //t中始终维持着排序状态，从小到大，从下到上
+            s.push(t.top());
+            t.pop();
+        }
+        t.push(data);
+    }
+    return t;
+}
+
+//下面这是建立一个栈，其数据从低到高由小到大排列
+template<typename T>
+class mystacksorted {
+private:
+    stack<T> s;
+    
+public
+    void push(T t) {
+        if (isempty() || t > top()) //这必须得先判断一下，看是不是有元素，没有元素的话，取top值是没有定义的
+            s.push(t);
+        else {
+            stack<T> tmp;
+            while (t < top()) {
+                tmp.push(top());
+                pop();
+            }
+            s.push(t);
+            while (!tmp.empty) {
+                s.push(tmp.top());
+                tmp.pop();
+            }
+        }
+            
+    }
+    
+    T top() {
+        return s.top();
+    }
+    
+    void pop() {
+        s.pop();
+    }
+    
+    bool isempty() {
+        return s.isempty();
+    }
+            
+            
+};
+
+
+
+//用一个向量来实现三个堆栈，这里采用固定分区，当然可以灵活分区，那样就要把数组设置成环状
+//problem: zeros
+//algorithm;
+void zero(int **a, int m, int n){
+    bool row[m], col[n];
+    memset(row, false, sizeof(row));
+    memset(col, false, sizeof(col));
+    for(int i=0; i<m; ++i)
+        for(int j=0; j<n; ++j)
+            if(a[i][j] == 0){
+                row[i] = true;
+                col[j] = true;
+            }
+    for(int i=0; i<m; ++i)
+        for(int j=0; j<n; ++j)
+            if(row[i] || col[j])
+                a[i][j] = 0;
+}
+int main_zero()
+{
+    freopen("1.7.in", "r", stdin);
+    
+    int m, n;
+    cin>>m>>n;
+    
+    //建立二维矩阵的方法
+    int **a;
+    a = new int*[m];
+    for(int i=0; i<m; ++i)
+        a[i] = new int[n];
+    
+    
+    for(int i=0; i<m; ++i)
+        for(int j=0; j<n; ++j)
+            cin>>a[i][j];
+    for(int i=0; i<m; ++i){
+        for(int j=0; j<n; ++j)
+            cout<<a[i][j]<<" ";
+        cout<<endl;
+    }
+    cout<<endl;
+    zero(a, m, n);
+    for(int i=0; i<m; ++i){
+        for(int j=0; j<n; ++j)
+            cout<<a[i][j]<<" ";
+        cout<<endl;
+    }
+    fclose(stdin);
+    return 0;
+}
+
+//problem:
+/*
+ 请实现一种数据结构SetOfStacks，由多个栈组成，其中每个栈的大小为size，当前一个栈填满时，新建一个栈。该数据结构应支持与普通栈相同的push和pop操作。
+ 给定一个操作序列int[][2] ope(C++为vector<vector<int>>)，每个操作的第一个数代表操作类型，若为1，则为push操作，后一个数为应push的数字；若为2，则为pop操作，后一个数无意义。请返回一个int[][](C++为vector<vector<int>>)，为完成所有操作后的SetOfStacks，顺序应为从下到上，默认初始的SetOfStacks为空。保证数据合法。
+ */
+//algorithm:by wangbo
+vector<vector<int> > setOfStacks(vector<vector<int> > ope, int size) {
+    // write code here
+    int num = ope.size();
+    vector<vector<int> > vStack;
+    vector<int> tmp;
+    vStack.push_back(tmp);
+    
+    int curr = 0;
+    for (int i = 0; i < num; i++)stac
+    {
+        if (ope[i][0] == 1){
+            if (vStack[curr].size() != size)
+                vStack[curr].push_back(ope[i][1]);
+            else {
+                tmp.clear();
+                vStack.push_back(tmp);
+                vStack[++curr].push_back(ope[i][1]);
+            }
+        }
+        else {
+            if (curr == 0 && vStack[curr].empty())
+                return {{0}};
+            if (vStack[curr].size() == 1)
+            {
+                vStack.pop_back();
+                curr--;
+            }
+            else
+                vStack[curr].pop_back();
+        }
+    }
+    return  vStack;
+}
+
+const int STACK_SIZE = 100;
+const int STACK_NUM = 10;
+class SetOfStacks{//without popAt()
+private:
+    stack *st;
+    int cur;
+    int capacity;
+    
+public:
+    SetOfStacks(int capa=STACK_NUM){
+        st = new stack[capa];
+        cur = 0;
+        capacity = capa;
+    }
+    ~SetOfStacks(){
+        delete[] st;
+    }
+    void push(int val){
+        if(st[cur].full()) ++cur;
+        st[cur].push(val);
+    }
+    void pop(){
+        if(st[cur].empty()) --cur;
+        st[cur].pop();
+    }
+    int top(){
+        if(st[cur].empty()) --cur;
+        return st[cur].top();
+    }
+    bool empty(){
+        if(cur==0) return st[0].empty();
+        else return false;
+    }
+    bool full(){
+        if(cur==capacity-1) return st[cur].full();
+        else return false;
+    }
+};
+
+//problem: 自己实现stack类，学习编写类，并实现它
+class stackmine{
+private:
+    int *buf;
+    int cur;
+    int capacity;
+    
+public:
+    stack(int capa = STACK_SIZE){
+        buf = new int[capa];
+        cur = -1;
+        capacity = capa;
+    }
+    ~stack(){
+        delete[] buf;
+    }
+    void push(int val){
+        buf[++cur] = val;
+    }
+    void pop(){
+        --cur;
+    }
+    int top(){
+        return buf[cur];
+    }
+    bool empty(){
+        return cur==-1;
+    }
+    bool full(){
+        return cur==capacity-1;
+    }
+};
+
+
 //problem:  最长公共前缀,找到一串字符串的最长的公共前缀
 //algorithm:
 string longestCommonPrefix(vector<string>& strs) {
@@ -210,6 +780,7 @@ namespace wordsStat {
 }
 
 //problem: 优先队列的实现priority_queue的实现
+
 //algorithm: 用堆来实现，其中两个重要的siftup and siftdown函数
 template<class T>
 class priqueue {
@@ -307,7 +878,7 @@ namespace heapsort_ {
         }
     }
 
-    int heapsort_main()
+    int heapsort_main()         //先从第二个元素开始对所有元素进行siftup操作，然后交换堆节点值和末尾节点值（末尾节点为子结构的最大值），然后只需要将新的根节点siftdown即可
     {
         double BegTime, EndTime;
         int data[ MAX + 1];
@@ -836,6 +1407,16 @@ bool IsBit1(int num, unsigned int indexBit) //验证第indexBit位是否为1
 {
     num = num >> indexBit;
     return (num & 1);
+//    也可以是将1往左移
+    /*
+     bool getBit(int num, index) {检查是否为1
+        return (num & (1 << index));
+     }
+     相应的
+     int setBit(int num, index) {
+        return (num | (1 <<index));
+     }
+     */
 }
 
 
@@ -1354,6 +1935,28 @@ node* FindKthToTail(node* pListHead, unsigned int k)
     
     return pBehind;
 }
+//下面的递归解法都有O(n)的复杂度
+//algorithm1: 采用递归的方式来求，只打印元素的值
+int FindKthToTail2(node* head, int i, int k ) {
+    if (head == nullptr)
+        return 0;
+    int i = FindKthToTail(head->next, k);
+    if (i == k)
+        cout << head.data << endl;
+    return i;
+}
+//algorithm2: 采用递归来实现，返回元素的指针，这里就要用到引用
+node* FindKthToTail3(node* head, int k, int &i){
+    if (head == NULL )
+        return NULL;
+    node *nd = FindKthToTail(head->next, k, i);
+    i++;
+    if (i == k)
+        return head;
+    else
+        return nd;
+}
+
 
 //problem:
 //algorithm:
@@ -1406,29 +2009,31 @@ int MinInOrder(int* numbers, int index1, int index2)
 }
 
 
-//problem: 利用两个栈实现队列的功能
+//problem: 利用两个栈实现队列的功能myQueue
 //algorithm: stack1用于入栈，stack2用于弹出，当stack2为空时，将stack1中的所有元素压入stack2中
-template <typename T> class CQueue
+template <typename T> class myQueueWithStack
 {
 public:
-    CQueue(void);
-    ~CQueue(void);
+    myQueueWithStack(void);
+    ~myQueueWithStack(void);
     
-    void appendTail(const T& node);
+    void enqueue(const T& node);
     
-    T deleteHead();
+    T dequeue();
     
 private:
     stack<T> stack1;
     stack<T> stack2;
 };
 
-template<typename T> void CQueue<T>::appendTail(const T& element)
+template<typename T>
+void myQueueWithStack<T>::enqueue(const T& element)
 {
     stack1.push(element);
 }
 
-template<typename T> T CQueue<T>::deleteHead()
+template<typename T>
+T myQueueWithStack<T>::dequeue()
 {
     if(stack2.size()<= 0)
     {
@@ -1440,7 +2045,7 @@ template<typename T> T CQueue<T>::deleteHead()
         }
     }
     
-    if(stack2.size() == 0)
+    if(stack2.size() == 0)  //这时stack1里面也没有元素
         return INT_MIN;
     
     T head = stack2.top();
@@ -1450,7 +2055,7 @@ template<typename T> T CQueue<T>::deleteHead()
 }
 
 
-//problem: 知道先序排列的数组和中序排列的数组，重构/重建原二叉搜索树rebuild
+//problem: 知道先序排列的数组和中序排列的数组，重构/重建原二叉搜索树rebuild, buildtree.
 //algorithm: 递归
 BinaryTreeNode* rebuild(int* startPreorder, int* endPreorder, int* startInorder, int* endInorder);
 
@@ -1628,13 +2233,13 @@ void ReplaceBlank(char string[], int length)///*length为字符串的最大值*/
     }
     
     /*newLength为空格被替换之后的新长度*/
-    int newLength = originalLength + numberOfBlank * 2;
+    int newLength = originalLength + numberOfBlank * 2; //这有一个问题，没有加上末尾的'\0'下面的replace2和replace3才是对的
     if(newLength > length)
         return;
     
     int indexOfOriginal = originalLength - 1;
     int indexOfNew = newLength - 1;
-    while(indexOfOriginal >= 0 && indexOfNew > indexOfOriginal)
+    while(indexOfOriginal >= 0 &&  indexOfOriginal < indexOfNew)
     {
         if(string[indexOfOriginal] == ' ')
         {
@@ -1650,6 +2255,67 @@ void ReplaceBlank(char string[], int length)///*length为字符串的最大值*/
         -- indexOfOriginal;
     }
 }
+
+char* replace2(char *c){
+    if(c == NULL) return NULL;
+    int len = strlen(c);
+    if(len == 0) return NULL;
+    int cnt = 0;
+    for(int i=0; i<len; ++i)
+    {
+        if(c[i] == ' ')
+            ++cnt;
+    }
+    char *cc = new char[len+2*cnt+1];   //这是重新建立了一个可以容纳连接到一起的数组
+    int p = 0;
+    for(int i=0; i<len; ++i)
+    {
+        if(c[i] == ' ')
+        {
+            cc[p] = '%';
+            cc[p+1] = '2';
+            cc[p+2] = '0';
+            p += 3;
+        }
+        else
+        {
+            cc[p] = c[i];
+            ++p;
+        }
+    }
+    cc[p] = '\0';
+    return cc;
+}
+
+void replace3(char *c){
+    if(c == NULL) return;
+    int len = strlen(c);
+    if(len == 0) return;
+    int cnt = 0;
+    for(int i=0; i<len; ++i)
+    {
+        if(c[i] == ' ')
+            ++cnt;
+    }
+    int p = len + 2*cnt;
+    c[p--] = '\0';//the space must be allocated first.
+    for(int i=len-1; i>=0; --i)
+    {
+        if(c[i] == ' ')
+        {
+            c[p] = '0';
+            c[p-1] = '2';
+            c[p-2] = '%';
+            p -= 3;
+        }
+        else
+        {
+            c[p] = c[i];
+            --p;
+        }
+    }
+}
+
 
 
 
@@ -2007,7 +2673,7 @@ int compare(const void* strNumber1, const void* strNumber2)
     return strcmp(g_StrCombine1, g_StrCombine2);
 }
 
-//problem: 用递归法颠倒一个栈
+//problem: 用递归法颠倒一个栈, stackreverse
 //algorithm: recursion
 
 // Add an element to the bottom of a stack:
@@ -2187,7 +2853,7 @@ int getLen(char *str){
 //
 //problem： 将数组中奇数都放在数组的前面，偶数都放在数组的后面
 //algorithm: 类似于quicksort的partition，以下建立一个模板，可以把数组分成满足不同标准的函数指针
-void evenOddPartition(int A[], int n) {
+void evenOddPartition(int A[], int n) { //这里就没有pivot的概念了不需要
     if (n == 0 || n == 1)
         return;
     int i = 0, j = n - 1;
@@ -3438,6 +4104,116 @@ bool VerifySquenceOfBST(int sequence[], int length)
 }
 
 
+//判断一个二叉树是不是BST
+//algorithm1: 每一个根节点保存一个最大值和一个最小值min/max法
+bool isBSThelper(BinaryTreeNode* root, int min, int max) {
+    if (root == NULL)
+        return true;
+    int t = root->m_value;
+    if (t > max || t < min)
+        return false;
+    return isBSThelper(root->m_pLeft, min, t - 1) && isBSThelper(root->m_pLeft, t + 1, max);
+}
+bool isBST(BinaryTreeNode* root){
+    return isBSThelper(root, INT_MIN, INT_MAX);
+}
+
+//采用中序遍历将节点的值保存到一个数组中，然后判断数组是不是满足递增的条件
+static int index = 0;
+void copyBST(BinaryTreeNode* root, int array[]) {
+    if (root == NULL)
+        return;
+    copyBST(root->left, array);
+    array[index] = root->m_value;
+    index++;
+    copyBST(root->right, array);
+}
+bool checkBST(BinaryTreeNode* root) {
+    int* array = new int[index + 1];
+    copyBST(root, array);
+    for (int i = 1; i < index; i++) {
+        if (array[i] <= array[i-1])
+            return false;
+    }
+    return true;
+}
+//可以看出上面保存的数组其实没有必要，只需要比较后一个元素与前一个元素的大小关系
+static int last_printed = INT_MIN;  //使用全局变量
+bool checkBST2(BinaryTreeNode* root) {
+    if (root == NULL)
+        return true;
+    if (!checkBST2(root->m_pLeft))
+        return false;
+    
+    if (root->m_value <= last_printed)
+        return false;
+    last_printed = root->m_value;
+    
+    
+    if (!checkBST2(root->m_pRight))
+        return false;
+    return true;
+}
+
+//也可以使用静态变量prev来保持前驱节点很巧妙
+bool isBST(struct BinaryTreeNode* root)
+{
+    static struct BinaryTreeNode* prev = NULL;  //使用局部变量
+    
+    // traverse the tree in inorder fashion and keep track of prev node
+    if(root == NULL)
+        return true;
+    
+    if(!isBST(root->m_pLeft))
+        return false;
+    
+    // Allows only distinct valued nodes
+    if(prev != NULL && root->m_value <= prev->m_value)
+        return false;
+    
+    prev = root;
+    
+    return isBST(root->m_pRight);
+
+    
+}
+/*
+ Given a Binary Tree where each node has following structure, write a function to populate next pointer for all nodes. The next pointer for every node should be set to point to inorder successor.
+ */
+// An implementation that doesn't use static variable
+// A wrapper over populateNextRecur
+void populateNext(struct node *root)
+{
+    // The first visited node will be the rightmost node
+    // next of the rightmost node will be NULL
+    struct node *next = NULL;
+    
+    populateNextRecur(root, &next);
+}
+
+/* Set next of all descendents of p by traversing them in reverse Inorder */
+void populateNextRecur(struct BinaryTreeNode* p, struct BinaryTreeNode **next_ref)
+{
+    if (p)
+    {
+        // First set the next pointer in right subtree
+        populateNextRecur(p->m_pRight, next_ref);
+        
+        // Set the next as previously visited node in reverse Inorder
+        p->next = *next_ref;
+        
+        // Change the prev for subsequent node
+        *next_ref = p;
+        
+        // Finally, set the next pointer in right subtree
+        populateNextRecur(p->m_pLeft, next_ref);
+    }
+}
+
+
+
+
+
 struct ListNode__ {
     int m_value;
     ListNode__* leftch;
@@ -3581,7 +4357,7 @@ void FindMaxLen(NODE_* pRoot)
 
 //algorithm2: use divide-conquer.
 /*
- * return the depth of the tree
+ * return the depth of the tree,getdepth
  */
 struct Tree {
     Tree* left;
@@ -3666,7 +4442,7 @@ bool IsBalanced_Solution2(BinaryTreeNode* pRoot)
     return IsBalanced(pRoot, &depth);
 }
 
-bool IsBalanced(BinaryTreeNode* pRoot, int* pDepth)
+bool IsBalanced(BinaryTreeNode* pRoot, int* pDepth) //当然这里也可以用引用
 {
     if(pRoot == NULL)
     {
@@ -3689,6 +4465,34 @@ bool IsBalanced(BinaryTreeNode* pRoot, int* pDepth)
     return false;
 }
 
+//在不同的递归层，通过引用来传递参数，或阶段性胜利
+class Balance {
+public:
+    bool isBalance(TreeNode* root) {
+        int depth = 0;
+        return isBalanced(root, depth);
+    }
+    
+private:
+    bool isBalanced(TreeNode* root, int& depth) {
+        if (root == NULL) {
+            depth = 0;
+            return true;
+        }
+        
+        int left, right;
+        bool lb, rb;
+        lb = isBalanced(root->left, left);
+        rb = isBalanced(root->right, right);
+        if (lb && rb) {
+            if (left - right <= 1 && left - right >= -1) {
+                depth = (left > right) ? left + 1 : right + 1;
+                return true;
+            }
+        }
+        return false;
+    }
+};
 
 
 //问题：判断整数序列是不是二叉查找树的后序遍历结果
@@ -3769,6 +4573,66 @@ node *reverseList2(node *head)
 
     return head;
 }
+
+//problem: usr insertion sort to sort a single linked list
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+namespace insertionSortList {
+    struct ListNode {
+             int val;
+             ListNode *next;
+             ListNode(int x) : val(x), next(NULL) {}
+        };
+    
+    class Solution_insertionSortList {
+    public:
+        ListNode *insertionSortList(ListNode *head) {
+            if (head == nullptr) return head;
+            
+            ListNode* curr = head -> next;
+            head -> next = nullptr;
+            
+            while(curr != nullptr){
+                ListNode* tmpHead = head;
+                ListNode* prev = nullptr;
+                //这个刚开始设为空很重要，通过判断这个变量是否改变来判断时候在头结点处插入节点
+                ListNode* next = curr -> next;
+                while(tmpHead != nullptr && tmpHead -> val <= curr -> val)
+                {
+                    prev = tmpHead;
+                    tmpHead = tmpHead -> next;
+                }
+                
+                if(prev != nullptr){
+                    //insert
+                    if(prev -> next){
+                        curr -> next = prev -> next;
+                        prev -> next = curr;
+                    }else
+                    {
+                        prev -> next = curr;
+                        curr -> next = nullptr;
+                    }
+                }else{
+                    curr -> next = head;
+                    head = curr;
+                }
+                
+                curr = next;
+            }
+            return head;
+        }
+        
+    };
+
+}
+
 /*
  Given a list, rotate the list to the right by k places, where k is non-negative.
  
@@ -4137,6 +5001,8 @@ int maxSubMatrix(vector<vector<int> > a, int n){
     delete []b;
     return max_sum;
 }
+
+
 //问题：设计包含min函数的栈，定义栈的数据结构，要求添加一个min函数，能够得到栈的最小元素。
 //要求函数min、push以及pop的时间复杂度都是O(1)。
 //算法：借助一个辅助栈来保存最小值
@@ -4144,54 +5010,92 @@ template<typename T>
 class StackSuppliedMin{
 public:
     vector<T> datas;
-    vector<size_t> minIndexStack; //借助一个辅助栈,保存的是最小值的index
+    vector<size_t> s; //借助一个辅助栈,保存的是最小值的index
     
     void push(T data){
         datas.push_back(data);
-        if (minIndexStack.empty() || data < datas[minIndexStack.back()])
-            minIndexStack.push_back(datas.size()-1);
+        if (s.empty() || data < datas[s.back()])
+            s.push_back(datas.size()-1);
     }
     
     void pop(){
         assert(!datas.empty());
-        if (datas.back() == datas[minIndexStack.back()])
-            minIndexStack.pop_back();
+        if (datas.back() == datas[s.back()])
+            s.pop_back();
         datas.pop_back();
     }
     
     T min(){
-        assert(!datas.empty() && !minIndexStack.empty());
-        return datas[minIndexStack.back()];
+        assert(!datas.empty() && !s.empty());
+        return datas[s.back()];
     }
     
     void display();
 };
-//算法2：在另一个栈中直接存储最小值
-class MinStack {
+
+
+//算法2：上面的存储空间为O(n)，是不是可以在堆栈中元素添加一个额外的数据项
+typedef struct nodeMinStackMinStack{
+    int val, min;
+}nodeMinStack;
+
+class StackWithMin{
 public:
-    void push(int x) {
-        p.push_back(x);
-        if (q.size() == 0 || x < q.back() ) //这句判断很重要
-            q.push_back(x);
-        else q.push_back(q.back());
+    StackWithMin(int size=1000){
+        buf = new nodeMinStack[size];
+        buf[0].min = MAX_INT;
+        cur = 0;
+    }
+    ~StackWithMin(){
+        delete[] buf;
+    }
+    void push(int val){
+        buf[++cur].val = val;
+        if(val<buf[cur-1].min) buf[cur].min = val;
+        else buf[cur].min = buf[cur-1].min;
+    }
+    void pop(){
+        --cur;
+    }
+    int top(){
+        return buf[cur].val;
+    }
+    bool empty(){
+        return cur==0;
+    }
+    int min(){
+        return buf[cur].min;
+    }
+    
+private:
+    nodeMinStack *buf;
+    int cur;
+};
+
+//算法3：在另一个栈中直接存储最小值，但是这个的复杂度与上面算法2的一样，能不能降低空间复杂大，特别是当栈底的元素恰好最小时
+class minStack {
+public:
+    stack<int> s1;
+    stack<int> s2;
+    
+    void push(int x){
+        s1.push(x);
+        if (s2.empty() && s2.top() >= x)
+            s2.push(x);
     }
     
     void pop() {
-        p.pop_back();
-        q.pop_back();
+        if (s1.top() == s2.top())
+            s2.pop();
+        s1.pop();
     }
     
-    int top() {
-        return p.back();
+    int getMin(){
+        return s2.top();
     }
-    
-    int getMin() {
-        return q.back();
-    }
-private:
-    vector<int> p;
-    vector<int> q;
 };
+
+
 
 //problem: 将上面的最小值栈推广到最大值队列
 //algorithm: 用两个栈可以实现一个队列，而其中的一个栈是上述的最大栈（最小的类似），所以最大的队列包含了底层4个基本栈
@@ -4296,25 +5200,25 @@ void maxqueue_main() {
 
 //问题：把二元查找树转变成排序的双向链表
 //算法：中序递归
-struct BSTreeNode
+struct BSTtreenode
 {
     int m_nValue; // value of node
-    BSTreeNode *m_pLeft; // left child of node
-    BSTreeNode *m_pRight; // right child of node
-    BSTreeNode(int mv = 0, BSTreeNode* ml = NULL, BSTreeNode* mr = NULL): m_nValue(mv), m_pLeft(ml), m_pRight(mr) {}
+    BSTtreenode *m_pLeft; // left child of node
+    BSTtreenode *m_pRight; // right child of node
+    BSTtreenode(int mv = 0, BSTtreenode* ml = NULL, BSTtreenode* mr = NULL): m_nValue(mv), m_pLeft(ml), m_pRight(mr) {}
 };
 
-typedef BSTreeNode DoubleList;
+typedef BSTtreenode DoubleList;
 DoubleList * pHead;
 DoubleList * pLastNodeInlist; //始终指向双向链表的最后一个节点
 
-void convertToDoubleList(BSTreeNode * pCurrent);
+void convertToDoubleList(BSTtreenode * pCurrent);
 // 创建二元查找树
-void addBSTreeNode(BSTreeNode * & pCurrent, int value)
+void addBSTreeNode(BSTtreenode * & pCurrent, int value)
 {
     if (NULL == pCurrent)
     {
-        BSTreeNode * pBSTree = new BSTreeNode();
+        BSTtreenode * pBSTree = new BSTtreenode();
         pBSTree->m_pLeft = NULL;
         pBSTree->m_pRight = NULL;
         pBSTree->m_nValue = value;
@@ -4339,7 +5243,7 @@ void addBSTreeNode(BSTreeNode * & pCurrent, int value)
 }
 
 // 遍历二元查找树  中序
-void inorderBSTree(BSTreeNode * pCurrent)
+void inorderBSTree(BSTtreenode * pCurrent)
 {
     if (NULL == pCurrent){
         return;
@@ -4359,7 +5263,7 @@ void inorderBSTree(BSTreeNode * pCurrent)
 }
 
 // 二叉树转换成list
-void  convertToDoubleList(BSTreeNode * pCurrent)
+void  convertToDoubleList(BSTtreenode * pCurrent)
 {
     
     pCurrent->m_pLeft = pLastNodeInlist; //使当前结点的左指针指向双向链表中最后一个结点
@@ -4376,20 +5280,20 @@ void  convertToDoubleList(BSTreeNode * pCurrent)
 }
 
 //单向排序链表转换为二叉排序树
-BSTreeNode* genBST(int start, int end, vector<BSTreeNode*> &treeNodes);
-BSTreeNode *sortedListToBST(node *head)
+BSTtreenode* genBST(int start, int end, vector<BSTtreenode*> &treeNodes);
+BSTtreenode *sortedListToBST(node *head)
 {
-    vector<BSTreeNode*> treeNodes;
+    vector<BSTtreenode*> treeNodes;
     while (head != NULL)
     {
-        BSTreeNode *p = new BSTreeNode(head->data);
+        BSTtreenode *p = new BSTtreenode(head->data);
         treeNodes.push_back(p);
         head = head->next;
     }
     return genBST(0, (int)treeNodes.size() - 1, treeNodes);
 }
 
-BSTreeNode* genBST(int start, int end, vector<BSTreeNode*> &treeNodes)
+BSTtreenode* genBST(int start, int end, vector<BSTtreenode*> &treeNodes)
 {
     if (start == end) return treeNodes[start];
     else if (start+1 == end)
@@ -4399,7 +5303,7 @@ BSTreeNode* genBST(int start, int end, vector<BSTreeNode*> &treeNodes)
     }
     
     int mid = (start+end)/2;
-    BSTreeNode* root = treeNodes[mid];
+    BSTtreenode* root = treeNodes[mid];
     root->m_pLeft = genBST(start, mid-1, treeNodes);
     root->m_pRight = genBST(mid+1, end, treeNodes);
     return root;
@@ -4710,7 +5614,7 @@ bool CheckMoreThanHalf(int* numbers, int length, int number)
     return isMoreThanHalf;
 }
 
-int partition ( int* _elem, int lo, int hi ) ;
+int partition ( int* A, int lo, int hi ) ;
 int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数n/2满不满足条件即可
 {
     if(CheckInvalidArray(numbers, length))
@@ -4720,6 +5624,8 @@ int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数
     int start = 0;
     int end = length - 1;
     int index = partition(numbers, start, end);
+    
+    
     while(index != middle)
     {
         if(index > middle)
@@ -4734,6 +5640,8 @@ int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数
         }
     }
     
+    
+    
     int result = numbers[middle];
     if(!CheckMoreThanHalf(numbers, length, result))
         result = 0;
@@ -4742,33 +5650,75 @@ int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数
 }
 
 
-
-
 //问题：排序
 //算法：quicksort
 //Quicksort is typically over twice as fast as merge sort
 //Quicksort behaves well even with caching and virtual memory
 
-int partition ( int* _elem, int lo, int hi ) { //版本A：基本形式
-    swap ( _elem[lo], _elem[lo + rand() % ( hi - lo + 1 ) ] ); //任选一个元素与首元素交换
-    int pivot = _elem[lo]; //以首元素为候选轴点——经以上交换，等效于随机选取
+int partition_2 ( int* A, int lo, int hi ) { //版本A：基本形式
+    swap ( A[lo], A[lo + rand() % ( hi - lo) ] ); //任选一个元素与首元素交换
+    int pivot = A[lo]; //以首元素为候选轴点——经以上交换，等效于随机选取
     while ( lo < hi ) { //从向量的两端交替地向中间扫描
-        while ( ( lo < hi ) && ( pivot <= _elem[hi] ) ) //在不小于pivot的前提下
+        while ( ( lo < hi ) && ( pivot <= A[hi] ) ) //在不小于pivot的前提下
             hi--;           //向左拓展右端子向量
-        _elem[lo] = _elem[hi]; //小于pivot者归入左侧子序列
-        while ( ( lo < hi ) && ( _elem[lo] <= pivot ) ) //在不大于pivot的前提下
+        A[lo] = A[hi]; //小于pivot者归入左侧子序列
+        while ( ( lo < hi ) && ( A[lo] <= pivot ) ) //在不大于pivot的前提下
             lo++;           //向右拓展左端子向量
-        _elem[hi] = _elem[lo]; //大于pivot者归入右侧子序列
+        A[hi] = A[lo]; //大于pivot者归入右侧子序列
     }                   //assert: lo == hi
-    _elem[lo] = pivot; //将备份的轴点记录置于前、后子向量之间
+    A[lo] = pivot; //将备份的轴点记录置于前、后子向量之间
     return lo; //返回轴点的秩
 }
 
-void quickSort ( int* _elem, int lo, int hi ) { //0 <= lo < hi <= size
-    if ( hi - lo < 2 ) return;              //单元素区间自然有序，否则...
-    int mi = partition ( _elem, lo, hi - 1 ); //在[lo, hi - 1]内构造轴点
-    quickSort ( _elem, lo, mi );                       //对前缀递归排序
-    quickSort ( _elem, mi + 1, hi );                   //对后缀递归排序
+//这一版本是按照算法导论的伪代码写的，太经典了
+int partition(int* A, int left, int right) {
+    int pivot = A[left];//swap(A[left], A[left + rand() % (right - left)]);
+    int i = left;
+    for (int j = left + 1; j <= right; j++)
+        if (A[j] <= pivot)
+            swap(A[++i], A[j]);
+    swap(A[left], A[i]);
+    return i;
+}
+void quickSort (int* A, int lo, int hi ) {
+    if ( lo < hi ) {
+        int mi = partition( A, lo, hi);
+        quickSort ( A, lo, mi - 1 );
+        quickSort ( A, mi + 1, hi );
+    }
+}
+
+//这里的partition新建了节点
+ListNode* partitionList(ListNode* pHead, int x)
+{
+    // write code here, listpartition
+    if(pHead==nullptr)
+        return nullptr;
+    ListNode *pNode = pHead;
+    ListNode *small = new ListNode(0);
+    ListNode *big = new ListNode(0);
+    ListNode *ptr1 = small;
+    ListNode *ptr2 = big;
+    while(pNode)
+    {
+        if(pNode->val < x)
+        {
+            ptr1->next = pNode;
+            ptr1 = ptr1->next;
+            ptr1->next = nullptr;
+        }
+        else
+        {
+            ptr2->next = pNode;
+            ptr2 = ptr2->next;
+            ptr2->next = nullptr;
+        }
+        
+        pNode = pNode->next;
+    }
+    
+    ptr1->next = big->next;
+    return small->next;
 }
 
 //问题：串匹配算法
@@ -4827,29 +5777,7 @@ int* buildNext ( char* P ) { //构造模式串P的next表
 }
 
 
-//问题：支持查找最小元素的堆栈getMin
-//算法：使用两个堆栈,S1维护原来的值，S2维护最小值，它们元素个数一样多
-class minStack {
-public:
-    stack<int> s1;
-    stack<int> s2;
-    
-    void push(int x){
-        s1.push(x);
-        if (s2.empty() && s2.top() >= x)
-            s2.push(x);
-    }
-    
-    void pop() {
-        if (s1.top() == s2.top())
-            s2.pop();
-        s1.pop();
-    }
-    
-    int getMin(){
-        return s2.top();
-    }
-};
+
 
 //写成模板、标准类的形式
 template <typename T>
@@ -5022,13 +5950,14 @@ int k_big ( int arr [ ] , int low , int high , int k )
     int pivot    = arr [ low ] ;
     int high_tmp = high ;
     int low_tmp = low ;
+    
     while ( low < high ) {
         //从右向左查找，直到找到第一个小于枢纽元素为止
         while ( low < high && arr [ high ] >= pivot )
         {
             -- high ;
         }
-        arr [ low ] = arr [ high ] ;
+        arr [ low ] = arr [ high ] ;        //这里把第一个数抠出来了
         //从左向右查找，直到找到第一个大于枢纽元素为止
         while ( low < high && arr [ low ] <= pivot )
         {
@@ -5038,6 +5967,14 @@ int k_big ( int arr [ ] , int low , int high , int k )
     }
     arr [ low ] = pivot ;
     
+    /*这个也可以
+
+    int i = low, j = low+1, x = arr[low];
+    for (j = low + 1; j <= high-low; j++)
+        if (arr[j] <= x)
+            swap(arr[i++], arr[j]);
+    swap(arr[low], arr[i]);
+    */
     if ( low == k - 1 )
     {
         return arr [ low ] ;
@@ -5046,7 +5983,7 @@ int k_big ( int arr [ ] , int low , int high , int k )
         return k_big ( arr , low_tmp , low - 1 , k ) ;
     } else
     {
-        return k_big ( arr , low + 1 , high_tmp , k ) ;
+        return k_big ( arr , low + 1 , high_tmp , k - low ) ;
     }
 }
 
@@ -5245,6 +6182,71 @@ int gcd3(int x, int y)
     }
 }
 
+//count the primes;
+int countPrimes(int n) {
+    bool* isPrime = new bool[n];
+    for (int i = 0; i < n; i++) {
+        isPrime[i] = true;
+    }
+    for (int i = 2; i * i < n; i++) {
+        if (!isPrime[i])    continue;
+        for (int j = i*i; j < n; j += i) {
+            isPrime[j] = false;
+        }
+    }
+    
+    int count = 0;
+    for (int i = 0; i < n; i++) {
+        if(isPrime[i]) count++;
+    }
+    return count;
+    
+}
+/*
+ Given an array of n integers where n > 1, nums, return an array output such that output[i] is equal to the product of all the elements of nums except nums[i].
+ 
+ Solve it without division and in O(n).
+ 
+ For example, given [1,2,3,4], return [24,12,8,6].
+ 
+ Follow up:
+ Could you solve it with constant space complexity? (Note: The output array does not count as extra space for the purpose of space complexity analysis.)
+ 
+ 题意：
+ 
+ 　　给定一个数组，对于数组中每一个元素i，求ret[i] = nums[0]*nums[1]...*nums[i-1]*nums[i+1]*...*nums[len-1]。不能用除法，要求时间复杂度O(n).
+ 
+ 思路：
+ 
+ 　　先由左到右的顺序求每个元素左边乘积（ret[i] = nums[0]*nums[1]...*nums[i-1]），在其结果上由右到左求每个元素右边乘积（ret[i] = ret[i]*nums[i+1]*...*nums[len-1]）即可，其中nums[0]*nums[1]...*nums[i-1]以及nums[i+1]*...*nums[len-1]都可由常量连乘得到。
+ */
+class Solution_productExceptSelf {
+public:
+    vector<int> productExceptSelf(vector<int>& nums) {
+        
+        int len = (int)nums.size(), temp;
+        vector<int> ret(len, 1);
+        
+        temp = 1;
+        for(int i = 1; i < len; i++)
+        {
+            temp *= nums[i - 1];
+            ret[i] *= temp;
+        }
+        
+        temp = 1;
+        for(int i = len - 2; i >= 0; i--)
+        {
+            temp *= nums[i + 1];
+            ret[i] *= temp;
+        }
+        
+        return ret;
+    }
+};
+
+
+
 //问题：判断多个括号是否匹配
 //算法：利用压栈、出栈操作来匹配
 bool paren(const char exp[])
@@ -5339,12 +6341,13 @@ void bubblesort(int A[], int n)
 void merge(int a[], int lo, int mid, int hi)
 {
     int *A = a + lo;
-    int lb = mid - lo; //B array的长度
+    //A array 的值会复制到B array中，然后merge B array and C array into the start of A.s
+    int lb = mid - lo; //the length of B array
     int *B = (int*)malloc(lb * sizeof(int));
     for (int i = 0; i < lb; i++)
         B[i] = A[i];
     
-    int lc = hi - mid;//length of B array
+    int lc = hi - mid;//length of C array
     int *C = a + mid;
     int i = 0, j = 0, k = 0; //A---i, B---j, C---k
     while (j < lb && k < lc) {
@@ -5357,13 +6360,13 @@ void merge(int a[], int lo, int mid, int hi)
 
 void mergeSort(int A[], int lo, int hi)
 {
-    int num = hi - lo;
-    if (num == 0 || num == 1)
-        return;
-    int mid = (lo + hi)>>1;
-    mergeSort(A, lo, mid);
-    mergeSort(A, mid, hi);
-    merge(A, lo, mid, hi);
+    if (lo < hi) {
+        
+        int mid = (lo + hi)>>1;
+        mergeSort(A, lo, mid);
+        mergeSort(A, mid+1, hi);
+        merge(A, lo, mid, hi);
+    }
 }
 
 //算法：shellsort
@@ -5385,6 +6388,7 @@ void ShellSort(int a[], int n){
 void countingSort(int A[], int B[], int n){
     int C[SIZE];
     memset(C, 0, sizeof(int)*SIZE);
+    
     for (int i = 0; i < n; i++)
         C[A[i]]++;
     
