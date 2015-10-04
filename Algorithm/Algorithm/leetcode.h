@@ -2624,6 +2624,36 @@ void PrintNumber(char* number)
     printf("\n");
 }
 
+//
+/*
+ 有一个介于0和1之间的实数，类型为double，返回它的二进制表示。如果该数字无法精确地用32位以内的二进制表示，返回“Error”。
+ 给定一个double num，表示0到1的实数，请返回一个string，代表该数的二进制表示或者“Error”。
+ */
+string print_binary(string val){
+    int pos = val.find('.', 0);
+    int intpart = atoi(val.substr(0, pos).c_str());
+    double decpart = atof(val.substr(pos, val.length()-pos).c_str());
+    string intstr = "", decstr = "";
+    while(intpart > 0){
+        if(intpart&1) intstr = "1" + intstr;
+        else intstr = "0" + intstr;
+        intpart >>= 1;
+    }
+    while(decpart > 0){
+        if(decstr.length() > 32) return "ERROR";
+        decpart *= 2;
+        if(decpart >= 1){
+            decstr += "1";
+            decpart -= 1;
+        }
+        else
+            decstr += "0";
+    }
+    return intstr + "." + decstr;
+}
+
+
+
 
 //problem: 大数的乘法，保存在两个string中
 //algorithm： 乘法的运算法则
