@@ -113,6 +113,56 @@ string minWindow(string S, string T) {
     return minWindow <= nS ? S.substr(minBegin, minEnd-minBegin+1) : "";
 }
 
+class Solution_minWindow {
+public:
+    string minWindow(string S, string T) {
+        // Start typing your C/C++ solution below
+        // DO NOT write int main() function
+        int nT = T.size();
+        int nS = S.size();
+        
+        int needToFind[256] = {0};
+        for (int i = 0; i < nT; ++i)
+            ++needToFind[T[i]];
+        int hasFound[256] = {0};
+        int minBegin;
+        int minEnd;
+        int minWindow = nS + 1;
+        int count = 0;
+        
+        for (int begin = 0, end = 0; end < nS; ++end)
+        {
+            if (needToFind[S[end]] == 0)
+                continue;
+            char ch = S[end];
+            ++hasFound[ch];
+            if (hasFound[ch] <= needToFind[ch])
+                ++count;
+            
+            if (count == nT)
+            {
+                while (needToFind[S[begin]] == 0
+                       || hasFound[S[begin]] > needToFind[S[begin]])
+                {
+                    if (hasFound[S[begin]] > needToFind[S[begin]])
+                        --hasFound[S[begin]];
+                    ++begin;
+                }
+                
+                int length = end - begin + 1;
+                if (length < minWindow)
+                {
+                    minBegin = begin;
+                    minEnd = end;
+                    minWindow = length;
+                }
+            }
+        }
+        
+        return minWindow <= nS ? S.substr(minBegin, minEnd-minBegin+1) : "";
+    }
+};
+
 
 //
 /*
@@ -450,6 +500,31 @@ int main_isrotation(){
     //cout<<string::npos<<endl;
     return 0;
 }
+/*
+ Given a string, find the length of the longest substring without repeating characters. For example, the longest substring without repeating letters for "abcabcbb" is "abc", which the length is 3. For "bbbbb" the longest substring is "b", with the length of 1.
+ */
+
+int lengthOfLongestSubstring(string s) {
+    int n = s.length();
+    if(n<2) return n ;
+    int lft = 0,rgt = 0,maxlen = 0;
+    bool sign[128] = {false};
+    while( rgt < n ){
+        //            cout<<lft<<" "<<rgt<<" "<<maxlen<<endl;
+        if(sign[s[rgt]] == false){
+            sign[s[rgt]] = true;
+            rgt++;
+            if(maxlen < rgt - lft )
+                maxlen = rgt - lft;
+            continue;
+        }
+        sign[s[lft]] =  false;
+        lft++;
+    }
+    return maxlen;
+}
+
+
 
 //sorted stack  stacksorted stacksort
 void Qsort(stack<int> &s){
@@ -2510,7 +2585,7 @@ void * mymemmove(void *destaddr, const void *sourceaddr, unsigned length)
 }
 
 
-//problem: linkedlist sort
+//problem: linkedlist sort mergelist listmerge
 //algorithm: use merge sort to sort a linked list, with no extra space used
 
 Node * merge2(Node * p1, Node * p2);
@@ -2539,7 +2614,7 @@ Node * mergeSort2(Node * p, int len) {
     return merge2(p1, p2);
 }
 //链表合并
-Node *merge2(Node *head1,Node *head2)
+Node *mergeListNonRecursively(Node *head1,Node *head2)
 {
     if(head1 == NULL) //鲁棒性测试必须先行
         return head2;
@@ -2589,7 +2664,7 @@ Node *merge2(Node *head1,Node *head2)
 
 
 //再用递归实现链表的merge
-Node * Merge3(Node *head1, Node *head2)
+Node * mergelistRecursively(Node *head1, Node *head2)
 {
     if(head1 == NULL)
         return head2;
@@ -2608,6 +2683,70 @@ Node * Merge3(Node *head1, Node *head2)
     }
     return head;
 }
+
+class Solution_merge2Lists {
+public:
+    
+    ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
+        if (l1 == NULL)
+            return l2;
+        if (l2 == NULL)
+            return l1;
+        if (l1 == NULL && l2 == NULL)
+            return NULL;
+        
+        ListNode dummy(-1);
+        ListNode* head = &dummy;
+        ListNode* p = l1, *q = l2;
+        while (p != NULL || q != NULL){
+            int val1 = (p == NULL) ? INT_MAX : p->val;
+            int val2 = (q == NULL) ? INT_MAX : q->val;
+            if (val1 < val2) {
+                head->next = p;
+                p = p->next;
+            }
+            else
+            {
+                head->next = q;
+                q = q->next;
+            }
+            head = head->next;
+            
+        }
+        return dummy.next;
+    }
+};
+
+class Solution_mergeKlists {
+public:
+    bool operator< (ListNode* b) {
+        return this->val > b->val;
+    }
+    
+    ListNode* mergeKLists(vector<ListNode*> lists) {
+        if (lists.size() == 0)
+            return NULL;
+        priority_queue<ListNode*> pq;
+        for (int i = 0; i < lists.size(); i++) {
+            if (lists[i] != NULL)
+                pq.push(lists[i]);
+        }
+        ListNode* head = new ListNode(-1);
+        head->next = NULL;
+        ListNode* p = head;
+        while (!pq.empty()) {
+            auto tmp = pq.top();
+            p->next = tmp;
+            p = p->next;
+            pq.pop();
+            if (tmp->next != NULL)
+                pq.push(tmp->next);
+        }
+        return head->next;
+        delete head;
+    }
+};
+
 
 
 //problem: lowest common ancestor (LCA)
@@ -4427,16 +4566,7 @@ struct Tree {
     Tree* left;
     Tree* right;
 };
-int get_depth(Tree *tree) {
-    int depth = 0;
-    if ( tree ) {
-        int a = get_depth(tree->left);
-        int b = get_depth(tree->right);
-        depth = ( a > b ) ? a : b;
-        depth++;
-    }
-    return depth;
-}
+
 //简介版
 int TreeDepth(BinaryTreeNode* pRoot)
 {
@@ -4446,50 +4576,36 @@ int TreeDepth(BinaryTreeNode* pRoot)
     int nLeft = TreeDepth(pRoot->m_pLeft);
     int nRight = TreeDepth(pRoot->m_pRight);
     
-    return (nLeft > nRight) ? (nLeft + 1) : (nRight + 1);
+    return max(nLeft, nRight) + 1;
 }
 
 /*
  * return the max distance of the tree
  */
 int get_max_distance(Tree *tree) {
-    int distance = 0;
-    if ( tree ) {
-        // get the max distance connected to the current node
-        distance = get_depth(tree->left) + get_depth(tree->right);
+    if (tree == NULL)
+        return false;
+    int distance = TreeDepth(tree->left) + TreeDepth(tree->right);
         
-        // compare the value with it's sub trees
-        int l_distance = get_max_distance(tree->left);
-        int r_distance = get_max_distance(tree->right);
-        distance = ( l_distance > distance ) ? l_distance : distance;
-        distance = ( r_distance > distance ) ? r_distance : distance;
-    }
-    return distance;
+    // compare the value with it's sub trees
+    int l_distance = get_max_distance(tree->left);
+    int r_distance = get_max_distance(tree->right);
+    
+    return max(distance, max(l_distance, r_distance));
 }
 
 //problem: 判断一个二叉树是不是平衡二叉树
 //algorithm: 后序遍历
 //该算法的缺点是：每一个节点都遍历了多次
-int TreeDepth_(BinaryTreeNode* pRoot)
-{
-    if(pRoot == NULL)
-        return 0;
-    
-    int nLeft = TreeDepth_(pRoot->m_pLeft);
-    int nRight = TreeDepth_(pRoot->m_pRight);
-    
-    return (nLeft > nRight) ? (nLeft + 1) : (nRight + 1);
-}
 
 bool IsBalanced_Solution1(BinaryTreeNode* pRoot)
 {
     if(pRoot == NULL)
         return true;
     
-    int left = TreeDepth_(pRoot->m_pLeft); //会多次计算同一个节点的深度
-    int right = TreeDepth_(pRoot->m_pRight);
-    int diff = left - right;
-    if(diff > 1 || diff < -1)
+    int left = TreeDepth(pRoot->m_pLeft); //会多次计算同一个节点的深度
+    int right = TreeDepth(pRoot->m_pRight);
+    if (abs(left - right) > 1)
         return false;
     
     return IsBalanced_Solution1(pRoot->m_pLeft)
@@ -4498,36 +4614,33 @@ bool IsBalanced_Solution1(BinaryTreeNode* pRoot)
 
 //algorithm2: 上述方法虽然简单，但是遍历了多次节点，可以考虑后序遍历，每一个节点
 //用一个变量记录树的高度，然后该节点是否满足平衡二叉树的节点条件
-bool IsBalanced(BinaryTreeNode* pRoot, int* pDepth);
-
-bool IsBalanced_Solution2(BinaryTreeNode* pRoot)
-{
-    int depth = 0;
-    return IsBalanced(pRoot, &depth);
-}
-
-bool IsBalanced(BinaryTreeNode* pRoot, int* pDepth) //当然这里也可以用引用
-{
-    if(pRoot == NULL)
-    {
-        *pDepth = 0;
-        return true;
+class Solution_isbalanced {
+public:
+    bool isBalanced(TreeNode* root) {
+        if (root == NULL)
+            return true;
+        int depth = 0;
+        return isBalanced(root, depth);
     }
     
-    int left, right;
-    if(IsBalanced(pRoot->m_pLeft, &left)
-       && IsBalanced(pRoot->m_pRight, &right))
-    {
-        int diff = left - right;
-        if(diff <= 1 && diff >= -1)
-        {
-            *pDepth = 1 + (left > right ? left : right);
+private:
+    bool isBalanced(TreeNode* root, int& depth) {
+        if (root == NULL) {
+            depth = 0;
             return true;
         }
+        int left, right;
+        bool bl = isBalanced(root->left, left);
+        bool br = isBalanced(root->right, right);
+        if ( bl && br ) {
+            if (abs(left - right) <= 1) {
+                depth = max(left, right) + 1;
+                return true;
+            }
+        }
+        return false;
     }
-    
-    return false;
-}
+};
 
 //在不同的递归层，通过引用来传递参数，或阶段性胜利
 class Balance {

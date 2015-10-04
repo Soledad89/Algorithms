@@ -353,7 +353,7 @@ int main_BFSDFS(void)
 
 }
 
-/*DFS标准模板，也就这几个步骤
+//DFS标准模板，也就这几个步骤
  /**
  * dfs模板
  * input 输入数据指针
@@ -381,7 +381,7 @@ void dfs(type &input, type &path, type &result, int cur or gap) {
 */
 
 
-*/
+
 
 //problem:对于一个有向图，请实现一个算法，找出两点之间是否存在一条路径。
 /*
@@ -1400,7 +1400,7 @@ int climbStairs2(int n) {
     }
     return cur;
 }
-//问题：Edit Distance
+//问题：Edit Distance 与hamming distance相似
 //算法：二维动态规划，空间复杂度是O(n*m)
 int minDistance(string word1, string word2) {
     const int n = (int) word1.size();
@@ -1453,6 +1453,24 @@ int minDistance2(string word1, string word2) {
     return f[word2.length()];
     
 }
+//hamming distance
+int hamming_distance(unsigned x, unsigned y)
+{
+    int dist = 0;
+    unsigned  val = x ^ y;
+    
+    // Count the number of bits set
+    while (val != 0)
+    {
+        // A bit is set, so increment the count and clear the bit
+        dist++;
+        val &= val - 1;
+    }
+    
+    // Return the number of differing bits
+    return dist;
+}
+
 //problem: longest common subsequence(LCS)
 //algorithm: dynanmic programming.
 int LCS(char* x, char* y) {
