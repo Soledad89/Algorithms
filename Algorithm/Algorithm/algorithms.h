@@ -50,6 +50,70 @@ struct BinaryTreeNode{              // a node in the binary tree
 };
 
 
+
+
+//minimum window substring
+/*
+ Given a string S and a string T, find the minimum window in S which will
+ contain all the characters in T in complexity O(n).
+ 
+ For example,
+ S = "ADOBECODEBANC"
+ T = "ABC"
+ Minimum window is "BANC".
+ */
+//快慢指针、双指针的用法，之精髓
+/*
+ 
+ */
+string minWindow(string S, string T) {
+    // Start typing your C/C++ solution below
+    // DO NOT write int main() function
+    int nT = T.size();
+    int nS = S.size();
+    
+    int needToFind[256] = {0};          //记录string T中需要找到的字符串信息
+    for (int i = 0; i < nT; ++i)
+        ++needToFind[T[i]];
+    int hasFound[256] = {0};            //目前已经找到的字符串信息
+    int minBegin;
+    int minEnd;
+    int minWindow = nS + 1;
+    int count = 0;                      //记录是否已经找到满足条件的字符串
+    
+    for (int begin = 0, end = 0; end < nS; ++end)
+    {
+        if (needToFind[S[end]] == 0)
+            continue;
+        char ch = S[end];
+        ++hasFound[ch];
+        if (hasFound[ch] <= needToFind[ch])
+            ++count;                //这道题目特别有意思
+        
+        if (count == nT)
+        {
+            while (needToFind[S[begin]] == 0
+                   || hasFound[S[begin]] > needToFind[S[begin]])
+            {
+                if (hasFound[S[begin]] > needToFind[S[begin]])
+                    --hasFound[S[begin]];
+                ++begin;
+            }
+            
+            int length = end - begin + 1;
+            if (length < minWindow)
+            {
+                minBegin = begin;
+                minEnd = end;
+                minWindow = length;
+            }
+        }
+    }
+    
+    return minWindow <= nS ? S.substr(minBegin, minEnd-minBegin+1) : "";
+}
+
+
 //
 /*
  二叉搜索树建立、插入、删除、前继节点、后继节点

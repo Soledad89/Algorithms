@@ -353,6 +353,36 @@ int main_BFSDFS(void)
 
 }
 
+/*DFS标准模板，也就这几个步骤
+ /**
+ * dfs模板
+ * input 输入数据指针
+ * path 当前路径，也是中间结果
+ * result 存放最终结果
+ * cur or gap 标记当前位置或距离目标的距离
+ * return 路径长度，如果是求路径本身，则不需要返回长度
+ **/
+
+/*
+void dfs(type &input, type &path, type &result, int cur or gap) {
+    if (数据非法) return 0;			//终止条件
+    if (cur == input.size()) {			//收敛条件
+        // if (gap == 0) {
+        将path放入result;
+    }
+    
+    if (可以剪枝)	return;
+    for (…) 	{					//执行所有可能的扩展动作
+        执行动作，修改path;
+        dfs(input, path, result, cur++ or gap—);
+        恢复path;
+    }
+}
+*/
+
+
+*/
+
 //problem:对于一个有向图，请实现一个算法，找出两点之间是否存在一条路径。
 /*
  题目
