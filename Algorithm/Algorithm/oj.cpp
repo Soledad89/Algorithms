@@ -22,6 +22,7 @@
 
 using namespace std;
 
+/*
 void rotateMatrix(vector<vector<int> > &matrix) {
     reverse(matrix.begin(), matrix.end());
     for (int i = 0; i < matrix.size(); ++i) {
@@ -79,7 +80,7 @@ int main(){
     return 0;
     
 }
-
+*/
 //
 //
 //int main24() {

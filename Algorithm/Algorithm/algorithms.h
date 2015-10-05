@@ -49,6 +49,375 @@ struct BinaryTreeNode{              // a node in the binary tree
     m_nValue(nv), m_pLeft(pl), m_pRight(pr) {}
 };
 
+//smartpointer implemention
+template <typename T>
+class SmartPointer{
+public:
+    SmartPointer(T* ptr){
+        ref = ptr;
+        ref_count = (unsigned*)malloc(sizeof(unsigned));
+        *ref_count = 1;
+    }
+    
+    SmartPointer(SmartPointer<T> &sptr){
+        ref = sptr.ref;
+        ref_count = sptr.ref_count;
+        ++*ref_count;
+    }
+    
+    SmartPointer<T>& operator=(SmartPointer<T> &sptr){
+        if (this != &sptr) {
+            if (--*ref_count == 0){
+                clear();
+                cout<<"operator= clear"<<endl;
+            }
+            
+            ref = sptr.ref;
+            ref_count = sptr.ref_count;
+            ++*ref_count;
+        }
+        return *this;
+    }
+    
+    ~SmartPointer(){
+        if (--*ref_count == 0){
+            clear();
+            cout<<"destructor clear"<<endl;
+        }
+    }
+    
+    T getValue() { return *ref; }
+    
+private:
+    void clear(){
+        delete ref;
+        free(ref_count);
+        ref = NULL; // 避免它成为迷途指针
+        ref_count = NULL;
+    }
+    
+protected:
+    T *ref;
+    unsigned *ref_count;
+};
+
+int main_smartpointer(){
+    int *ip1 = new int();
+    *ip1 = 11111;
+    int *ip2 = new int();
+    *ip2 = 22222;
+    SmartPointer<int> sp1(ip1), sp2(ip2);
+    SmartPointer<int> spa = sp1;
+    sp2 = spa;
+    return 0;
+}
+
+
+
+/*
+ 在二维平面上，有一些点，请找出经过点数最多的那条线。
+ 给定一个点集vector p和点集的大小n，请返回一个vector，代表经过点数最多的那条直线的斜率和截距。
+ */
+
+//这个的复杂度有点高O(N^3)，有没有可能降到O(N^2logN)，极限应该是O(N^2)
+class DenseLine {
+public:
+    vector<double> getLine(vector<Point> p, int n) {
+        // write code here
+        assert(n >= 2);                     //直接假定点的个数大于等于2
+        vector<double> result(2,0.0);
+        int max = -1;
+        for(int i=0;i<n;i++){
+            for(int j=i+1;j<n;j++){
+                int count = 0;
+                if (p[i].x == p[j].x){      //没有考虑垂直方向上的斜率
+                    continue;
+                }
+                else{
+                    double slope = (p[j].y - p[i].y) * 1.0 / (p[j].x - p[i].x);
+                    double intercept = p[j].y - slope * p[j].x;
+                    for (int t = 0; t < n; t++)   //其实这一步
+                        if (abs(p[t].y-slope * p[t].x -intercept)<0.00001){
+                            ++count;
+                        }
+                    
+                    if (count > max){
+                        max = count;
+                        result[0] = slope;
+                        result[1] = intercept;
+                    }
+                }
+                
+            }
+        }
+        return result;
+    }
+};
+
+//接下来这个就是O(N2LogN)的复杂度
+struct P
+{
+    int x;
+    int y;
+}point[702];
+
+double slope(struct P a,struct P b)
+{
+    if(a.x==b.x)
+        return 100000;
+    double px=a.x-b.x;
+    double py=a.y-b.y;
+    return py/px;
+}
+
+int DenseLine_sortSlope()
+{
+    int n;
+    int i,j,cnt,t,max;
+    double k[702];
+    while(scanf("%d",&n)!=EOF&&n)
+    {
+        for(i=0;i<n;i++)
+            scanf("%d%d",&point[i].x, &point[i].y);
+        max = -1;
+        for(i = 0; i < n; i++)    //先固定一个点
+        {
+            t = 0;
+            for(j = i+1;j < n; j++)
+            {
+                k[t++] = slope(point[i],point[j]);
+            }
+            sort(k,k+t);
+            for(j=1,cnt=1; j<t; j++)        //排序之后看有哪些“相等”的。
+            {
+                if(fabs(k[j]-k[j-1]) < 0.00001)
+                    cnt++;
+                else
+                    cnt = 1;
+                if(cnt > max)
+                    max = cnt;
+            }
+        }
+        printf("%d\n",max+1);
+    }
+    return 0;
+}
+
+//上面的也太高了，最低的应该是O(N2)的复杂度，这里采用hash函数来判断是否重复
+namespace line_dense {
+
+
+struct point{
+    double x, y;
+};
+class line{
+public:
+    double epsilon, slope, intercept;
+    bool bslope;
+public:
+    line(){}
+    line(point p, point q){
+        epsilon = 0.0001;
+        if(abs(p.x - q.x) > epsilon){
+            slope = (p.y-q.y) / (p.x-q.x);
+            intercept = p.y - slope * p.x;
+            bslope = true;
+        }
+        else{
+            bslope = false;
+            intercept = p.x;
+        }
+    }
+    int hashcode(){             //只要是看是否以前已经做过某个事或者检索过一些值，都可以用hash，只不过这里是double型的数据，这里采用了一个十分美妙的方法，转换成整数的hash
+        int sl = (int)(slope * 1000);
+        int in = (int)(intercept * 1000);
+        return sl*1000 +  in;       //不过这个hash是否靠谱呢？？？？？？
+    }
+    void print(){
+        cout<<"y = "<<slope<<"x + "<<intercept<<endl;
+    }
+};
+
+line find_best_line(point *p, int point_num){
+    line bestline;
+    bool first = true;
+    map<int, int> mii;
+    for(int i=0; i<point_num; ++i){
+        for(int j=i+1; j<point_num; ++j){
+            line l(p[i], p[j]);
+            if(mii.find(l.hashcode()) == mii.end()){
+                mii[l.hashcode()] = 0;
+            }
+            mii[l.hashcode()] = mii[l.hashcode()] + 1;
+            if(first){              //引入额外flag来判断是否是第一个坐标点
+                bestline = l;
+                first = false;
+            }
+            else{
+                if(mii[l.hashcode()] > mii[bestline.hashcode()])
+                    bestline = l;
+            }
+        }
+    }
+    // int a = mii[bestline.hashcode()];
+    // cout<<mii[bestline.hashcode()]<<endl;
+    // cout<<(1+sqrt(1+8*a))/2<<endl;
+    return bestline;
+}
+int main_test_line(){
+    srand((unsigned)time(0));
+    int graph_size = 100;
+    int point_num = 500;
+    point *p = new point[point_num];
+    for(int i=0; i<point_num; ++i){
+        p[i].x = rand()/double(RAND_MAX) * graph_size;
+        p[i].y = rand()/double(RAND_MAX) * graph_size;
+        //cout<<p[i].x<<" "<<p[i].y<<endl;
+    }
+    line l = find_best_line(p, point_num);
+    l.print();
+    return 0;
+}
+
+
+}
+
+//与上面的类似，只不过不用hash，直接用map，将线作为key，个数作为value
+namespace line_dense2 {
+    
+struct point{
+    double x, y;
+};
+class line{
+public:
+    double epsilon, slope, intercept;
+    bool bslope;
+public:
+    line(){}
+    line(point p, point q){
+        epsilon = 0.0001;
+        if(abs(p.x - q.x) > epsilon){
+            slope = (p.y-q.y) / (p.x-q.x);
+            intercept = p.y - slope * p.x;
+            bslope = true;
+        }
+        else{
+            bslope = false;
+            intercept = p.x;
+        }
+    }
+    void print(){
+        cout<<"y = "<<slope<<"x + "<<intercept<<endl;
+    }
+};
+
+//map里面要求重构大于符和等于符
+bool operator <(const line &l1, const line &l2){
+    return l1.slope < l2.slope;
+}
+bool equal(double a, double b){
+    return abs(a-b) < 0.0001;
+}
+bool operator ==(const line &l1, const line &l2){
+    if(l1.bslope == l2.bslope && equal(l1.slope, l2.slope) && equal(l1.intercept, l2.intercept))
+        return true;
+    return false;
+}
+line find_best_line(point *p, int point_num){
+    line bestline;
+    bool first = true;
+    map<line, int> line_count;
+    for(int i=0; i<point_num; ++i){
+        for(int j=i+1; j<point_num; ++j){
+            line l(p[i], p[j]);
+            if(line_count.find(l)==line_count.end())
+                line_count[l] = 0;
+            line_count[l] = line_count[l] + 1;
+            if(first){
+                bestline = l;
+                first = false;
+            }
+            else{
+                if(line_count[l] > line_count[bestline])
+                    bestline = l;
+            }
+        }
+    }
+    cout<<line_count[bestline]<<endl;
+    return bestline;
+}
+int main_test_line2(){
+    srand((unsigned)time(0));
+    int graph_size = 10;
+    int point_num = 500;
+    point *p = new point[point_num];
+    for(int i=0; i<point_num; ++i){
+        p[i].x = rand()/double(RAND_MAX) * graph_size;
+        p[i].y = rand()/double(RAND_MAX) * graph_size;
+        cout<<p[i].x<<" "<<p[i].y<<endl;
+    }
+    line l = find_best_line(p, point_num);
+    l.print();
+    return 0;
+}
+
+}
+//
+/*
+ 有一个正整数，请找出其二进制表示中1的个数相同、且大小最接近的那两个数。(一个略大，一个略小)
+ */
+class CloseNumber {
+public:
+    vector<int> getCloseNumber(int x) {
+        // write code here
+        vector<int> v;
+        int next = getNext(x);
+        int prev = getPrev(x);
+        v.push_back(prev);
+        v.push_back(next);
+        return v;
+    }
+private:
+    int getNext(int x) {
+        int c0 = 0;
+        int c1 = 0;
+        int n = x;
+        while ((n & 1) == 0 && (n!= 0)) {
+            c0++;
+            n >>= 1;
+        }
+        while ((n & 1) == 1) {
+            c1++;
+            n >>= 1;
+        }
+        if (c0 + c1 >= 31) {
+            return -1;
+        }
+        
+        x |=  (1 << (c0+c1));
+        x &=  ~((1 << (c0+c1)) - 1);
+        x |=  (1 << (c1-1)) - 1;
+        return x;
+    }
+    int getPrev(int x) {
+        int c1 = 0;
+        int c0 = 0;
+        int n = x;
+        while ((n & 1) == 1) {
+            c1++;
+            n >>= 1;
+        }
+        while ((n & 1) == 0 && ( n!=0)) {
+            c0++;
+            n >>= 1;
+        }
+        if (c0 + c1 >= 31)
+            return -1;
+        x &= ((~0) << (c0+c1+1));
+        x |= (((1 << (c1+1)) - 1) << (c0 - 1));
+        return x;
+    }
+};
 
 
 
@@ -645,6 +1014,29 @@ int main_zero()
     fclose(stdin);
     return 0;
 }
+//自己建立两个二维矩阵内存分配的函数，其实可以用opencv里面的mat类也可以
+int** My2DAlloc(int rows, int cols){
+    int **arr = (int**)malloc(rows*sizeof(int*));
+    for(int i=0; i<rows; ++i)
+        arr[i] = (int*)malloc(cols*sizeof(int));
+    return arr;
+}
+int** My2DAlloc1(int rows, int cols){
+    int header = rows * sizeof(int*);
+    int data = rows * cols * sizeof(int);
+    int **arr = (int**)malloc(header + data);
+    int *buf = (int*)(arr + rows);
+    for(int i=0; i<rows; ++i)
+        arr[i] = buf + i * cols;
+    return arr;
+}
+int main_my2dAlloc(){
+    int **arr = My2DAlloc1(4, 5);
+    arr[2][3] = 23;
+    cout<<arr[2][3]<<endl;
+    return 0;
+}
+
 
 //problem:
 /*
@@ -725,8 +1117,8 @@ public:
     }
 };
 
-//problem: 自己实现stack类，学习编写类，并实现它
-class stackmine{
+//problem: 自己实现stack类，学习编写类，并实现它mystack
+class stackmine{            //怎么没有赋值构造函数，stack不需要吧？？？？
 private:
     int *buf;
     int cur;
@@ -847,7 +1239,8 @@ namespace wordsStat {
     #define NHASH 29989
     #define MULT 31
     pWordNode bin[NHASH];   //每一个hash节点保留的是一个指针，指向一个单词节点
-    
+        //这里有一个弱点是，刚开始就要分配一个hash的数组，有时候可能并不需要这么大的hash表
+    //能不能考虑刚开始分配一个小的，当元素个数与散列表的个数之比超过一定的阀值时，再重新分配
     unsigned int hash(char *p)
     {
         unsigned int h = 0;
@@ -3724,6 +4117,20 @@ int Add(int num1, int num2)
     
     return num1;
 }
+//用加法做乘除法
+//想一想用只用加法怎么实现乘除还有减法，注意减法不能乘以-1，这道题在现实中肯定遇不到，但是可以锻炼人的逻辑思维能力
+//不用判断语句，做比较
+
+class Max {
+public:
+    int getMax(int a, int b) {
+        // write code here
+        int c = a - b;              //这里有一个缺陷是没有检验这里是不是有可能溢出
+        int k = (c >> 31 & 0x01) ^ 1;
+        int q = k ^ 1;
+        return a * k +  b * q;
+    }
+};
 
 
 //问题：输入两个整数 m 和 n，从数列1，2，3.......n 中 随意取几个数,
@@ -5576,7 +5983,42 @@ void BitMapSortDemo(int* data, int n, int maxElement)
         pBuffer++;
     }
 }
+//下面建立一个类来实现bitmap
 
+class Bitmap{
+public:
+    Bitmap(int size = 32){
+        bits = new int[size/32 + 1];
+    }
+    ~Bitmap(){
+        delete[] bits;
+    }
+    bool get(int pos){// true if bit is 1, else: false
+        return (bits[pos/32] & (1<<(pos&0x1f))) != 0;
+    }
+    void set(int pos){
+        bits[pos/32] |= (1<<(pos&0x1f));
+    }
+private:
+    int *bits;
+};
+
+void print_duplicates(int a[], int n, int bitsize){
+    Bitmap bm(bitsize);
+    for(int i=0; i<n; ++i){
+        if(bm.get(a[i]-1)) // bitmap starts at 0, number starts at 1
+            cout<<a[i]<<endl;
+        else
+            bm.set(a[i]-1);
+    }
+}
+int main_Bitmap(){
+    int a[] = {
+        1,2,3,4,5,32000,7,8,9,10,11,1,2,13,15,16,32000,11,5,8
+    };
+    print_duplicates(a, 20, 32000);
+    return 0;
+}
 
 
 //问题：建立Trie树
@@ -6588,7 +7030,7 @@ int search1(int array[], int n, int v)  //左闭右闭
 {
     int left, right, middle;
     
-    left = 0, right = n - 1;    ///差别1
+    left = 0, right = n - 1;    ///差别1,多了三处
     
     while (left <= right)       //差别2
     {
@@ -6719,7 +7161,7 @@ int shiftedBinsearch(int a[], int x, int low, int high) {
         return shiftedBinsearch(a, x, low, mid - 1);
     return -1;
 }
-//algorithm2: nonrecursion，这与上面的二分查找类似
+//algorithm2: nonrecursion，这与上面的二分查找类似，边界条件都差不多，只是需要再次判断
 int bsearch_rotate(int a[], int n, int t)
 {
     int low = 0, high = n-1;

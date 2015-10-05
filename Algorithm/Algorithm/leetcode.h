@@ -2652,6 +2652,15 @@ string print_binary(string val){
     return intstr + "." + decstr;
 }
 
+void print_binary(int x){       //这个太easy了
+    string s = "";
+    for(int i=0; i<32 && x!=0; ++i, x >>= 1){
+        if(x&1) s = "1" + s;
+        else s = "0" + s;
+    }
+    cout<<s<<endl;
+}
+
 
 
 
@@ -2709,6 +2718,13 @@ int addDigits(int num)
     return 1 + (num-1) % 9;
 }
 
+
+//位的奇偶互换
+/*用10101010也就是0xaa来提取奇数位
+ */
+int swapOddEvenBits(int x) {
+    return ((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1); //这是32位的
+}
 //problem: 这题与add binary string 类似，都是用字符串、数组、链表来保存整数或二进制数，
 //用来进行计算
 //这样就可以计算特别大的数的和，整数不能表示，只能用字符串或者链表表示
