@@ -21,7 +21,28 @@
 //#include "algorithms.h"
 
 using namespace std;
-
+int main() {
+    std::vector<int> vec;
+    // VS2008下
+    vec.push_back(1111);
+    vec.push_back(2222);
+    int *pVec = &vec[0];
+    vec.clear();                //clear并不会把容器里面的内容都释放掉，swap才会把容器里面的内容释放掉
+    /*
+     vector的内存不会自动释放的，clear后仍然占用那块内存
+     找一本合格的关于C++标准库的书，会有很详细的介绍
+     
+     C++11提供了shrink_to_fit方法显式释放内存，如果你一定要释放内存，在clear或者erase后进行shrink操作
+    */
+    std::cout<<vec.capacity()<<std::endl;// 2
+    
+    if( vec.capacity() > 0 )
+    {
+        std::cout<<*pVec<<std::endl; //1111
+        std::cout<<*(pVec+1)<<std::endl;//2222
+    }
+    return 0;
+}
 /*
 void rotateMatrix(vector<vector<int> > &matrix) {
     reverse(matrix.begin(), matrix.end());

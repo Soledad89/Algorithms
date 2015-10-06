@@ -48,6 +48,517 @@ struct BinaryTreeNode{              // a node in the binary tree
     BinaryTreeNode(int nv = 0, BinaryTreeNode* pl = NULL, BinaryTreeNode* pr = NULL):
     m_nValue(nv), m_pLeft(pl), m_pRight(pr) {}
 };
+//
+
+namespace BST_14 {
+
+
+/*
+ 1. 求二叉树中的节点个数
+ 2. 求二叉树的深度
+ 3. 前序遍历，中序遍历，后序遍历
+ 4.分层遍历二叉树（按层次从上往下，从左往右）
+ 5. 将二叉查找树变为有序的双向链表
+ 6. 求二叉树第K层的节点个数
+ 7. 求二叉树中叶子节点的个数
+ 8. 判断两棵二叉树是否结构相同
+ 9. 判断二叉树是不是平衡二叉树
+ 10. 求二叉树的镜像
+ 11. 求二叉树中两个节点的最低公共祖先节点
+ 12. 求二叉树中节点的最大距离
+ 13. 由前序遍历序列和中序遍历序列重建二叉树
+ 14.判断二叉树是不是完全二叉树
+ */
+
+
+/*
+ 1. 求二叉树中的节点个数
+ 递归解法：
+ （1）如果二叉树为空，节点个数为0
+ （2）如果二叉树不为空，二叉树节点个数 = 左子树节点个数 + 右子树节点个数 + 1
+ 参考代码如下：
+ */
+
+int GetNodeNum(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL) // 递归出口
+        return 0;
+    return GetNodeNum(pRoot->m_pLeft) + GetNodeNum(pRoot->m_pRight) + 1;
+}
+
+/*
+ 2. 求二叉树的深度
+ 递归解法：
+ （1）如果二叉树为空，二叉树的深度为0
+ （2）如果二叉树不为空，二叉树的深度 = max(左子树深度， 右子树深度) + 1
+ 参考代码如下：
+ */
+int GetDepth(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL) // 递归出口
+        return 0;
+    int depthLeft = GetDepth(pRoot->m_pLeft);
+    int depthRight = GetDepth(pRoot->m_pRight);
+    return depthLeft > depthRight ? (depthLeft + 1) : (depthRight + 1);
+}
+/*
+ 3. 前序遍历，中序遍历，后序遍历
+ 前序遍历递归解法：
+ （1）如果二叉树为空，空操作
+ （2）如果二叉树不为空，访问根节点，前序遍历左子树，前序遍历右子树
+ 参考代码如下：
+ */
+void PreOrderTraverse(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL)
+        return;
+    Visit(pRoot); // 访问根节点
+    PreOrderTraverse(pRoot->m_pLeft); // 前序遍历左子树
+    PreOrderTraverse(pRoot->m_pRight); // 前序遍历右子树
+}
+/*
+ 中序遍历递归解法
+ （1）如果二叉树为空，空操作。
+ （2）如果二叉树不为空，中序遍历左子树，访问根节点，中序遍历右子树
+ 参考代码如下：
+ */
+void InOrderTraverse(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL)
+        return;
+    InOrderTraverse(pRoot->m_pLeft); // 中序遍历左子树
+    Visit(pRoot); // 访问根节点
+    InOrderTraverse(pRoot->m_pRight); // 中序遍历右子树
+}
+/*
+ 后序遍历递归解法
+ （1）如果二叉树为空，空操作
+ （2）如果二叉树不为空，后序遍历左子树，后序遍历右子树，访问根节点
+ 参考代码如下：
+ */
+void PostOrderTraverse(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL)
+        return;
+    PostOrderTraverse(pRoot->m_pLeft); // 后序遍历左子树
+    PostOrderTraverse(pRoot->m_pRight); // 后序遍历右子树
+    Visit(pRoot); // 访问根节点
+}
+/*
+ 4.分层遍历二叉树（按层次从上往下，从左往右）
+ 
+ 相当于广度优先搜索，使用队列实现。队列初始化，将根节点压入队列。当队列不为空，进行如下操作：弹出一个节点，访问，若左子节点或右子节点不为空，将其压入队列。
+ */
+void LevelTraverse(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL)
+        return;
+    queue<BinaryTreeNode *> q;
+    q.push(pRoot);
+    while(!q.empty())
+    {
+        BinaryTreeNode * pNode = q.front();
+        q.pop();
+        Visit(pNode); // 访问节点
+        if(pNode->m_pLeft != NULL)
+            q.push(pNode->m_pLeft);
+        if(pNode->m_pRight != NULL)
+            q.push(pNode->m_pRight);
+    }
+    return;
+}
+/*
+ 5. 将二叉查找树变为有序的双向链表
+ 要求不能创建新节点，只调整指针。
+ 递归解法：
+ （1）如果二叉树查找树为空，不需要转换，对应双向链表的第一个节点是NULL，最后一个节点是NULL
+ （2）如果二叉查找树不为空：
+ 如果左子树为空，对应双向有序链表的第一个节点是根节点，左边不需要其他操作；
+ 如果左子树不为空，转换左子树，二叉查找树对应双向有序链表的第一个节点就是左子树转换后双向有序链表的第一个节点，同时将根节点和左子树转换后的双向有序链 表的最后一个节点连接；
+ 如果右子树为空，对应双向有序链表的最后一个节点是根节点，右边不需要其他操作；
+ 如果右子树不为空，对应双向有序链表的最后一个节点就是右子树转换后双向有序链表的最后一个节点，同时将根节点和右子树转换后的双向有序链表的第一个节点连 接。
+ 参考代码如下：
+ */
+/******************************************************************************
+ 参数：
+ pRoot: 二叉查找树根节点指针
+ pFirstNode: 转换后双向有序链表的第一个节点指针
+ pLastNode: 转换后双向有序链表的最后一个节点指针
+ ******************************************************************************/
+void Convert(BinaryTreeNode * pRoot,
+             BinaryTreeNode * & pFirstNode, BinaryTreeNode * & pLastNode)
+{
+    BinaryTreeNode *pFirstLeft, *pLastLeft, * pFirstRight, *pLastRight;
+    if(pRoot == NULL)
+    {
+        pFirstNode = NULL;
+        pLastNode = NULL;
+        return;
+    }
+    
+    if(pRoot->m_pLeft == NULL)
+    {
+        // 如果左子树为空，对应双向有序链表的第一个节点是根节点
+        pFirstNode = pRoot;
+    }
+    else
+    {
+        Convert(pRoot->m_pLeft, pFirstLeft, pLastLeft);
+        // 二叉查找树对应双向有序链表的第一个节点就是左子树转换后双向有序链表的第一个节点
+        pFirstNode = pFirstLeft;
+        // 将根节点和左子树转换后的双向有序链表的最后一个节点连接
+        pRoot->m_pLeft = pLastLeft;
+        pLastLeft->m_pRight = pRoot;
+    }
+    
+    if(pRoot->m_pRight == NULL)
+    {
+        // 对应双向有序链表的最后一个节点是根节点
+        pLastNode = pRoot;
+    }
+    else
+    {
+        Convert(pRoot->m_pRight, pFirstRight, pLastRight);
+        // 对应双向有序链表的最后一个节点就是右子树转换后双向有序链表的最后一个节点
+        pLastNode = pLastRight;
+        // 将根节点和右子树转换后的双向有序链表的第一个节点连接
+        pRoot->m_pRight = pFirstRight;
+        pFirstRight->m_pLeft = pRoot;
+    }
+    
+    return;
+}
+/*
+ 6. 求二叉树第K层的节点个数
+ 递归解法：
+ （1）如果二叉树为空或者k<1返回0
+ （2）如果二叉树不为空并且k==1，返回1
+ （3）如果二叉树不为空且k>1，返回左子树中k-1层的节点个数与右子树k-1层节点个数之和
+ 参考代码如下：
+ */
+int GetNodeNumKthLevel(BinaryTreeNode * pRoot, int k)
+{
+    if(pRoot == NULL || k < 1)
+        return 0;
+    if(k == 1)
+        return 1;
+    int numLeft = GetNodeNumKthLevel(pRoot->m_pLeft, k-1); // 左子树中k-1层的节点个数
+    int numRight = GetNodeNumKthLevel(pRoot->m_pRight, k-1); // 右子树中k-1层的节点个数
+    return (numLeft + numRight);
+}
+/*
+ 7. 求二叉树中叶子节点的个数
+ 递归解法：
+ （1）如果二叉树为空，返回0
+ （2）如果二叉树不为空且左右子树为空，返回1
+ （3）如果二叉树不为空，且左右子树不同时为空，返回左子树中叶子节点个数加上右子树中叶子节点个数
+ 参考代码如下：
+
+ */
+int GetLeafNodeNum(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL)
+        return 0;
+    if(pRoot->m_pLeft == NULL && pRoot->m_pRight == NULL)
+        return 1;
+    int numLeft = GetLeafNodeNum(pRoot->m_pLeft); // 左子树中叶节点的个数
+    int numRight = GetLeafNodeNum(pRoot->m_pRight); // 右子树中叶节点的个数
+    return (numLeft + numRight);
+}
+/*
+ 8. 判断两棵二叉树是否结构相同
+ 不考虑数据内容。结构相同意味着对应的左子树和对应的右子树都结构相同。
+ 递归解法：
+ （1）如果两棵二叉树都为空，返回真
+ （2）如果两棵二叉树一棵为空，另一棵不为空，返回假
+ （3）如果两棵二叉树都不为空，如果对应的左子树和右子树都同构返回真，其他返回假
+ 参考代码如下
+ */
+bool StructureCmp(BinaryTreeNode * pRoot1, BinaryTreeNode * pRoot2)
+{
+    if(pRoot1 == NULL && pRoot2 == NULL) // 都为空，返回真
+        return true;
+    else if(pRoot1 == NULL || pRoot2 == NULL) // 有一个为空，一个不为空，返回假
+        return false;
+    bool resultLeft = StructureCmp(pRoot1->m_pLeft, pRoot2->m_pLeft); // 比较对应左子树
+    bool resultRight = StructureCmp(pRoot1->m_pRight, pRoot2->m_pRight); // 比较对应右子树
+    return (resultLeft && resultRight);
+}
+/*
+ 9. 判断二叉树是不是平衡二叉树
+ 递归解法：
+ （1）如果二叉树为空，返回真
+ （2）如果二叉树不为空，如果左子树和右子树都是AVL树并且左子树和右子树高度相差不大于1，返回真，其他返回假
+ 参考代码：
+ */
+bool IsAVL(BinaryTreeNode * pRoot, int & height)
+{
+    if(pRoot == NULL) // 空树，返回真
+    {
+        height = 0;
+        return true;
+    }
+    int heightLeft;
+    bool resultLeft = IsAVL(pRoot->m_pLeft, heightLeft);
+    int heightRight;
+    bool resultRight = IsAVL(pRoot->m_pRight, heightRight);
+    if(resultLeft && resultRight && abs(heightLeft - heightRight) <= 1) // 左子树和右子树都是AVL，并且高度相差不大于1，返回真
+    {
+        height = max(heightLeft, heightRight) + 1;
+        return true;
+    }
+    else
+    {
+        height = max(heightLeft, heightRight) + 1;
+        return false;
+    }
+}
+/*
+ 10. 求二叉树的镜像
+ 递归解法：
+ （1）如果二叉树为空，返回空
+ （2）如果二叉树不为空，求左子树和右子树的镜像，然后交换左子树和右子树
+ 参考代码如下
+ */
+BinaryTreeNode * Mirror(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL) // 返回NULL
+        return NULL;
+    BinaryTreeNode * pLeft = Mirror(pRoot->m_pLeft); // 求左子树镜像
+    BinaryTreeNode * pRight = Mirror(pRoot->m_pRight); // 求右子树镜像
+    // 交换左子树和右子树
+    pRoot->m_pLeft = pRight;
+    pRoot->m_pRight = pLeft;
+    return pRoot;
+}
+/*
+ 11. 求二叉树中两个节点的最低公共祖先节点
+ 递归解法：
+ （1）如果两个节点分别在根节点的左子树和右子树，则返回根节点
+ （2）如果两个节点都在左子树，则递归处理左子树；如果两个节点都在右子树，则递归处理右子树
+ 参考代码如下：
+ */
+bool FindNode(BinaryTreeNode * pRoot, BinaryTreeNode * pNode)
+{
+    if(pRoot == NULL || pNode == NULL)
+        return false;
+    
+    if(pRoot == pNode)
+        return true;
+    
+    bool found = FindNode(pRoot->m_pLeft, pNode);
+    if(!found)
+        found = FindNode(pRoot->m_pRight, pNode);
+    
+    return found;
+}
+
+BinaryTreeNode * GetLastCommonParent(BinaryTreeNode * pRoot,
+                                     BinaryTreeNode * pNode1,
+                                     BinaryTreeNode * pNode2)
+{
+    if(FindNode(pRoot->m_pLeft, pNode1))
+    {
+        if(FindNode(pRoot->m_pRight, pNode2))
+            return pRoot;
+        else
+            return GetLastCommonParent(pRoot->m_pLeft, pNode1, pNode2);
+    }
+    else
+    {
+        if(FindNode(pRoot->m_pLeft, pNode2))
+            return pRoot;
+        else
+            return GetLastCommonParent(pRoot->m_pRight, pNode1, pNode2);
+    }
+}
+/*
+ 递归解法效率很低，有很多重复的遍历，下面看一下非递归解法。
+ 非递归解法：
+ 先求从根节点到两个节点的路径，然后再比较对应路径的节点就行，最后一个相同的节点也就是他们在二叉树中的最低公共祖先节点
+ 参考代码如下：
+ */
+bool GetNodePath(BinaryTreeNode * pRoot, BinaryTreeNode * pNode,
+                 list<BinaryTreeNode *> & path)
+{
+    if(pRoot == pNode)
+    {
+        path.push_back(pRoot);
+        return true;
+    }
+    if(pRoot == NULL)
+        return false;
+    path.push_back(pRoot);
+    bool found = false;
+    found = GetNodePath(pRoot->m_pLeft, pNode, path);
+    if(!found)
+        found = GetNodePath(pRoot->m_pRight, pNode, path);
+    if(!found)
+        path.pop_back();
+    return found;
+}
+BinaryTreeNode * GetLastCommonParent(BinaryTreeNode * pRoot, BinaryTreeNode * pNode1, BinaryTreeNode * pNode2)
+{
+    if(pRoot == NULL || pNode1 == NULL || pNode2 == NULL)
+        return NULL;
+    list<BinaryTreeNode*> path1;
+    bool bResult1 = GetNodePath(pRoot, pNode1, path1);
+    list<BinaryTreeNode*> path2;
+    bool bResult2 = GetNodePath(pRoot, pNode2, path2);
+    if(!bResult1 || !bResult2)
+        return NULL;
+    BinaryTreeNode * pLast = NULL;
+    list<BinaryTreeNode*>::const_iterator iter1 = path1.begin();
+    list<BinaryTreeNode*>::const_iterator iter2 = path2.begin();
+    while(iter1 != path1.end() && iter2 != path2.end())
+    {
+        if(*iter1 == *iter2)
+            pLast = *iter1;
+        else
+            break;
+        iter1++;
+        iter2++;
+    }
+    return pLast;
+}
+/*
+ 12. 求二叉树中节点的最大距离
+ 即二叉树中相距最远的两个节点之间的距离。
+ 递归解法：
+ （1）如果二叉树为空，返回0，同时记录左子树和右子树的深度，都为0
+ （2）如果二叉树不为空，最大距离要么是左子树中的最大距离，要么是右子树中的最大距离，要么是左子树节点中到根节点的最大距离+右子树节点中到根节点的最大距离，同时记录左子树和右子树节点中到根节点的最大距离。
+ 参考代码如下：
+ */
+int GetMaxDistance(BinaryTreeNode * pRoot, int & maxLeft, int & maxRight)
+{
+    // maxLeft, 左子树中的节点距离根节点的最远距离
+    // maxRight, 右子树中的节点距离根节点的最远距离
+    if(pRoot == NULL)
+    {
+        maxLeft = 0;
+        maxRight = 0;
+        return 0;
+    }
+    int maxLL, maxLR, maxRL, maxRR;
+    int maxDistLeft, maxDistRight;
+    if(pRoot->m_pLeft != NULL)
+    {
+        maxDistLeft = GetMaxDistance(pRoot->m_pLeft, maxLL, maxLR);
+        maxLeft = max(maxLL, maxLR) + 1;
+    }
+    else
+    {
+        maxDistLeft = 0;
+        maxLeft = 0;
+    }
+    if(pRoot->m_pRight != NULL)
+    {
+        maxDistRight = GetMaxDistance(pRoot->m_pRight, maxRL, maxRR);
+        maxRight = max(maxRL, maxRR) + 1;
+    }
+    else
+    {
+        maxDistRight = 0;
+        maxRight = 0;
+    }
+    return max(max(maxDistLeft, maxDistRight), maxLeft+maxRight);
+}
+/*
+ 13. 由前序遍历序列和中序遍历序列重建二叉树
+ 二叉树前序遍历序列中，第一个元素总是树的根节点的值。中序遍历序列中，左子树的节点的值位于根节点的值的左边，右子树的节点的值位
+ 于根节点的值的右边。
+ 递归解法：
+ （1）如果前序遍历为空或中序遍历为空或节点个数小于等于0，返回NULL。
+ （2）创建根节点。前序遍历的第一个数据就是根节点的数据，在中序遍历中找到根节点的位置，可分别得知左子树和右子树的前序和中序遍
+ 历序列，重建左右子树。
+ */
+BinaryTreeNode * RebuildBinaryTree(int* pPreOrder, int* pInOrder, int nodeNum)
+{
+    if(pPreOrder == NULL || pInOrder == NULL || nodeNum <= 0)
+        return NULL;
+    BinaryTreeNode * pRoot = new BinaryTreeNode;
+    // 前序遍历的第一个数据就是根节点数据
+    pRoot->m_nValue = pPreOrder[0];
+    pRoot->m_pLeft = NULL;
+    pRoot->m_pRight = NULL;
+    // 查找根节点在中序遍历中的位置，中序遍历中，根节点左边为左子树，右边为右子树
+    int rootPositionInOrder = -1;
+    for(int i = 0; i < nodeNum; i++)
+        if(pInOrder[i] == pRoot->m_nValue)
+        {
+            rootPositionInOrder = i;
+            break;
+        }
+    if(rootPositionInOrder == -1)
+    {
+        throw std::exception("Invalid input.");
+    }
+    // 重建左子树
+    int nodeNumLeft = rootPositionInOrder;
+    int * pPreOrderLeft = pPreOrder + 1;
+    int * pInOrderLeft = pInOrder;
+    pRoot->m_pLeft = RebuildBinaryTree(pPreOrderLeft, pInOrderLeft, nodeNumLeft);
+    // 重建右子树
+    int nodeNumRight = nodeNum - nodeNumLeft - 1;
+    int * pPreOrderRight = pPreOrder + 1 + nodeNumLeft;
+    int * pInOrderRight = pInOrder + nodeNumLeft + 1;
+    pRoot->m_pRight = RebuildBinaryTree(pPreOrderRight, pInOrderRight, nodeNumRight);
+    return pRoot;
+}
+/*
+ 14.判断二叉树是不是完全二叉树
+ 若设二叉树的深度为h，除第 h 层外，其它各层 (1～h-1) 的结点数都达到最大个数，第 h 层所有的结点都连续集中在最左边，这就是完全
+ 二叉树。
+ 有如下算法，按层次（从上到下，从左到右）遍历二叉树，当遇到一个节点的左子树为空时，则该节点右子树必须为空，且后面遍历的节点左
+ 右子树都必须为空，否则不是完全二叉树。
+ */
+bool IsCompleteBinaryTree(BinaryTreeNode * pRoot)
+{
+    if(pRoot == NULL)
+        return false;
+    queue<BinaryTreeNode *> q;
+    q.push(pRoot);
+    bool mustHaveNoChild = false;
+    bool result = true;
+    while(!q.empty())
+    {
+        BinaryTreeNode * pNode = q.front();
+        q.pop();
+        if(mustHaveNoChild) // 已经出现了有空子树的节点了，后面出现的必须为叶节点（左右子树都为空）
+        {
+            if(pNode->m_pLeft != NULL || pNode->m_pRight != NULL)
+            {
+                result = false;
+                break;
+            }
+        }
+        else
+        {
+            if(pNode->m_pLeft != NULL && pNode->m_pRight != NULL)
+            {
+                q.push(pNode->m_pLeft);
+                q.push(pNode->m_pRight);
+            }
+            else if(pNode->m_pLeft != NULL && pNode->m_pRight == NULL)
+            {
+                mustHaveNoChild = true;
+                q.push(pNode->m_pLeft);
+            }
+            else if(pNode->m_pLeft == NULL && pNode->m_pRight != NULL)
+            {
+                result = false;
+                break;
+            }
+            else
+            {
+                mustHaveNoChild = true;
+            }
+        }
+    }
+    return result;
+}
+
+}
 
 //smartpointer implemention
 template <typename T>
@@ -366,6 +877,8 @@ int main_test_line2(){
 /*
  有一个正整数，请找出其二进制表示中1的个数相同、且大小最接近的那两个数。(一个略大，一个略小)
  */
+//最接近的数
+
 class CloseNumber {
 public:
     vector<int> getCloseNumber(int x) {
@@ -378,7 +891,7 @@ public:
         return v;
     }
 private:
-    int getNext(int x) {
+    int getNext(int x) {        //这个思路可以用来求permutation
         int c0 = 0;
         int c1 = 0;
         int n = x;
@@ -795,8 +1308,205 @@ namespace BST {
 
 }//end of BST
 
-
+//简洁版
+namespace BST2 {
+    const int maxn = 100;
+    
+    typedef struct BST{
+        int key;
+        BST *lchild, *rchild, *parent;
+    }BST;
+    
+    BST *head, *p, node[maxn];
+    int cnt;
+    
+    void init(){
+        head = p = NULL;
+        cnt = 0;
+        memset(node, '\0', sizeof(node));
+    }
+    
+    void insert(BST* &head, int x){
+        if(head == NULL){
+            node[cnt].key = x;
+            node[cnt].parent = p;
+            head = &node[cnt++];
+            return;
+        }
+        p = head;
+        if(head->key > x)
+            insert(head->lchild, x);
+        else
+            insert(head->rchild, x);
+    }
+    
+    void inorderTraver(BST *head){
+        if(head == NULL) return;
+        inorderTraver(head->lchild);
+        cout<<head->key<<" ";
+        inorderTraver(head->rchild);
+    }
+    
+    BST* search(BST *head, int x){
+        if(head == NULL) return NULL;
+        if(head->key == x) return head;
+        else if(head->key > x)
+            search(head->lchild, x);
+        else
+            search(head->rchild, x);
+    }
+    
+    BST* minimum(BST *head){
+        if(head == NULL) return NULL;
+        while(head->lchild != NULL)
+            head = head->lchild;
+        return head;
+    }
+    
+    BST* maximum(BST *head){
+        if(head == NULL) return NULL;
+        while(head->rchild != NULL)
+            head = head->rchild;
+        return head;
+    }
+    
+    BST* successor(BST *head){
+        if(head->rchild != NULL)
+            return minimum(head->rchild);
+        BST *y = head->parent;
+        while(y!=NULL && y->rchild==head){
+            head = y;
+            y = y->parent;
+        }
+        return y;
+    }
+    
+    BST* predecessor(BST *head){
+        if(head->lchild != NULL)
+            return maximum(head->lchild);
+        BST *y = head->parent;
+        while(y!=NULL && y->lchild==head){
+            head = y;
+            y = y->parent;
+        }
+        return y;
+    }
+    
+    void delet(BST *z){
+        if(z->lchild==NULL && z->rchild==NULL){
+            if(z==head) head = NULL;
+            else if(z->parent->lchild == z)
+                z->parent->lchild = NULL;
+            else
+                z->parent->rchild = NULL;
+        }
+        
+        else if(z->lchild==NULL || z->rchild==NULL){
+            if(z==head){
+                if(z->lchild) head = z->lchild;
+                else head = z->rchild;
+                head->parent = NULL;
+            }
+            else{
+                if(z->parent->lchild==z && z->lchild){
+                    z->parent->lchild = z->lchild;
+                    z->lchild->parent = z->parent;
+                }
+                else if(z->parent->lchild==z && z->rchild){
+                    z->parent->lchild = z->rchild;
+                    z->rchild->parent = z->parent;
+                }
+                else if(z->parent->rchild==z && z->lchild){
+                    z->parent->rchild = z->lchild;
+                    z->lchild->parent = z->parent;
+                }
+                else{
+                    z->parent->rchild = z->rchild;
+                    z->rchild->parent = z->parent;
+                }
+            }
+        }
+        
+        else{
+            BST *s = predecessor(z);
+            z->key = s->key;
+            if(s->parent == z)
+                s->parent->lchild = s->lchild;
+            else
+                s->parent->rchild = s->lchild;
+            if(s->lchild)
+                s->lchild->parent = s->parent;
+        }
+    }
+    int main_test_BST(){
+        freopen("BST.in", "r", stdin);
+        init();
+        int x;
+        while(cin>>x)
+            insert(head, x);
+        inorderTraver(head);
+        cout<<endl;
+        cout<<"Min: "<<(minimum(head))->key<<endl;
+        cout<<"Max: "<<(maximum(head))->key<<endl;
+        fclose(stdin);
+        return 0;
+    }
+}
 //
+
+
+//实现hash类myhash
+class myHash {          //使用开链法来
+public:
+    Hash(): seed_(131), size_(0) {
+        memset(head_, 0, sizeof(head_));
+    }
+    
+    void Insert(const char* str) {
+        unsigned int id = hash(str);
+        char *dst = (char*)node_[size_].word;
+        while(*dst++ = *str++);
+        node_[size_].next = head_[id];
+        head_[id] = &node_[size_];
+        ++size_;
+    }
+    
+    bool Find(const char* str) {            //这要在链表里面找
+        unsigned int id = hash(str);
+        for(Node* p=head_[id]; p; p=p->next) {
+            char* dst = (char*)p->word;
+            int i = 0;
+            for(; *(str+i) && *(str+i) == *(dst+i); ++i);
+            if(!*(str+i) && !*(dst+i))
+                return true;
+        }
+        return false;
+    }
+    
+private:
+    unsigned int hash(const char* str) {// BKDR Hash Function，这里可以重载一些其他的类
+        unsigned int hash = 0;
+        while(*str) {
+            hash = hash * seed_ + (*str++);
+        }
+        return (hash & 0x7FFFFFFF) % kHashSize;
+    }
+    
+private:
+    unsigned int seed_;
+    unsigned int size_;
+    static const int kWordSize = 26 + 1;
+    static const int kNodeSize = 20000;
+    static const int kHashSize = 10001;
+    struct Node {
+        char word[kWordSize];
+        Node *next;
+    };
+    Node node_[kNodeSize];
+    Node* head_[kHashSize];
+};
+
+
 /*
  对于一个元素各不相同且按升序排列的有序序列，请编写一个算法，创建一棵高度最小的二叉查找树
  */
@@ -1172,7 +1882,7 @@ string longestCommonPrefix(vector<string>& strs) {
 //algorithm:    后缀数组，处理字符串的利器
 //后缀数组有两种方法求取：
 /*
- 后缀数组生成的思路：
+ 后缀数组生成的思路：倍增算法和DC3算法
  方法一：最直接最简单的方法当然是把S的后缀都看作一些普通的字符串，按照一般字符串排序的方法对它们从小到大进行排序，即对A进行排序。最坏时间复杂度是O（n^2）。
  方法二：倍增算法(Doubling Algorithm)，它正是充分利用了各个后缀之间的联系，将构造后缀数组的最坏时间复杂度成功降至O(nlogn)。
  */
@@ -1192,6 +1902,7 @@ int comlen(char *p, char *q)
     return i;
 }
 
+bool cmpChar
 #define M 1
 #define MAXN 100
 char c[MAXN], *a[MAXN]; //a中保存的就是字符串的后缀
@@ -1204,6 +1915,7 @@ int longdup_main()
     }
     c[n] = 0;
     qsort(a , n, sizeof(char*), pstrcmp);//这一句gcc可以编译通过，而g++就会报错
+//    sort(a, a + n, cmpChar);
     
     for (i = 0; i < n-M; i++)
         if (comlen(a[i], a[i+M]) > maxlen) {
@@ -1256,7 +1968,7 @@ namespace wordsStat {
     pWordNode nmalloc()
     {
         if (nodesleft == 0) {
-            freenode = (pWordNode)malloc(NODEGROUP*sizeof(node));
+            freenode = (pWordNode)malloc(NODEGROUP*sizeof(node));   //采用池化技术
             nodesleft = NODEGROUP;
         }
         nodesleft--;
@@ -1409,7 +2121,8 @@ namespace heapsort_ {
             i = c;
         }
     }
-
+    
+    
     int heapsort_main()         //先从第二个元素开始对所有元素进行siftup操作，然后交换堆节点值和末尾节点值（末尾节点为子结构的最大值），然后只需要将新的根节点siftdown即可
     {
         double BegTime, EndTime;
@@ -1423,16 +2136,21 @@ namespace heapsort_ {
         
         memcpy( data2, data, MAX+1);
         BegTime = clock();
-        //建堆
+        
+        
+        //makeheap、make_heap
         for( i = 2; i <= MAX; i++ )
             siftup(data,i);
         
-        //从后向前调整
+        //heapsort
         for( i =MAX; i >= 2; i--)
         {
             swap(data, 1, i);
             siftdown(data, i - 1 );
         }
+        
+        
+        
         EndTime = clock();
         printf("HeapSort:%gms\n", (EndTime - BegTime) / 1000);
         
@@ -2218,7 +2936,7 @@ int Astar_main(){   //测试
 
 
 //algorithm2: BFS，广度优先搜索，
-//也可以是广度优先搜索，只需要把其中的队列改为堆栈就是深度优先搜索
+//也可以是深度优先搜索，只需要把其中的队列改为堆栈就是深度优先搜索
 //如果改为优先队列，那就是启发式搜索，类似Astar算法
 int n,sx,sy,ex,ey;
 int accessed[305][305];
@@ -2279,6 +2997,111 @@ int bfs_main()
     }
     
     return 0;
+}
+
+//algorithm3: 双向BFS算法 BBFS
+namespace Bi_Directional_BFS {
+    
+
+char ss[3];
+char ee[3];
+typedef struct node
+{
+    int x;
+    int y;
+    int steps;
+}node;
+int d[8][2]={{-2,1},{-2,-1},{-1,-2},{-1,2},{2,-1},{2,1},{1,-2},{1,2}};
+int visited[8][8];
+int color[8][8];//区分当前位置是哪个队列查找过了
+node s;
+node e;
+int in(node n)
+{
+    if(n.x<0||n.y<0||n.x>7||n.y>7)
+        return 0;
+    return 1;
+}
+int bfs()
+{
+    queue<node>qf;         //我发现如果把qf和qb放在外面的话，节省的时间挺惊人的，耗时16MS
+    queue<node>qb;
+    memset(visited,0,sizeof(visited));
+    memset(color,0,sizeof(color));
+    qf.push(s);
+    qb.push(e);
+    visited[s.x][s.y]=0;
+    visited[e.x][e.y]=1;
+    color[s.x][s.y]=1;//着色
+    color[e.x][e.y]=2;
+    while(!qf.empty() || !qb.empty())
+    {
+        if(!qf.empty())
+        {
+            node st = qf.front();
+            qf.pop();
+            for(int i=0; i<8; ++i)
+            {
+                node t;
+                t.x = st.x + d[i][0];
+                t.y = st.y + d[i][1];
+                if(in(t))
+                {
+                    if(color[t.x][t.y] == 0){
+                        visited[t.x][t.y] = visited[st.x][st.y]+1;
+                        color[t.x][t.y]=1;
+                        qf.push(t);
+                    }
+                    else if(color[t.x][t.y]==2){
+                        return visited[st.x][st.y]+visited[t.x][t.y];
+                    }
+                }
+            }
+            
+        }
+        if(!qb.empty())
+        {
+            node st=qb.front();
+            qb.pop();
+            for(int i=0;i<8;++i)
+            {
+                node t;
+                t.x=st.x+d[i][0];
+                t.y=st.y+d[i][1];
+                if(in(t))
+                {
+                    if(color[t.x][t.y]==0){
+                        visited[t.x][t.y]=visited[st.x][st.y]+1;
+                        color[t.x][t.y]=2;
+                        qb.push(t);
+                    }
+                    else if(color[t.x][t.y]==1){
+                        return visited[st.x][st.y]+visited[t.x][t.y];
+                    }
+                }
+            }
+        }
+    }
+}
+int main_BBFS(int argc, char *argv[])
+{
+    // freopen("in.txt","r",stdin);
+    while(scanf("%s %s",ss,ee)==2)
+    {
+        s.x=ss[0]-'a';
+        s.y=ss[1]-'1';
+        e.x=ee[0]-'a';
+        e.y=ee[1]-'1';
+        s.steps=0;
+        e.steps=1;
+        if(s.x==e.x&&s.y==e.y)
+            printf("To get from %s to %s takes 0 knight moves.\n",ss,ee);
+        else
+            printf("To get from %s to %s takes %d knight moves.\n",ss,ee,bfs());
+    }
+    return 0;
+}
+
 }
 
 
@@ -2853,7 +3676,7 @@ void replace3(char *c){
 
 //problem: 二维数组中查找特定的数值 search matrix
 //algorithm: 首先选举右上角的元素与target进行比较，如果大于target则该列被剔除
-//如果小于target则该行被剔除，这样每一步都会缩小查找空间
+//如果小于target则该行被剔除，这样每一步都会缩小查找空间young matrix
 //  1   2   8   9
 //  2   4   9   12
 //  4   7   10  13
@@ -2900,6 +3723,23 @@ bool searchMatrix(vector<vector<int>>& matrix, int target) {
     
 }
 
+#define ROW 4
+#define COL 4
+
+bool YoungMatrix(int array[][COL], int Key){
+    int i = 0, j = COL - 1;
+    int var = array[i][j];
+    while (true){
+        if (var == Key)
+            return true;
+        else if (var < Key && i < ROW - 1)
+            var = array[++i][j];
+        else if (var > Key && j > 0)
+            var = array[i][--j];
+        else
+            return false;
+    }
+}
 
 /*测试用例
 int matrix[][4] =
@@ -3182,7 +4022,7 @@ BinaryTreeNode* findLowestCommonAncestor3(BinaryTreeNode* root , BinaryTreeNode*
         min = a->m_nValue , max = b->m_nValue;
     else
         min = b->m_nValue , max = a->m_nValue;
-    while(root)         //这是迭代的标志while(root)
+    while(root)             //这是迭代的标志while(root)，首先要确定迭代哪一个变量，这里肯定就是root了，然后再在作用于中对root进行更新
     {
         if(root->m_nValue >= min && root->m_nValue <= max)
             return root;
@@ -3470,6 +4310,8 @@ void evenOddPartition(int A[], int n) { //这里就没有pivot的概念了不需
  Here, we will use the integers 0, 1, and 2 to represent the color red, white, and blue respectively.
  */
 //这也是用了partition的思想，用三个指针，只需要扫描一次就能将0-2的一串指数进行排序，如果是二进制的话就变成了partition，需要两个指针
+
+//快排其实有两种不同的思路，一种思路是两个指针都是从头开始往后扫描，而另一种思路是一个指针往后扫，一个指针往前扫。
 void sortColors(int A[], int n) {
     int i = -1;
     int j = -1;
@@ -3671,6 +4513,7 @@ public:
         root = new TrieNode2();
         
     }
+    //这会有严重的错误，没有析构函数，整棵树没有析构函数，下一个实现将实现析构的函数
     
     // Inserts a word into the trie.
     void insert(string s) {
@@ -3715,6 +4558,254 @@ private:
 // trie.insert("somestring");
 // trie.search("key");
 
+//以上实现的trie树没有考虑树的析构问题，但这里还有两个问题，复制拷贝函数和赋值构造函数都需要重载，不然调用的是编译器自动给trie2类加上的
+namespace trie2 {
+    
+
+const int MaxBranchNum = 26;//如果区分大小写，可以扩展到52
+
+/*定义trie树结点*/
+class TrieNode
+{
+public:
+    char* word; //节点表示的单词
+    int count;  //单词出现的次数
+    TrieNode* nextBranch[MaxBranchNum];//指向26个字符节点的指针
+public:
+    TrieNode() : word(NULL),count(0)
+    {
+        memset(nextBranch,NULL,sizeof(TrieNode*) * MaxBranchNum);
+    }
+};
+
+/*定义类Trie*/
+class Trie
+{
+public:
+    Trie();
+    ~Trie();
+    void Insert(const char* str);//插入字符串str
+    bool Search(const char* str,int& count);//查找字符串str，并返回出现的次数
+    bool Remove(const char* str);//删除字符串str
+    void PrintALL();//打印trie树中所有的结点
+    void PrintPre(const char* str);//打印以str为前缀的单词
+private:
+    TrieNode* pRoot;
+private:
+    void Destory(TrieNode* pRoot);
+    void Print(TrieNode* pRoot);
+};
+
+#endif //_TRIE_
+
+Trie::Trie()
+{
+    pRoot = new TrieNode();//注意字典树的根不存放字符
+}
+
+Trie::~Trie()
+{
+    Destory(pRoot); //这个特别特别重要，不是有三原则嘛？这里还有一个问题，怎么防治浅拷贝
+}
+
+/*插入一个单词*/
+void Trie::Insert(const char* str)
+{
+    assert(NULL != str);
+    int index;
+    TrieNode* pLoc = pRoot;
+    for (int i = 0;str[i];i++)
+    {
+        index = str[i] - 'a';//如果区分大小写，可以扩展
+        
+        if(index < 0 || index > MaxBranchNum)//不执行插入
+        {
+            return;
+        }
+        
+        if (NULL == pLoc->nextBranch[index])//该单词的前缀不存在，要生成该结点
+        {
+            pLoc->nextBranch[index] = new TrieNode();
+        }
+        pLoc = pLoc->nextBranch[index];
+    }
+    if (NULL != pLoc->word)//单词已经出现过
+    {
+        pLoc->count++;
+        return;
+    }
+    else    //单词没有出现过，应该插入单词
+    {
+        pLoc->count++;
+        pLoc->word = new char[strlen(str) + 1];
+        assert(NULL != pLoc->word);
+        strcpy(pLoc->word,str);
+    }
+}
+
+/*查找一个单词，如果存在该单词，则返回其出现次数*/
+bool Trie::Search(const char* str,int& count)
+{
+    assert(str != NULL);
+    int i = 0;
+    int index = -1;;
+    TrieNode* pLoc = pRoot;
+    while(pLoc && *str)
+    {
+        index = *str - 'a';//如果区分大小写，可以扩展
+        
+        if(index < 0 || index > MaxBranchNum)//不是一个单词，不执行插入
+        {
+            return false;
+        }
+        
+        pLoc = pLoc->nextBranch[index];
+        str++;
+    }
+    if (pLoc && pLoc->word)//条件成立，找到该单词
+    {
+        count = pLoc->count;
+        return true;
+    }
+    return false;
+}
+
+bool Trie::Remove(const char* str)
+{
+    assert(NULL != str);
+    int index = -1;;
+    TrieNode* pLoc = pRoot;
+    while(pLoc && *str)
+    {
+        index = *str - 'a';//如果区分大小写，可以扩展
+        
+        if(index < 0 || index > MaxBranchNum)//不是一个单词，不执行插入
+        {
+            return false;
+        }
+        
+        pLoc = pLoc->nextBranch[index];
+        str++;
+    }
+    if (pLoc && pLoc-> word)//条件成立，找到该单词
+    {
+        delete[] pLoc->word;
+        pLoc->word = NULL;
+        return true;
+    }
+    return false;
+}
+
+void Trie::PrintALL()
+{
+    Print(pRoot);
+}
+
+void Trie::PrintPre(const char* str)
+{
+    assert(str != NULL);
+    int i = 0;
+    int index = -1;;
+    TrieNode* pLoc = pRoot;
+    while(pLoc && *str)
+    {
+        index = *str - 'a';//如果区分大小写，可以扩展
+        
+        if(index < 0 || index > MaxBranchNum)//不是一个单词，不执行插入
+        {
+            return;
+        }
+        
+        pLoc = pLoc->nextBranch[index];
+        str++;
+    }
+    if (pLoc)//条件成立，找到该单词
+    {
+        Print(pLoc);
+    }
+}
+
+/*按照字典顺序输出以pRoot为根的所有的单词*/
+void Trie::Print(TrieNode* pRoot)
+{
+    if (NULL == pRoot)
+    {
+        return;
+    }
+    //输出单词
+    if (NULL != pRoot->word)
+    {
+        cout<<pRoot->word<<" "<<pRoot->count<<endl;
+    }
+    //递归处理分支
+    for (int i = 0;i < MaxBranchNum;i++)
+    {
+        Print(pRoot->nextBranch[i]);
+    }
+}
+
+/*销毁trie树*/
+void Trie::Destory(TrieNode* pRoot)
+{
+    if (NULL == pRoot)
+    {
+        return;
+    }
+    for (int i = 0;i < MaxBranchNum;i++)
+    {
+        Destory(pRoot->nextBranch[i]);
+    }
+    //销毁单词占得空间
+    if (NULL != pRoot->word)
+    {
+        delete []pRoot->word;
+        pRoot->word = NULL;
+    }
+    delete pRoot;//销毁结点
+    pRoot = NULL;
+}
+
+int main_trie()
+{
+    Trie t;
+    string str;
+    int count = -1;
+    ifstream in("word.txt");
+    //把单词输入字典树
+    while(in >> str)
+    {
+        transform(str.begin(),str.end(),str.begin(),tolower);//大写变小写
+        t.Insert(str.c_str());
+    }
+    //查找
+    bool isFind = t.Search("the",count);
+    if (isFind)
+    {
+        cout<<"存在the,出现次数："<<count<<endl;
+    }
+    else
+    {
+        cout<<"不存在the!"<<endl;
+    }
+    //输出
+    t.PrintALL();
+    //删除
+    bool isDel = t.Remove("the");
+    if (isDel)
+    {
+        cout<<"删除成功!"<<endl;
+    }
+    else
+    {
+        cout<<"删除失败!"<<endl;
+    }
+    //输出以w开头的单词
+    t.PrintPre("w");
+    cout<<endl;
+    system("pause");
+}
+
+}//end of trie
 
 //利用trie来统计词频
 
@@ -4116,6 +5207,13 @@ int Add(int num1, int num2)
     while(num2 != 0);
     
     return num1;
+}
+//也可以用递归
+int add_(int a, int b) {
+    if (b == 0) return a ;
+    int sum = a ^ b;
+    int carry == (a & b) << 1;
+    return add_(sum, carry);
 }
 //用加法做乘除法
 //想一想用只用加法怎么实现乘除还有减法，注意减法不能乘以-1，这道题在现实中肯定遇不到，但是可以锻炼人的逻辑思维能力
@@ -4837,7 +5935,7 @@ void Reversetree2(ListNode__ *phead)
     stack<ListNode__*> stacklist;
     stacklist.push(phead);         //首先把树的头结点放入栈中。
     
-    while(stacklist.size())
+    while(!stacklist.empty())
         //在循环中，只要栈不为空，弹出栈的栈顶结点，交换它的左右子树
     {
         ListNode__* pnode=stacklist.top();
@@ -6245,7 +7343,7 @@ int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数
     int index = partition(numbers, start, end);
     
     
-    while(index != middle)
+    while(index != middle)          //这与快排就不一样了
     {
         if(index > middle)
         {
@@ -6268,6 +7366,113 @@ int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数
     return result;
 }
 
+//还有一种比较巧妙的方法
+//a代表数组，length代表数组长度，median/majority
+int FindOneNumber(int* a, int length)   //这个的前提是一定存在众数
+{
+    int candidate = a[0];
+    int nTimes = 1;
+    for (int i = 1; i < length; i++)
+    {
+        if (nTimes == 0)
+        {
+            candidate = a[i];
+            nTimes = 1;
+        }
+        else
+        {
+            if (candidate == a[i])
+                nTimes++;
+            else
+                nTimes--;
+        }
+    }
+    return candidate;
+}
+
+
+//如果是要经常得到一组数组的中位数的话(数据是不断变化的,这种应用场景很普遍)，以上的方法的都不是增量的，建立最大最小堆来随时列举中位数
+/*
+ 可以用最大堆和最小堆来解答这个问题：
+ 1.假设当前的中位数为m，其中最大堆维护的是<=m的数字序列，最小堆维护的是>=m的数字序列，但是两个堆都不包含m
+ 2.当新的数字到达时，比如为a，将a与m进行比较，若a<=m 则将其加入到最大堆中，否则将其加入到最小堆中
+ 3.如果此时最小堆和最大堆的元素个数的差值>=2 ，则将m加入到元素个数少的堆中，然后从元素个数多的堆将根节点赋值到m，最后重建两个最大堆和最小堆，返回到2
+ */
+namespace median_max-minHeap {  //min-max heap
+
+class Median{
+private:
+    priority_queue<int,vector<int>,less<int> > max_heap;//左边的数
+    priority_queue<int,vector<int>,greater<int> > min_heap;//右边的数
+    
+public:
+    void Insert(int v);
+    int GetValue();
+};
+
+void Median::Insert(int v){
+    if(max_heap.empty() && min_heap.empty())
+        max_heap.push(v);
+    // max_heap不为空，则往max_heap插入数据，
+    // 往min_heap插入数据的话可能导致较小的数放到右边的堆
+    else if(!max_heap.empty() && min_heap.empty())
+        max_heap.push(v);
+    else if(max_heap.empty() && !min_heap.empty())
+        min_heap.push(v);
+    else{
+        if(v < max_heap.top())
+            max_heap.push(v);
+        else
+            min_heap.push(v);
+    }
+    //调整，保证两个堆的元素数量差别不大于1
+    //不要用hmax_heap.size()-min_heap.size()>1
+    //因为size返回的是unsigned类型，当左边相减得到一个负数时，本来为false
+    //但会被转为一个大的正数，结果为true，出问题
+    while(max_heap.size() > min_heap.size()+1){
+        int data = max_heap.top();
+        min_heap.push(data);
+        max_heap.pop();
+    }
+    while(min_heap.size() > max_heap.size()+1){
+        int data = min_heap.top();
+        max_heap.push(data);
+        min_heap.pop();
+    }
+}
+
+int Median::GetValue(){//中位数为int，由于有除法，也可改为float
+    if(max_heap.empty() && min_heap.empty())
+        return (1<<31); //都为空时，返回int最小值
+    if(max_heap.size() == min_heap.size())
+        return (max_heap.top()+min_heap.top()) / 2;
+    else if(max_heap.size() > min_heap.size())
+        return max_heap.top();
+    else
+        return min_heap.top();
+}
+
+int main_median(){
+    srand((unsigned)time(0));
+    Median md;
+    // vector<int> vi;
+    // int num = rand() % 30; //数量是30以内的随机数
+    // for(int i=0; i<num; ++i){
+    //     int data = rand() % 100; //元素是100内的数
+    //     vi.push_back(data);
+    //     md.Insert(data);
+    // }
+    // sort(vi.begin(), vi.end());
+    // for(int i=0; i<num; ++i)
+    //     cout<<vi.at(i)<<" "; //排序的序列
+    md.Insert(3);
+    md.Insert(1);
+    md.Insert(2);
+    cout<<endl<<md.GetValue()<<endl; //中位数
+    return 0;
+}
+
+}
 
 //问题：排序
 //算法：quicksort
@@ -6291,7 +7496,7 @@ int partition_2 ( int* A, int lo, int hi ) { //版本A：基本形式
 
 //这一版本是按照算法导论的伪代码写的，太经典了
 int partition(int* A, int left, int right) {
-    int pivot = A[left];//swap(A[left], A[left + rand() % (right - left)]);
+    int pivot = A[left];    //swap(A[left], A[left + rand() % (right - left)]);
     int i = left;
     for (int j = left + 1; j <= right; j++)
         if (A[j] <= pivot)
@@ -7415,7 +8620,10 @@ void general_main2(){
                 printf("A = %d, B = %d\n", i.a, i.b);
 }
 
-
+void shuffle ( int A[], int n ) { //将A[0, n)随机打乱
+    while ( 1 < n )
+        swap ( A[rand() % n], A[--n] );
+}
 
 
 #endif
