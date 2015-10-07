@@ -742,7 +742,7 @@ public:
     int hashcode(){             //只要是看是否以前已经做过某个事或者检索过一些值，都可以用hash，只不过这里是double型的数据，这里采用了一个十分美妙的方法，转换成整数的hash
         int sl = (int)(slope * 1000);
         int in = (int)(intercept * 1000);
-        return sl*1000 +  in;       //不过这个hash是否靠谱呢？？？？？？
+        return sl*1000 +  in;       //不过这个hash是否靠谱呢，会有重合的呢？
     }
     void print(){
         cout<<"y = "<<slope<<"x + "<<intercept<<endl;
@@ -822,7 +822,7 @@ public:
     }
 };
 
-//map里面要求重构大于符和等于符
+//map里面要求重构小于符和等于符ƒ
 bool operator <(const line &l1, const line &l2){
     return l1.slope < l2.slope;
 }
@@ -1792,7 +1792,7 @@ const int STACK_SIZE = 100;
 const int STACK_NUM = 10;
 class SetOfStacks{//without popAt()
 private:
-    stack *st;
+    stack *st;      //类里有一个数组，存放每一个stack
     int cur;
     int capacity;
     
@@ -1828,19 +1828,19 @@ public:
 };
 
 //problem: 自己实现stack类，学习编写类，并实现它mystack
-class stackmine{            //怎么没有赋值构造函数，stack不需要吧？？？？
+class stackmine{            //怎么没有赋值构造函数，stack不需要吧？？？？，但如果误操作赋值构造函数，会出问题（术语叫做：防止浅拷贝）
 private:
     int *buf;
     int cur;
     int capacity;
     
 public:
-    stack(int capa = STACK_SIZE){
+    stackmine(int capa = STACK_SIZE){
         buf = new int[capa];
         cur = -1;
         capacity = capa;
     }
-    ~stack(){
+    stackmine(){
         delete[] buf;
     }
     void push(int val){
@@ -1858,6 +1858,9 @@ public:
     bool full(){
         return cur==capacity-1;
     }
+private:        //防止浅拷贝，这种方法确实防止了浅拷贝，但是如果要把一个类的实例传送到一个函数中，这又怎么办呢？
+    stackmine(const stackmine& sm);    //只声明不实现
+    const stackmine& operator=(const stackmine& rhis);//只声明不实现
 };
 
 
@@ -2943,7 +2946,7 @@ int accessed[305][305];
 int direction[8][2] = {-1,-2,-2,-1,-2,1,-1,2,1,-2,2,-1,2,1,1,2};
 struct grid
 {
-    int x,y,step;
+    int x,y,step;       //每个点维护了到起始点的距离
 };
 
 int check(int x,int y)
@@ -2999,7 +3002,7 @@ int bfs_main()
     return 0;
 }
 
-//algorithm3: 双向BFS算法 BBFS
+//algorithm3: 双向BFS算法 BBFS、BiBFS
 namespace Bi_Directional_BFS {
     
 
@@ -3094,7 +3097,7 @@ int main_BBFS(int argc, char *argv[])
         e.y=ee[1]-'1';
         s.steps=0;
         e.steps=1;
-        if(s.x==e.x&&s.y==e.y)
+        if(s.x==e.x && s.y==e.y)
             printf("To get from %s to %s takes 0 knight moves.\n",ss,ee);
         else
             printf("To get from %s to %s takes %d knight moves.\n",ss,ee,bfs());
@@ -5192,29 +5195,24 @@ int continumax(char *outputstr, char *intputstr)
 
 
 //问题：剑指offer，不用加减乘除做加法
-//算法：用位计算
-int Add(int num1, int num2)
-{
-    int sum, carry;
-    do
-    {
-        sum = num1 ^ num2;          //这是不考虑进位情况下的结果
-        carry = (num1 & num2) << 1; //向左移动一位表明了进位的性质
-        
-        num1 = sum;
-        num2 = carry;
+//算法：用位计算（add2和add3递归改迭代的方式）
+int Add2(int a, int b){
+    if(b == 0)
+        return a;
+    int sum = a ^ b; // 各位相加，不计进位
+    int carry = (a & b) << 1; // 记下进位
+    return Add2(sum, carry); // 求sum和carry的和
+}
+int Add3(int a, int b){
+    while(b != 0){      //迭代该递归的典型案例
+        int sum = a ^ b;
+        int carry = (a & b) << 1;
+        a = sum;
+        b = carry;
     }
-    while(num2 != 0);
-    
-    return num1;
+    return a;
 }
-//也可以用递归
-int add_(int a, int b) {
-    if (b == 0) return a ;
-    int sum = a ^ b;
-    int carry == (a & b) << 1;
-    return add_(sum, carry);
-}
+
 //用加法做乘除法
 //想一想用只用加法怎么实现乘除还有减法，注意减法不能乘以-1，这道题在现实中肯定遇不到，但是可以锻炼人的逻辑思维能力
 //不用判断语句，做比较
@@ -5589,21 +5587,15 @@ char FirstNotRepeatingChar(char* pString)
 
 //problem: 变位词的判断
 //algorithm: 先对字符串排序，然后判断两个字符串是否相等
-// 自定义序函数（二元谓词）
-bool charCompare(char i, char j)
-{
-    return i > j;
-}
+
 bool wordsReorder(string s1, string s2)
 {
-    // 采用泛型算法对s1,s2排序，sort()采用的是快速排序算法
-    sort(s1.begin(), s1.end(), charCompare);
-    sort(s2.begin(), s2.end(), charCompare);
-    if(!s1.compare(s2)) // 相等返回0
-        return true;
-    else
-        return false;
+    sort(s1.begin(), s1.end());
+    //sort(&s1[0], &s1[0] + s1.size());
+    sort(s2.begin(), s2.end());
+    return s1 < s2;
 }
+
 //problem: 找出特定单词的所有变位词的集合
 //algorithm: 先得到每个单词的标示（也就是其排序之后的字符串），然后按照标示进行排序
 /*
@@ -5611,22 +5603,15 @@ bool wordsReorder(string s1, string s2)
  *   按关键字有序
  *   关键字不可重复
  */
-map<string, string> word;
-
-/* 自定义比较函数（用于排序） */
-bool myfunction(char i, char j)
-{
-    return i < j;
-}
 
 /*
  *对每个单词排序
  *排序后字符串作为关键字，原单词作为值
  *存入map中
  */
+map<string, string> word;   //由于key是字符串，所以不需要自己定义比较函数，如果关键字是自己定义的类的话就要自己重载比较函数
 void sign_sort(const char* dic)
 {
-    // 文件流
     ifstream in(dic);
     if(!in)
     {
@@ -5639,9 +5624,8 @@ void sign_sort(const char* dic)
     while(in >> aword)
     {
         asign = aword;
-        sort(asign.begin(), asign.end(), myfunction);
-        // 若标识不存在，创建一个新map元素，若存在，加在值后面
-        word[asign] += aword + " ";
+        sort(asign.begin(), asign.end());
+        word[asign] += aword + " "; //这个特别巧妙，将同一个key的value值都连接起来
     } 
     in.close(); 
 }
@@ -8623,6 +8607,27 @@ void general_main2(){
 void shuffle ( int A[], int n ) { //将A[0, n)随机打乱
     while ( 1 < n )
         swap ( A[rand() % n], A[--n] );
+}
+
+void printLastKLines(ifstream &fin, int k){
+    string line[k];
+    int lines = 0;
+    string tmp;
+    while(getline(fin, tmp)){
+        line[lines%k] = tmp;
+        ++lines;
+    }
+    int start, cnt;
+    if(lines < k){
+        start = 0;
+        cnt = lines;
+    }
+    else{
+        start = lines%k;
+        cnt = k;
+    }
+    for(int i=0; i<cnt; ++i)
+        cout<<line[(start+i)%k]<<endl;
 }
 
 

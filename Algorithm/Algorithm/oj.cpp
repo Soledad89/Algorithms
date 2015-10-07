@@ -19,9 +19,68 @@
 #include <math.h>
 #include <string.h>
 //#include "algorithms.h"
-
 using namespace std;
+
+#define STACK_SIZE 100
+class stackmine{            //怎么没有赋值构造函数，stack不需要吧？？？？，但如果误操作赋值构造函数，会出问题（术语叫做：防止浅拷贝）
+private:
+    int *buf;
+    int cur;
+    int capacity;
+    
+public:
+    stackmine(int capa = STACK_SIZE){
+        buf = new int[capa];
+        cur = -1;
+        capacity = capa;
+    }
+    ~stackmine(){
+        delete[] buf;
+    }
+    void push(int val){
+        buf[++cur] = val;
+    }
+    void pop(){
+        --cur;
+    }
+    int top(){
+        return buf[cur];
+    }
+    bool empty(){
+        return cur==-1;
+    }
+    bool full(){
+        return cur==capacity-1;
+    }
+private:        //防止浅拷贝，这种方法确实防止了浅拷贝，但是如果要把一个类的实例传送到一个函数中，这又怎么办呢？
+    //stackmine(const stackmine& sm);    //只声明不实现
+    //const stackmine& operator=(const stackmine& rhis);//只声明不实现
+};
+
+void stackmineCopy(stackmine a) {
+    a.push(10);
+    a.push(12);
+    printf("Copy right");
+}
+
+
+
 int main() {
+    stackmine sm(10);
+    sm.push(2);
+    sm.push(3);
+    sm.push(4);
+    sm.push(5);
+    sm.pop();
+    stackmine sm2(sm);      //这就会出现问题
+    sm2.push(6);
+    sm2.push(7);
+    sm2.push(8);
+    stackmineCopy(sm);
+    
+    string str("wangbo");
+    sort(str.begin(), str.end());
+    
     std::vector<int> vec;
     // VS2008下
     vec.push_back(1111);
