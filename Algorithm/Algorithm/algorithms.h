@@ -236,7 +236,7 @@ void Convert(BinaryTreeNode * pRoot,
  （3）如果二叉树不为空且k>1，返回左子树中k-1层的节点个数与右子树k-1层节点个数之和
  参考代码如下：
  */
-int GetNodeNumKthLevel(BinaryTreeNode * pRoot, int k)
+int GetNodeNumKthLevel(BinaryTreeNode * pRoot, int k)       //k也就代表了递归的深度
 {
     if(pRoot == NULL || k < 1)
         return 0;
@@ -1867,7 +1867,7 @@ private:        //防止浅拷贝，这种方法确实防止了浅拷贝，但�
 //problem:  最长公共前缀,找到一串字符串的最长的公共前缀
 //algorithm:
 string longestCommonPrefix(vector<string>& strs) {
-    if (strs.empty()) return "";
+    if (strs.empty()) return "";    //“”才表示空串
     
     string first = strs[0];
     for (int i = 0; i < first.size(); i++)
@@ -2301,7 +2301,7 @@ int pnpoly(int nvert, float *vertx, float *verty, float testx, float testy)
     return c;
 }
 
-//problem: lower_bound 和 upper_bound的实现
+//problem: lower_bound 和 upper_bound的实现,Search Insert Position of leetcode
 //algorithm:
 /*
  int point[10] = {1,3,7,7,9};
@@ -2329,6 +2329,25 @@ int my_lower_bound(int *array, int size, int key)
     }
     return pos;
 }
+
+int searchInsert(vector<int>& nums, int target) {
+    int i = 0;
+    int j = nums.size() - 1;
+    while (i <= j) {
+        int mid = i + (j - i) / 2;
+        if (nums[mid] < target)
+            i = mid + 1;
+        else if (nums[mid] > target)
+            j = mid - 1;
+        else
+            return mid;
+    }
+//    if (j < 0)      return 0;
+//    if (i > nums.size())    return nums.size();
+    return i;       //直接返回i
+}
+
+
 int my_upper_bound(int *array, int size, int key)
 {           //upper_bound返回的是最后一个大于等于val的位置，也是有一个新元素val进来时的插入位置。
     int first = 0, last = size-1;
@@ -2746,8 +2765,18 @@ int GetLastK(int* data, int length, int k, int start, int end)
 
 
 
-//problem: 排列
+//problem: 排列，全排列
 //algorithm: 递归
+/*
+ 通过找规律，求字符串的全排列，可以看出三步：
+ 
+ 首先，求所有可能出现在第一个位置的字符，
+ 
+ 其次，把第一个字符和其后面的字符一一交换。如下图所示，分别把第一个字符a和后面的b、c等字符交换的情形。
+ 
+ 接着，固定第一个字符，求后面所有字符的排列。这个时候我们仍把后面的所有字符分成两部分：后面字符的第一个字符，以及这个字符之后的所有字符。然后把第一个字符逐一和它后面的字符交换
+
+ */
 void Permutation(char* pStr, char* pBegin);
 
 void Permutation(char* pStr)
@@ -2755,40 +2784,209 @@ void Permutation(char* pStr)
     if(pStr == NULL)
         return;
     
-    Permutation(pStr, pStr);
+    Permutation1(pStr, pStr);
 }
 
 int nPermu;
-void Permutation(char* pStr, char* pBegin)//pStr指向整个字符串的第一个字符，pBegin指向当前我们做排列操作的字符串的第一个字符
+void Permutation1(char* s, char* cur)//s指向整个字符串的第一个字符，cur指向当前我们做排列操作的字符串的第一个字符
 {
-    if(*pBegin == '\0')
-    {
+    if(*cur == '\0')
+    {   //static int nPermu = 0; //可以在这里面定义一个静态变量
         printf("%d: ", nPermu);
-        printf("%s\n", pStr);
+        printf("%s\n", s);
         nPermu++;
     }
     else
     {
-        for(char* pCh = pBegin; *pCh != '\0'; ++ pCh)
-            //每一次递归，从pBegin向后扫描每一个字符，在交换pBegin和pCh之后，再对pBegin后面的字符串递归的排列操作
+        for(char* p = cur; *p != '\0'; ++ p)
         {
-            char temp = *pCh;
-            *pCh = *pBegin;
-            *pBegin = temp;
+            char temp = *p;
+            *p = *cur;
+            *cur = temp;
             
-            Permutation(pStr, pBegin + 1);
+            Permutation1(s, cur + 1);
             
-            //temp = *pCh;
-            //*pCh = *pBegin;
-            //*pBegin = temp;
+            temp = *p;
+            *p = *cur;
+            *cur = temp;
         }
     }
 }
 
+//利用next_permutation直接列出
+void Permutation2(string pStr, int length)
+{
+    sort(pStr.begin(), pStr.end());
+    
+    do
+    {
+        cout << pStr <<endl;
+    } while ( next_permutation(pStr.begin(), pStr.end()) );
+}
+
+
+//通过建立一个hash来判断是不是重合
+void Permutation_o(char* pStr, char* pBegin, map<string, string>& Dinstinct)
+{
+    if (*pBegin == '\0' )
+    {
+        map <string, string> :: const_iterator iter;
+        string strString(pStr);
+        
+        if ( Dinstinct.find(strString) == Dinstinct.end() )	//不存在
+        {
+            cout << pStr <<endl;
+            Dinstinct.insert(pair<string, string>(strString, strString));
+        }
+    }
+    else
+    {
+        for (char* pCh = pBegin; *pCh!='\0'; pCh++)
+        {
+            swap(*pCh, *pBegin);
+            Permutation_o(pStr, pBegin+1, Dinstinct);
+            swap(*pCh, *pBegin);
+        }
+    }
+}
+
+void Permutation3(char* pStr)
+{
+    if (pStr==NULL)
+        return;
+    
+    map<string, string> Dinstinct;
+    Permutation_o(pStr,pStr,Dinstinct);
+}
+
+int main_permutation3(void)
+{
+    char str[10] ;
+    cout <<"input the string: ";
+    cin>> str;
+    cout <<"the string's permutation lists:"<<endl;
+    Permutation3(str);
+    return 0;
+}
+
+
+
+//k表示当前选取到第几个数，m表示共有多少个数
+void Permutation4(char* pStr,int k,int m)
+{
+    assert(pStr);
+    
+    if(k == m)
+    {
+        static int num = 1;  //局部静态变量，用来统计全排列的个数
+        printf("第%d个排列\t%s\n",num++,pStr);
+    }
+    else
+    {
+        for(int i = k; i <= m; i++)
+        {
+            swap(*(pStr+k),*(pStr+i));
+            Permutation4(pStr, k + 1 , m);
+            swap(*(pStr+k),*(pStr+i));
+        }
+    }
+}
+
+int main_permutation4(void)
+{
+    char str[] = "abc";
+    Permutation(str , 0 , strlen(str)-1);
+    return 0;
+}
+
+
+//在[nBegin,nEnd)区间中是否有字符与下标为pEnd的字符相等
+bool IsSwap(char* pBegin , char* pEnd)
+{
+    char *p;
+    for(p = pBegin ; p < pEnd ; p++)
+    {
+        if(*p == *pEnd)
+            return false;
+    }
+    return true;
+}
+//有重复的permutation
+void PermutationD(char* pStr , char *pBegin)
+{
+    assert(pStr);
+    
+    if(*pBegin == '\0')
+    {
+        static int num = 1;  //局部静态变量，用来统计全排列的个数
+        printf("第%d个排列\t%s\n",num++,pStr);
+    }
+    else
+    {
+        for(char *pCh = pBegin; *pCh != '\0'; pCh++)   //第pBegin个数分别与它后面的数字交换就能得到新的排列
+        {
+            if(IsSwap(pBegin , pCh))
+            {
+                swap(*pBegin , *pCh);
+                Permutation(pStr , pBegin + 1);
+                swap(*pBegin , *pCh);
+            }
+        }
+    }
+}
+
+int main_permutationD(void)
+{
+    char str[] = "baa";
+    Permutation(str , str);
+    return 0;
+}
+
+
+//排列
+void Combination(char *string ,int number,vector<char> &result);
+
+void Combination(char *string)
+{
+    assert(string != NULL);
+    vector<char> result;
+    int i , length = strlen(string);
+    for(i = 1 ; i <= length ; ++i)
+        Combination(string , i ,result);
+}
+
+void Combination(char *string ,int number , vector<char> &result)
+{
+    assert(string != NULL);
+    if(number == 0)
+    {
+        static int num = 1;
+        printf("第%d个组合\t",num++);
+        
+        vector<char>::iterator iter = result.begin();
+        for( ; iter != result.end() ; ++iter)
+            printf("%c",*iter);
+        printf("\n");
+        return ;
+    }
+    if(*string == '\0')
+        return ;
+    result.push_back(*string);
+    Combination(string + 1 , number - 1 , result);
+    result.pop_back();
+    Combination(string + 1 , number , result);
+}
+
+int main_combination(void)
+{
+    char str[] = "abc";
+    Combination(str);
+    return 0;
+}
 
 //problem:放皇后问题
 //algorithm: 回溯-分支限定
-//使用试探-回溯-剪枝法的头文件
+//使用试探-回溯-剪枝法的头文件，这是用迭代实现的
 #define QUEEN_MAX 20
 extern int nSolu;
 extern int nCheck;
@@ -2878,6 +3076,139 @@ void placeQueens(int N)
     double timeSpended = 1000.0 * (c_end - c_start)/CLOCKS_PER_SEC;
     printf("Time Spended %f (ms)\n", timeSpended);
 }
+
+
+//这个更直观
+class Solution_queen3 {
+private:
+    vector<vector<string> > res;
+public:
+    vector<vector<string> > solveNQueens(int n) {
+        vector<string>cur(n, string(n,'.'));
+        helper(cur, 0);
+        return res;
+    }
+    void helper(vector<string> &cur, int row)
+    {
+        if(row == cur.size())
+        {
+            res.push_back(cur);
+            return;
+        }
+        for(int col = 0; col < cur.size(); col++)
+            if(isValid(cur, row, col))
+            {
+                cur[row][col] = 'Q';
+                helper(cur, row+1);
+                cur[row][col] = '.';
+            }
+    }
+    
+    //判断在cur[row][col]位置放一个皇后，是否是合法的状态
+    //已经保证了每行一个皇后，只需要判断列是否合法以及对角线是否合法。
+    bool isValid(vector<string> &cur, int row, int col)
+    {
+        //列
+        for(int i = 0; i < row; i++)
+            if(cur[i][col] == 'Q')return false;
+        //右对角线(只需要判断对角线上半部分，因为后面的行还没有开始放置)
+        for(int i = row-1, j=col-1; i >= 0 && j >= 0; i--,j--)
+            if(cur[i][j] == 'Q')return false;
+        //左对角线(只需要判断对角线上半部分，因为后面的行还没有开始放置)
+        for(int i = row-1, j=col+1; i >= 0 && j < cur.size(); i--,j++)
+            if(cur[i][j] == 'Q')return false;
+        return true;
+    }
+};
+
+
+//这个更简单快速
+class Solution_queen {
+private:
+    vector<vector<string> > res;
+public:
+    vector<vector<string> > solveNQueens(int n) {
+        vector<int> state(n, -1);       //都初始化为-1
+        helper(state, 0);
+        return res;
+    }
+    
+    void helper(vector<int> &state, int row)
+    {//放置第row行的皇后
+        int n = state.size();
+        if(row == n)
+        {
+            vector<string> tmpres(n, string(n,'.'));
+            for(int i = 0; i < n; i++)
+                tmpres[i][state[i]] = 'Q';
+            res.push_back(tmpres);
+            return;
+        }
+        for(int col = 0; col < n; col++)
+            if(isValid(state, row, col))
+            {
+                state[row] = col;
+                helper(state, row+1);
+                state[row] = -1;    //回溯
+            }
+    }
+    
+    //判断在row行col列位置放一个皇后，是否是合法的状态
+    //已经保证了每行一个皇后，只需要判断列是否合法以及对角线是否合法。
+    bool isValid(vector<int> &state, int row, int col)
+    {
+        for(int i = 0; i < row; i++)//只需要判断row前面的行，因为后面的行还没有放置
+            if(state[i] == col || abs(row - i) == abs(col - state[i]))
+                return false;
+        return true;
+    }
+};
+
+//迭代版
+class Solution_queen2 { //迭代版
+private:
+    vector<vector<string> > res;
+public:
+    vector<vector<string> > solveNQueens(int n) {
+        vector<int> state(n, -1);
+        for(int row = 0, col; ;)
+        {
+            for(col = state[row] + 1; col < n; col++)//从上一次放置的位置后面开始放置
+            {
+                if(isValid(state, row, col))
+                {
+                    state[row] = col;
+                    if(row == n-1)//找到了一个解,继续试探下一列
+                    {
+                        vector<string>tmpres(n, string(n,'.'));
+                        for(int i = 0; i < n; i++)
+                            tmpres[i][state[i]] = 'Q';
+                        res.push_back(tmpres);
+                    }
+                    else {row++; break;}//当前状态合法，去放置下一行的皇后
+                }
+            }
+            if(col == n)//当前行的所有位置都尝试过，回溯到上一行
+            {
+                if(row == 0)break;//所有状态尝试完毕，退出
+                state[row] = -1;//回溯前清除当前行的状态
+                row--;
+            }
+        }
+        return res;
+    }
+    
+    //判断在row行col列位置放一个皇后，是否是合法的状态
+    //已经保证了每行一个皇后，只需要判断列是否合法以及对角线是否合法。
+    bool isValid(vector<int> &state, int row, int col)
+    {
+        for(int i = 0; i < row; i++)//只需要判断row前面的行，因为后面的行还没有放置
+            if(state[i] == col || abs(row - i) == abs(col - state[i]))
+                return false;
+        return true;
+    }
+};
+
 
 //problem: knight moves
 //algorithm: Astar A星算法 A* 主要利用A*算法和BFS算法
@@ -3415,61 +3746,37 @@ T myQueueWithStack<T>::dequeue()
 
 //problem: 知道先序排列的数组和中序排列的数组，重构/重建原二叉搜索树rebuild, buildtree.
 //algorithm: 递归
-BinaryTreeNode* rebuild(int* startPreorder, int* endPreorder, int* startInorder, int* endInorder);
+/**
+ * Definition for binary tree
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    template<typename Iter>
+    TreeNode* make(Iter pFirst , Iter pLast , Iter iFirst , Iter iLast) {
+        if(pFirst == pLast) return nullptr;
+        if(iFirst == iLast) return nullptr;
+        int val = *pFirst;
+        auto iRoot = find(iFirst , iLast , val);
+        TreeNode* root = new TreeNode(*iRoot);
+        int leftSize = iRoot - iFirst;
+        root -> left = make(pFirst+1 , pFirst+leftSize+1 , iFirst , iRoot);
+        root -> right = make(pFirst+leftSize+1 , pLast , iRoot + 1 , iLast);
+        return root;
+    }
+    TreeNode *buildTree(vector<int> &preorder, vector<int> &inorder) {
+        int size = inorder.size();
+        if(size == 0) return nullptr;
+        return make(preorder.begin() , preorder.end() , inorder.begin() , inorder.end());
+    }
+};
 
-BinaryTreeNode* Construct(int* preorder, int* inorder, int length)
-{
-    if(preorder == NULL || inorder == NULL || length <= 0)
-        return NULL;
-    
-    return rebuild(preorder, preorder + length - 1,
-                         inorder, inorder + length - 1);
-}
 
-BinaryTreeNode* rebuild( int* startPreorder, int* endPreorder,
-                               int* startInorder, int* endInorder)
-{
-    // 前序遍历的第一个节点是根节点的值
-    int rootValue = startPreorder[0];
-    BinaryTreeNode* root = (BinaryTreeNode*) malloc(sizeof(BinaryTreeNode));
-    root->m_nValue = rootValue;
-    root->m_pLeft = root->m_pRight = NULL;
-    
-    if(startPreorder == endPreorder)
-    {
-        if(startInorder == endInorder && *startPreorder == *startInorder)
-            return root;
-        else
-            //throw std::exception("Invalid input.");这是微软的。。。
-            return NULL;
-    }
-    
-    // 在中序遍历中找到根节点的值
-    int* rootInorder = startInorder;
-    while(rootInorder <= endInorder && *rootInorder != rootValue)
-        ++ rootInorder;
-    
-    if(rootInorder == endInorder && *rootInorder != rootValue)
-        //throw std::exception("Invalid input.");
-        return NULL;
-    
-    int leftLength = (int) (rootInorder - startInorder);
-    int* leftPreorderEnd = startPreorder + leftLength;
-    if(leftLength > 0)
-    {
-        // 构建左子树
-        root->m_pLeft = rebuild(startPreorder + 1, leftPreorderEnd,
-                                      startInorder, rootInorder - 1);
-    }
-    if(leftLength < endPreorder - startPreorder)
-    {
-        // 构建右子树
-        root->m_pRight = rebuild(leftPreorderEnd + 1, endPreorder,
-                                       rootInorder + 1, endInorder);
-    }
-    
-    return root;
-}
 
 //编程之美上面的源代码
 // 定义树的长度。为了后序调用实现的简单，我们直接用宏定义了树节点的总数
@@ -3802,9 +4109,9 @@ int getLower(int arr[], int size, int key){//获取某个元素第一次出现�
     return low;
 }
 
-//problem: memmove
+//problem: memmove，对基本函数的了解
 //algorithm: 注意memcpy和memmove的区别
-void * mymemmove(void *destaddr, const void *sourceaddr, unsigned length)
+void * my_memmove(void *destaddr, const void *sourceaddr, unsigned length)
 {
     char *dest = (char*)destaddr;
     const char *source = (char*)sourceaddr;
@@ -3819,6 +4126,133 @@ void * mymemmove(void *destaddr, const void *sourceaddr, unsigned length)
                     
     return destaddr;
 }
+
+char* mymemmove(char *dst, const char* src, int cnt)
+{
+    assert(dst != NULL && src != NULL); //一定要有assert
+    
+    char *ret = dst;
+    
+    if (dst >= src && dst <= src+cnt-1) //内存重叠，从高地址开始复制
+    {       //  srt.......dst.......src+cnt-1......dst+cnt-1
+        dst = dst+cnt-1;
+        src = src+cnt-1;
+        while (cnt--)
+            *dst-- = *src--;
+    }
+    else    //正常情况，从低地址开始复制
+    {
+        while (cnt--)
+            *dst++ = *src++;
+    }
+    
+    return ret;
+}
+
+char* mystrcpy(char *dst,const char *src)   //[1]
+{
+    assert(dst != NULL && src != NULL);    //[2]
+    
+    char *ret = dst;  //[3]         返回dst的原始值使函数能够支持链式表达式
+    
+    while ((*dst++ = *src++) != '\0'); //[4]
+    
+    return ret;
+}
+
+int mystrlen( const char *str ) //输入参数const
+{
+    　assert( str != NULL ); //断言字符串地址非0
+    　int len = 0;
+    　while( (*str++) != '\0' ) len++;
+    　return len;
+}
+
+int MystrStr(char* haystack, char* needle){
+    if ( needle == NULL) return 0;
+    
+    const char* p1;
+    const char* p2;
+    const char* p1_advance = haystack;
+    
+    for (p2 = &needle[1]; *p2; ++p2){
+        p1_advance++;  //向前移动短字符串的长度
+    }
+    
+    for (p1 = haystack; *p1_advance; p1_advance++){
+        char* p1_old = (char*) p1;
+        p2 = needle;
+        while (*p1 && *p2 && *p1 == *p2){
+            p1++;
+            p2++;
+        }
+        
+        if( p2 == NULL) return (int) (p1_old-haystack); //注意返回的是在haystack中的索引
+        p1 = p1_old + 1;
+    }
+    return -1;
+}
+
+int myStrStr_(char *string, char *substring) {
+    if (substring == NULL || string == NULL)
+        return -1;
+    int len1 = (int) strlen(string);
+    int len2 = (int) strlen(substring);
+    if (len1 < len2)
+        return -1;
+    for (int i = 0; i <= len1 - len2; i++) {
+        int j = 0;
+        for (; j < len2; j++){
+            if (string[i + j] != substring[j])
+                break;
+        }
+        if (j == len2)
+            return i;
+    }
+    return -1;
+}
+//最高效的肯定是KMP（看毛片算法）
+void makeNext(const char str[],int next[])
+//“部分匹配值”就是”前缀”和”后缀”的最长的共有元素的长度（不是倒过来）
+{
+    int m = strlen(str);
+    next[0] = 0;
+    int i = 0;      //两个指针一前一后
+    for (int j = 1; j < m; ++j)
+    {
+        while(i > 0 && str[j] != str[i])
+            i = next[i-1];      //就这一步不好理解
+        if (str[j] == str[i])
+        {
+            i++;
+        }
+        next[j] = i;
+    }
+}
+
+int kmp(const char text[], const char str[], int next[])
+{
+    int i = 0;
+    int n = strlen(text);
+    int m = strlen(str);
+    makeNext(str, next);
+    
+    for (int j = 0; j < n; ++j )
+    {          //移动位数 = 已匹配的字符数 – 对应的部分匹配值(已匹配字符最后一位的匹配值)
+        while(i > 0 && text[j] != str[i])
+            i = next[i-1];
+        if (text[j] == str[i])
+        {
+            i++;
+        }
+        if (i == m)
+        {
+            printf("Pattern occurs with shift:%d\n",(j-m+1));
+        }
+    }
+}
+
+
 
 
 //problem: linkedlist sort mergelist listmerge
@@ -3982,6 +4416,19 @@ public:
         delete head;
     }
 };
+
+//merge sorted list
+void mergeSortedList(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+    
+    int i = m - 1;
+    int j = n - 1;
+    int k = m + n - 1;
+    while (i >= 0 && j >= 0) {
+        nums1[k--] = (nums1[i] >= nums2[j]) ? nums1[i--] : nums2[j--];
+    }
+    while (j >= 0)
+        nums1[k--] = nums2[j--];
+}
 
 
 
@@ -6240,6 +6687,66 @@ node *reverseList2(node *head)
     return head;
 }
 
+
+
+/**
+ * Definition for singly-linked list.
+ * public class ListNode {
+ *     int val;
+ *     ListNode next;
+ *     ListNode(int x) {
+ *         val = x;
+ *         next = null;
+ *     }
+ * }
+ */
+public class Solution_reverseKGroup{
+    public ListNode reverseKGroup(ListNode head, int k) {
+        if(head == null || head.next == null || k < 2) return head;
+        ListNode fakeHead = new ListNode(-1);
+        fakeHead.next = head;
+        ListNode pre = fakeHead;
+        ListNode cur = head;
+        int i = 0;
+        while(cur != null){
+            i++;
+            cur = cur.next;
+            if(i % k == 0){
+                pre = reverseLinkedList(pre, cur);
+                if(i == k){
+                    head = pre;
+                }
+                int temp = k;
+                while(temp > 1){
+                    pre = pre.next;
+                    temp--;
+                }
+            }
+        }
+        return head;
+    }
+    
+    //reverse nodes between beginNode and endNode(exclusively)
+    //return the first node in the reversed part
+    private static ListNode reverseLinkedList(ListNode beginNode, ListNode endNode) {
+        // TODO Auto-generated method stub
+        ListNode head = beginNode.next;
+        ListNode dummy = head;//use dummy to maintain the new head
+        ListNode pre = head;
+        ListNode cur = pre.next;
+        ListNode after = cur.next;
+        while(cur != endNode){
+            pre.next = after;
+            cur.next = dummy;
+            dummy = cur;
+            cur = pre.next;
+            if(cur == null) break;
+            after = cur.next;
+        }
+        beginNode.next = dummy;//!after reverse, beginNode should also before the first Node, endNode should also before the last node
+        return dummy;
+    }
+}
 //problem: usr insertion sort to sort a single linked list
 /**
  * Definition for singly-linked list.
@@ -6448,13 +6955,10 @@ ListNode* FindFirstCommonNode( ListNode *pHead1, ListNode *pHead2)
         pListHeadShort = pListHeadShort->succ;
     }
     
-    
-    ListNode* pFisrtCommonNode = pListHeadLong;
-    
-    return pFisrtCommonNode;
+    return pListHeadLong; //这步还是比较巧妙，不需要判断是不是到达末尾了
 }
 
-unsigned int GetListLength(ListNode* pHead)
+unsigned int GetListLength(ListNode* pHead)     //代码复用的体现
 {
     unsigned int nLength = 0;
     ListNode* pNode = pHead;
@@ -6671,7 +7175,7 @@ int maxSubMatrix(vector<vector<int> > a, int n){
 
 //问题：设计包含min函数的栈，定义栈的数据结构，要求添加一个min函数，能够得到栈的最小元素。
 //要求函数min、push以及pop的时间复杂度都是O(1)。
-//算法：借助一个辅助栈来保存最小值
+//算法：借助一个辅助栈来保存最小值stackmin、minstack
 template<typename T>
 class StackSuppliedMin{
 public:
@@ -6685,14 +7189,14 @@ public:
     }
     
     void pop(){
-        assert(!datas.empty());
+        assert(!datas.empty());     //这步还是没有判断
         if (datas.back() == datas[s.back()])
             s.pop_back();
         datas.pop_back();
     }
     
     T min(){
-        assert(!datas.empty() && !s.empty());
+        assert(!datas.empty() && !s.empty());//这步也没有判断，真是作死
         return datas[s.back()];
     }
     
@@ -6751,12 +7255,14 @@ public:
     }
     
     void pop() {
+        assert(!s1.empty());
         if (s1.top() == s2.top())
             s2.pop();
         s1.pop();
     }
     
     int getMin(){
+        assert(!s2.empty());
         return s2.top();
     }
 };
@@ -6978,28 +7484,42 @@ BSTtreenode* genBST(int start, int end, vector<BSTtreenode*> &treeNodes)
 
 //问题：给定两个串a和b，问b是否是a的子串的变位词。例如输入a = hello, b = lel, lle,
 //ello都是true,但是b = elo是false
-//算法：划窗+字符种类差
-int anagramMatch(char* t, char* p){
-    int num[26] = {0};
+//算法：划窗+字符种类差(动态的窗口调整)
+
+bool f(string a,string b)
+{
+    vector<int> num(25,0);
     int nonZero = 0;
-    int lenp = (int)strlen(p);
-    int lent = (int)strlen(t);
-    
-    for (int i = 0; i < lenp; i++){
-        if (++num[p[i] - 'a'] == 1) ++nonZero;
+    for(int i=0;i<b.size();++i)
+    {
+        if(++num[b[i]-'a']==1)
+            ++nonZero;
     }
-    
-    int i, k = 0;
-    for (; k < lent-lenp; k ++){
-        for (i = k; i < lenp+k; i ++){
-            int c = t[i] - 'a';
-            --num[c];
-            if (num[c] == 0)    --nonZero;
-            if (num[c] == -1)   ++nonZero;
-        }
-        if (nonZero==0)     return k;
+    for(int i=0;i<b.size();++i)
+    {
+        int c = a[i] - 'a';
+        --num[c];
+        if(num[c]==0)       --nonZero;
+        else if(num[c]==-1) ++nonZero;
     }
-    return -1;
+    if(nonZero == 0)        return true;
+    //旧窗口a[i-b.size()..i-1]
+    //新窗口a[i-b.size()+1..i]
+    for(int i = b.size(); i < a.size(); ++i)      //这种最好由后往前
+    {
+        //删除a[i-b.size()]
+        int c = a[i-b.size()]-'a';
+        ++num[c];
+        if(num[c]==0)       --nonZero;
+        else if(num[c]==1)  ++nonZero;
+        //添加a[i]
+        c=a[i]-'a';
+        --num[c];
+        if(num[c]==0)       --nonZero;
+        else if(num[c]==-1) ++nonZero;
+        if(nonZero==0)      return true;
+    }
+    return false;
 }
 
 
@@ -7994,17 +8514,19 @@ int gcd3(int x, int y)
 int countPrimes(int n) {
     bool* isPrime = new bool[n];
     for (int i = 0; i < n; i++) {
+        //这个使用memset(isPrime, true, n * sizeof(bool))快多了
         isPrime[i] = true;
     }
-    for (int i = 2; i * i < n; i++) {
-        if (!isPrime[i])    continue;
-        for (int j = i*i; j < n; j += i) {
+    for (int i = 2; i*i < n; i++) {
+        if (!isPrime[i])
+            continue;
+        for (int j = i*i; j < n; j += i) { //消除i的整数倍元素
             isPrime[j] = false;
         }
     }
     
     int count = 0;
-    for (int i = 0; i < n; i++) {
+    for (int i = 2; i < n; i++) {
         if(isPrime[i]) count++;
     }
     return count;
@@ -8266,6 +8788,21 @@ int search2(int array[], int n, int v)  //左闭右开
 }
 
 
+//变形：find peak element eg: 1 2 3 2 1        //如果最大值有重复怎么办
+int findPeakElement(const vector<int> &num) {
+    int left = 0;
+    int right = num.size()-1;
+    while(left <= right){
+        if(left == right)           //这里有一个结束条件，注意
+            return left;
+        int mid = (left+right)/2;
+        if(num[mid] < num[mid+1])   //将中间值与右边的值进行比较
+            left = mid+1;
+        else
+            right = mid;
+    }
+}
+//以上的findPeakelement变形为：given a list of elements arranged in ascending and then descending order(e.g. 1,3,5,7,6,4,2), write a function to determine if a target number in in this list.
 
 //不适用递归，如果存在返回数组位置，不存在则返回-1
 int binSearch3(int arry[],int len,int value)
@@ -8444,7 +8981,7 @@ int quickSqrt(int x) {
         const int mid = left + (right-left)/2;
         if (x / mid > mid) {//不要用x > mid * mid会溢出
             left = mid + 1;
-            last_mid = mid;
+            last_mid = mid;    //这是找整数。。。。。下面的newton法才能找到
         }else if (x / mid < mid) {
             right = mid - 1;
         }else
@@ -8452,6 +8989,17 @@ int quickSqrt(int x) {
     }
     return last_mid;
 }
+//算法：牛顿法
+//X(n+1)=[X(n)+p/Xn]/2
+double NewTon_sqrt(double n) {
+    double k = 1.0;
+    while(abs(k*k-n) > 1e-9) {
+        k = (k+n/k)/2;          //精髓：X(n+1)=[X(n)+p/Xn]/2
+    }
+    return k;
+}
+
+
 
 //problem: 不用额外的变量颠倒一个字符串
 //algorithm: 利用位运算
@@ -8628,6 +9176,162 @@ void printLastKLines(ifstream &fin, int k){
     }
     for(int i=0; i<cnt; ++i)
         cout<<line[(start+i)%k]<<endl;
+}
+
+/*
+ 计算字符串表达式的值，表达式中只含有(,),+,-,空格和非负整数。例如：
+ 　　“1 + 1” = 2
+ 　　” 2-1 + 2 ” = 3
+ 　　“(1+(4+5+2)-3)+(6+8)” = 23
+ */
+//basic caculator
+/*
+ 两个栈：
+ 
+ 一个存放操作数，每次进栈要注意，如果操作符栈顶元素为'+'/'-'，则需要立即计算。
+ 
+ 一个存放操作符（包括括号），每次出现')'时，不断进行出栈计算再进栈，直到弹出'('，说明当前括号内计算完毕。
+ */
+class Solution_caculator {
+public:
+    int calculate(string s) {
+        stack<int> num; //两个栈，一个用来存储操作符，一个用来存储操作数
+        stack<int> op;
+        int i = 0;
+        while(i < s.size())
+        {
+            while(i < s.size() && s[i] == ' ')
+                i ++;
+            if(i == s.size())
+                break;
+            if(s[i] == '+' || s[i] == '-' || s[i] == '(')
+            {
+                op.push(s[i]);
+                i++;
+            }
+            else if(s[i] == ')')
+            {
+                while(op.top() != '(')
+                {// calculation within parentheses
+                    int n2 = num.top();
+                    num.pop();
+                    int n1 = num.top();
+                    num.pop();
+                    if(op.top() == '+')
+                        num.push(n1 + n2);
+                    else
+                        num.push(n1 - n2);
+                    op.pop();
+                }
+                op.pop();
+                while(!op.empty() && op.top() != '(')
+                {
+                    int n2 = num.top();
+                    num.pop();
+                    int n1 = num.top();
+                    num.pop();
+                    if(op.top() == '+')
+                        num.push(n1 + n2);
+                    else
+                        num.push(n1 - n2);
+                    op.pop();
+                }
+                i ++;
+            }
+            else    //操作数时
+            {
+                int n = 0;
+                while(i < s.size() && s[i] >= '0' && s[i] <= '9')
+                {
+                    n = n*10 + (s[i]-'0');
+                    i ++;
+                }
+                num.push(n);
+                while(!op.empty() && op.top() != '(')
+                {
+                    int n2 = num.top();
+                    num.pop();
+                    int n1 = num.top();
+                    num.pop();
+                    if(op.top() == '+')
+                        num.push(n1 + n2);
+                    else
+                        num.push(n1 - n2);
+                    op.pop();
+                }
+            }
+        }
+        return num.top();
+    }
+};
+
+
+int GetNum(string poststr,int *i)
+{
+    int tmp =0;
+    while(poststr[(*i)] >= ‘0‘ && poststr[(*i)] <= ‘9‘)
+    {
+        tmp = tmp*10 + ( poststr[(*i)] - ‘0‘);
+        (*i) ++;
+    }
+    return tmp;
+}
+
+bool isBigEndian() {
+    int x = 1;
+    char* y = &x;
+    return 1 == *y;
+}
+
+void hanoi(int n, char src, char bri, char dst){
+    //第一个参数表示移动多少个第二个参数中的盘子
+    if(n == 1){
+        cout<<"Move disk "<<n<<" from "<<src<<" to "<<dst<<endl;
+    }
+    else{
+        hanoi(n-1, src, dst, bri);
+        cout<<"Move disk "<<n<<" from "<<src<<" to "<<dst<<endl;
+        hanoi(n-1, bri, src, dst);
+    }
+}
+int main_hanoi() {
+    int n;
+    scanf("%d", &n);
+    printf("%d\n", (1 << n) - 1); /* 总次数 */
+    hanoi(n, 'A', 'B', 'C');
+    return 0;
+}
+
+//以下用递归来实现，每次要记录盘的状态
+
+struct op{
+    int begin, end;
+    char src, bri, dst;
+    op(){
+        
+    }
+    op(int pbegin, int pend, int psrc, int pbri, int pdst):begin(pbegin), end(pend), src(psrc), bri(pbri), dst(pdst){
+        
+    }
+};
+
+void hanoi(int n, char src, char bri, char dst){
+    stack<op> st;
+    op tmp;
+    st.push(op(1, n, src, bri, dst));
+    while(!st.empty()){
+        tmp = st.top();
+        st.pop();
+        if(tmp.begin != tmp.end){
+            st.push(op(tmp.begin, tmp.end-1, tmp.bri, tmp.src, tmp.dst));
+            st.push(op(tmp.end, tmp.end, tmp.src, tmp.bri, tmp.dst));
+            st.push(op(tmp.begin, tmp.end-1, tmp.src, tmp.dst, tmp.bri));
+        }
+        else{
+            cout<<"Move disk "<<tmp.begin<<" from "<<tmp.src<<" to "<<tmp.dst<<endl;
+        }
+        
+    }
 }
 
 

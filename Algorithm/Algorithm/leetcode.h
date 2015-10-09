@@ -167,7 +167,7 @@ string shortestPalindrome(string s) {
 }
 
 //problem:实现LRU cache
-//algorithm: 采用hashmap
+//algorithm: 采用hashmap（也就是unordered_map）和list
 
 class LRUCache{
 private:
@@ -178,7 +178,7 @@ private:
     };
     
     int maxSize ;
-    list<CacheNode> cacheList;
+    list<CacheNode> cacheList;      //STL中的list就是双链表实现
     unordered_map<int, list<CacheNode>::iterator > mp;
     //这个用map开销是236ms,用unordered_map的开销是156ms，看来unordered_map的效率确实高
 public:
@@ -207,9 +207,9 @@ public:
     
     void set(int key, int value) {
         unordered_map<int, list<CacheNode>::iterator >::iterator it = mp.find(key);
-        if(it==mp.end())   //没有命中
+        if(it == mp.end())   //没有命中
         {
-            if(cacheList.size()==maxSize)  //cache满了
+            if(cacheList.size() == maxSize)  //cache满了
             {
                 mp.erase(cacheList.back().key);
                 cacheList.pop_back();
@@ -1699,20 +1699,30 @@ int minPathSum(vector<vector<int> > & grid) {
     }
     return f[m-1][n-1];
 }
-//算法2：动态规划+滚动数组，只需O(n)的空间//这个存在bug????
-int minPathS(vector<vector<int> > & grid) {
-    int m = (int) grid.size();
-    int n = grid[0].size();
-    int f[n];
-    f[0] = 0;
-    fill(f, f+n, INT_MAX); //初始值都设为INT_MAX, 因为后面用到的是min函数
-    for (int i = 0; i < m ; i++) {
-        f[0] += grid[i][0];
-        for (int j = 1; j < n; j++) {
-            f[j] = min(f[j-1], f[j]) + grid[i][j];
+//算法2：动态规划+滚动数组，只需O(n)的空间
+int minPathSum2(vector<vector<int> > &grid) {
+    int m = grid.size(), n = grid[0].size();
+    vector<int> dp(n);
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (i == 0) {
+                if (j == 0) {
+                    dp[j] = grid[i][j];
+                }
+                else {
+                    dp[j] = dp[j-1] + grid[i][j];
+                }
+            }
+            else if (j == 0) {
+                dp[j] = dp[j] + grid[i][j];
+            }
+            else
+                dp[j] = min(dp[j-1], dp[j]) + grid[i][j];
         }
+        
     }
-    return f[n-1];
+    
+    return dp[n-1];
 }
 //问题：Triangle 路径求最小和（ 动态规划问题）
 //算法：动态规划，用了O(n2)的空间
@@ -2524,7 +2534,7 @@ void nextPermutation(vector<int>& nums) {
 
 //problem: add two binary string, string加法，字符串加法，下面有一个字符串乘法
 //Given two binary strings, return their sum (also a binary string)
-//algorithm: 下面的打印大数
+//algorithm: 下面的打印大数，将下面的2改为10就可以用来对string进行大数加法
 string addBinaryString(string a, string b){
     string result;
     int al = a.size();
@@ -2540,7 +2550,7 @@ string addBinaryString(string a, string b){
         const int bi = i < bl ? b[i] - '0' : 0;
         const int val = (ai + bi + carry) % 2;
         carry = (ai + bi + carry) / 2;
-        result.insert(result.begin(), val+'0');
+        result.insert(result.begin(), val+'0');//这一步不能用+吗？string的+不能加字符？？？？？？？？？
     }
     
     if (carry == 1){
@@ -2624,6 +2634,9 @@ void PrintNumber(char* number)
     printf("\n");
 }
 
+//大数加法和大数乘法
+
+
 //
 /*
  有一个介于0和1之间的实数，类型为double，返回它的二进制表示。如果该数字无法精确地用32位以内的二进制表示，返回“Error”。
@@ -2676,7 +2689,7 @@ string strMultiply(string num1, string num2) {
     }
     
     string result = "";
-    int i, j;
+
     int flag = 0, steps = 0;
     
     for (int i = 0; i < num1.length(); ++i) {

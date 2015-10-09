@@ -21,87 +21,110 @@
 //#include "algorithms.h"
 using namespace std;
 
-#define STACK_SIZE 100
-class stackmine{            //怎么没有赋值构造函数，stack不需要吧？？？？，但如果误操作赋值构造函数，会出问题（术语叫做：防止浅拷贝）
-private:
-    int *buf;
-    int cur;
-    int capacity;
-    
-public:
-    stackmine(int capa = STACK_SIZE){
-        buf = new int[capa];
-        cur = -1;
-        capacity = capa;
-    }
-    ~stackmine(){
-        delete[] buf;
-    }
-    void push(int val){
-        buf[++cur] = val;
-    }
-    void pop(){
-        --cur;
-    }
-    int top(){
-        return buf[cur];
-    }
-    bool empty(){
-        return cur==-1;
-    }
-    bool full(){
-        return cur==capacity-1;
-    }
-private:        //防止浅拷贝，这种方法确实防止了浅拷贝，但是如果要把一个类的实例传送到一个函数中，这又怎么办呢？
-    //stackmine(const stackmine& sm);    //只声明不实现
-    //const stackmine& operator=(const stackmine& rhis);//只声明不实现
-};
+void Permutation(char* pStr, char* pBegin);
 
-void stackmineCopy(stackmine a) {
-    a.push(10);
-    a.push(12);
-    printf("Copy right");
+void Permutation(char* pStr)
+{
+    if(pStr == NULL)
+        return;
+    
+    Permutation(pStr, pStr);
 }
 
-
-
-int main() {
-    stackmine sm(10);
-    sm.push(2);
-    sm.push(3);
-    sm.push(4);
-    sm.push(5);
-    sm.pop();
-    stackmine sm2(sm);      //这就会出现问题
-    sm2.push(6);
-    sm2.push(7);
-    sm2.push(8);
-    stackmineCopy(sm);
-    
-    string str("wangbo");
-    sort(str.begin(), str.end());
-    
-    std::vector<int> vec;
-    // VS2008下
-    vec.push_back(1111);
-    vec.push_back(2222);
-    int *pVec = &vec[0];
-    vec.clear();                //clear并不会把容器里面的内容都释放掉，swap才会把容器里面的内容释放掉
-    /*
-     vector的内存不会自动释放的，clear后仍然占用那块内存
-     找一本合格的关于C++标准库的书，会有很详细的介绍
-     
-     C++11提供了shrink_to_fit方法显式释放内存，如果你一定要释放内存，在clear或者erase后进行shrink操作
-    */
-    std::cout<<vec.capacity()<<std::endl;// 2
-    
-    if( vec.capacity() > 0 )
-    {
-        std::cout<<*pVec<<std::endl; //1111
-        std::cout<<*(pVec+1)<<std::endl;//2222
+int nPermu;
+void Permutation(char* s, char* cur)//pStr指向整个字符串的第一个字符，pBegin指向当前我们做排列操作的字符串的第一个字符
+{
+    if(*cur == '\0')
+    {   //static int nPermu = 0; //可以在这里面定义一个静态变量
+        printf("%d: ", nPermu);
+        printf("%s\n", s);
+        nPermu++;
     }
+    else
+    {
+        for(char* p = cur; *p != '\0'; ++ p)
+            //每一次递归，从pBegin向后扫描每一个字符，在交换pBegin和pCh之后，再对pBegin后面的字符串递归的排列操作
+        {
+            char temp = *p;
+            *p = *cur;
+            *cur = temp;
+            
+            Permutation(s, cur + 1);
+            
+            temp = *p;
+            *p = *cur;
+            *cur = temp;
+        }
+    }
+}
+
+int main(void)
+{
+    std::string s = "aba";
+    std::sort(s.begin(), s.end());
+    do {
+        std::cout << s << '\n';
+    } while(std::next_permutation(s.begin(), s.end()));
+    
+    char ss[] = "abcd";
+    Permutation(ss);
+    int a = 12344;
+    string atr = to_string(a);
+    /* to_string把参数当做是数字来处理
+     std::string to_string( int value );
+
+     std::string to_string( long value );
+
+     std::string to_string( long long value );
+
+     std::string to_string( unsigned value );
+
+     std::string to_string( unsigned long value );
+
+     std::string to_string( unsigned long long value );
+
+     std::string to_string( float value );
+
+     std::string to_string( double value );
+
+     std::string to_string( long double value );
+     */
+    string str1 = "";
+    char c = '0' + 2;
+    
+    char str[] = "abc";
+
     return 0;
 }
+
+//int main() {
+//    //main_hanoi();
+//    string str("wangbo");
+//    sort(str.begin(), str.end());
+//    
+//    std::vector<int> vec;
+//    // VS2008下
+//    vec.push_back(1111);
+//    vec.push_back(2222);
+//    int *pVec = &vec[0];
+//    vec.clear();                //clear并不会把容器里面的内容都释放掉，swap才会把容器里面的内容释放掉
+//    /*
+//     vector的内存不会自动释放的，clear后仍然占用那块内存
+//     找一本合格的关于C++标准库的书，会有很详细的介绍
+//     
+//     C++11提供了shrink_to_fit方法显式释放内存，如果你一定要释放内存，在clear或者erase后进行shrink操作
+//    */
+//    std::cout<<vec.capacity()<<std::endl;// 2
+//    
+//    if( vec.capacity() > 0 )
+//    {
+//        std::cout<<*pVec<<std::endl; //1111
+//        std::cout<<*(pVec+1)<<std::endl;//2222
+//    }
+//    return 0;
+//}
+
+
 /*
 void rotateMatrix(vector<vector<int> > &matrix) {
     reverse(matrix.begin(), matrix.end());
