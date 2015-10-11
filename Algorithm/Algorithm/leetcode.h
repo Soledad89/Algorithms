@@ -1261,7 +1261,7 @@ int findKthLargest2(vector<int>& nums, int k)
 }
 //算法2.1：建立一个优先排序队列
 int findKthLargest2_1(vector<int>& nums, int k) {
-    priority_queue<int> pq;
+    priority_queue<int> pq; //优先队列就是用heap来实现的
     for (auto n : nums)
         pq.push(n);
     for (int i = 1; i < k; i++)
@@ -1300,62 +1300,35 @@ void GetLeastNumbers_Solution(const vector<int>& data, intSet& leastNumbers, int
 }
 
 //算法3：分治法，利用quick sort的思想partition
-int partition(vector<int> &nums,int begin,int end);
-
-int findKthLargest3(vector<int>& nums, int k)
-
-{
-    
-    int pivot=nums[0];
-    
-    int left=0;
-    
-    int right = (int)nums.size()-1;
-    
-    while(true) {
-        
-        int pos = partition(nums,left,right);
-        
-        if(pos == k-1)
-            
-            return nums[pos];
-        
-        if(pos<k-1)
-            left = pos+1;
-        else
-            right = pos-1;
-        
+class Solution_findKthLargest {     //这个比直接用priority_queue效率高多了
+public:
+    int findKthLargest(vector<int>& nums, int k) {
+        int n = nums.size();
+        assert(k > 0 && k <= n);
+        if (n == 0)
+            return -1;
+        int i = 0;
+        int j = n - 1;
+        while (i <= j) {
+            int p = partition(nums, i, j);
+            if (p == k - 1)
+                return nums[p];
+            if (p < k - 1)
+                i = p + 1;
+            else
+                j = p - 1;
+        }
     }
-    
-}
-
-int partition(vector<int> &nums,int begin,int end)
-
-{
-    
-    int left=begin+1;
-    
-    int right=end;
-    
-    while(left<=right) {
-        
-        if(nums[left]<nums[begin]&&nums[right]>nums[begin])
-            
-            swap(nums[left],nums[right]);
-        
-        if(nums[left]>=nums[begin]) 
-            
-            left++; 
-        
-        if(nums[right]<=nums[begin]) 
-            
-            right--;
-        
-    } 
-    
-    swap(nums[begin],nums[right]); return right; 
-    
-}
+    int partition(vector<int>& nums, int left, int right) {
+        int pivot = nums[left];
+        int i = left;
+        for (int j = left + 1; j <= right; j++)
+            if (nums[j] >= pivot)
+                swap(nums[++i], nums[j]);
+        swap(nums[left], nums[i]);
+        return i;
+    }
+};
 
 //问题：Decode ways
 //算法：与climing Stairs类似
@@ -1955,6 +1928,48 @@ bool isPalindrome3(ListNode* head) {
     return true;
 }
 
+//利用快慢指针找到中间元素，然后将后半链表reverse，依次比较
+class Solution_palin {
+public:
+    bool isPalindrome(ListNode* head) {
+        if (head == NULL || head->next == NULL)
+            return true;
+        ListNode* p = head;
+        ListNode* q = head;
+        while(q != NULL && q->next!= NULL) {//快慢指针的判断条件容易出错，注意不能只单独判断q->next是否为空，如果q本身就为空的话，会runtime error
+            p = p->next;
+            q = q->next->next;
+        }
+        ListNode* mid = (q == NULL) ? p : p->next;
+        ListNode* mid_reverse = reverseList(mid);
+        ListNode* r = mid_reverse;
+        while (r != NULL) {
+            if (r->val != head->val)
+                return false;
+            r = r->next;
+            head = head ->next;
+        }
+        //reverseList(mid_reverse);
+        return true;
+    }
+    
+private:
+    ListNode* reverseList(ListNode* head) {
+        if (head == NULL)
+            return NULL;
+        ListNode * p = head;
+        ListNode * q = head->next;
+        p->next = NULL;
+        while (q != NULL) {
+            p = q;
+            q = p->next;
+            p->next = head;
+            head = p;
+        }
+        return head;
+    }
+};
+
 
 //问题：Integer to English Words
 //算法：先处理999以内的数，再大的数就可以类推
@@ -2158,39 +2173,45 @@ char* LeftRotateString(char* pStr, int n)
 
 
 //问题：最大间隙问题Maximum gap
+/*
+ 给定一个未排序的数组，找到该数组在排序形式下，连续两个数字相减得到差的最大值。 尽可能找到一个满足线性的时间和空间复杂度的方法。 如果数组中元素个数少于2个，则返回0。 给定假设：数组中所有的元素都是非负的整数，4字节。
+ */
 //算法：采用桶结构
 int maximumGap(vector<int>& nums) {
-    if(nums.empty() || nums.size() == 1)
+    int n = nums.size();
+    if (n == 0 || n == 1)
         return 0;
-    int n = (int) nums.size();
-    int minAll = *min_element(nums.begin(), nums.end());
-    int maxAll = *max_element(nums.begin(), nums.end());
-    double gap = ((double)(maxAll - minAll)) / (n - 1);
+    int minElement = INT_MAX;
+    int maxElement = INT_MIN;
+    for (int i = 0; i < n; i ++) {
+        minElement = min(minElement, nums[i]);
+        maxElement = max(maxElement, nums[i]);
+    }
     
-    // compute min and max element for each bucket
-    vector<int> minV(n-1, INT_MAX);
-    vector<int> maxV(n-1, INT_MIN);
-    for(int i = 0; i < n; i ++)
-    {
-        if(nums[i] != maxAll)
-        {// the bktId of maxAll will fall out of bucket range
-            int bktId = (int)((nums[i]-minAll)/gap);
-            minV[bktId] = min(minV[bktId], nums[i]);
-            maxV[bktId] = max(maxV[bktId], nums[i]);
+    vector<int> minVec(n-1, INT_MAX);
+    vector<int> maxVec(n-1, INT_MIN);
+    if (maxElement == minElement)
+        return 0;
+    double gap = (maxElement - minElement) / (1.0 * (n - 1));
+    for (int i = 0; i < n; i++) {
+        if (nums[i] != maxElement) {
+            int index = (int)(nums[i] - minElement) / gap;
+            minVec[index] = min(minVec[index], nums[i]);
+            maxVec[index] = max(maxVec[index], nums[i]);
         }
     }
-    int ret = 0;
-    int curMax = maxV[0];
-    for(int i = 1; i < n-1; i ++)
-    {
-        if(minV[i] != INT_MAX)
-        {
-            ret = max(ret, minV[i]-curMax);
-            curMax = maxV[i];
+    int maximumGap = -1;
+    int curMax = maxVec[0];
+    for (int i = 1; i < n-1; i++) {
+        if (minVec[i] != INT_MAX) {
+            maximumGap = max(maximumGap, minVec[i] - curMax);
+            curMax = maxVec[i];
         }
     }
-    ret = max(ret, maxAll-curMax);
-    return ret;
+    
+    return max(maximumGap, maxElement - curMax);
+    
+    
 }
 
 
@@ -2503,7 +2524,7 @@ vector<int> twoSum_(vector<int>& nums, int target) {
     return result;
 }
 
-//问题：next permutation
+//问题：next_permutation
 //算法：如下
 /*
 1. 找到最后一个严格升序的首位 (a[i] < a[i + 1]), 定义为x
@@ -2525,7 +2546,7 @@ void nextPermutation(vector<int>& nums) {
         reverse(nums.begin(), nums.end());
         return;
     }
-    int y;
+    int y;                                  //x右边大于nums[x]的最小值
     for (y = n-1; nums[y] <= nums[x]; --y);
     swap(nums[x], nums[y]);
     reverse(nums.begin() + x + 1, nums.end());

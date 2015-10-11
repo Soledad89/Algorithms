@@ -891,7 +891,7 @@ public:
         return v;
     }
 private:
-    int getNext(int x) {        //这个思路可以用来求permutation
+    int getNext(int x) {        //这个思路可以用来求permutation,也可以说这个思路得益于next_permutation
         int c0 = 0;
         int c1 = 0;
         int n = x;
@@ -2795,34 +2795,29 @@ void Permutation1(char* s, char* cur)//s指向整个字符串的第一个字符�
         printf("%d: ", nPermu);
         printf("%s\n", s);
         nPermu++;
+        return;
     }
-    else
+    /*
+     用123来示例下。123的全排列有123、132、213、231、312、321这六种。首先考虑213和321这二个数是如何得出的。显然这二个都是123中的1与后面两数交换得到的。然后可以将123的第二个数和每三个数交换得到132。同理可以根据213和321来得231和312。因此可以知道——全排列就是从第一个数字起每个数分别与它后面的数字交换
+     */
+    for(char* p = cur; *p != '\0'; ++ p)
     {
-        for(char* p = cur; *p != '\0'; ++ p)
-        {
-            char temp = *p;
-            *p = *cur;
-            *cur = temp;
-            
-            Permutation1(s, cur + 1);
-            
-            temp = *p;
-            *p = *cur;
-            *cur = temp;
-        }
+        swap(*p, *cur);
+        Permutation1(s, cur + 1);
+        swap(*p, *cur);
     }
 }
 
 //利用next_permutation直接列出
 void Permutation2(string pStr, int length)
 {
-    sort(pStr.begin(), pStr.end());
+    sort(pStr.begin(), pStr.end()); //先排一个序
     
     do
     {
         cout << pStr <<endl;
     } while ( next_permutation(pStr.begin(), pStr.end()) );
-}
+}//可以自己实现next_permutation，leetcode
 
 
 //通过建立一个hash来判断是不是重合
@@ -2976,6 +2971,22 @@ void Combination(char *string ,int number , vector<char> &result)
     result.pop_back();
     Combination(string + 1 , number , result);
 }
+//用位计算的方式
+vector<string> Combination2(string s ) {
+    int n = s.size();
+    vector<string> result;
+
+    for (int i = 1 ; i < (1 << n); i++) {
+        string tmp = "";
+        for (int j = 0; j < n; j++) {
+            if (i & (1 << j))
+                tmp.insert(tmp.begin(), s[j]);
+        }
+        result.push_back(tmp);
+    }
+    return result;
+}
+
 
 int main_combination(void)
 {
@@ -3445,72 +3456,39 @@ int main_BBFS(int argc, char *argv[])
 
 //problem:环形打印出一个矩阵
 //algorithm:画图来理清思路
-void PrintMatrixInCircle(int** numbers, int columns, int rows, int start);
-void printNumber(int number);
+/*
+ Spiral Matrix
+Given an integer n, generate a square matrix filled with elements from 1 to n2 in spiral order.
 
-void PrintMatrixClockwisely(int** numbers, int columns, int rows)
-{
-    if(numbers == NULL || columns <= 0 || rows <= 0)
-        return;
-    
-    int start = 0;
-    
-    while(columns > start * 2 && rows > start * 2)
-    {
-        PrintMatrixInCircle(numbers, columns, rows, start);
-        
-        ++start;
+For example,
+Given n = 3,
+
+You should return the following matrix:
+[
+ [ 1, 2, 3 ],
+ [ 8, 9, 4 ],
+ [ 7, 6, 5 ]
+ ]
+*/
+
+vector<vector<int>> generateMatrix(int n) {
+    vector<vector<int> > matrix(n, vector<int>(n,0));
+    int begin = 0;
+    int end = n - 1;
+    int num = 1;
+    while (begin < end) {
+        for (int i = begin; i < end; i++)   matrix[begin][i] = num++;
+        for (int i = begin; i < end; i++)   matrix[i][end] = num++;
+        for (int i = end; i > begin; i--)   matrix[end][i] = num++;
+        for (int i = end; i > begin; i--)   matrix[i][begin] = num++;
+        begin++;
+        end--;
     }
+    if (begin == end) {
+        matrix[begin][end] = num;
+    }
+    return matrix;
 }
-
-void PrintMatrixInCircle(int** numbers, int columns, int rows, int start)
-{
-    int endX = columns - 1 - start;
-    int endY = rows - 1 - start;
-    
-    // 从左到右打印第一行
-    for(int i = start; i <= endX; ++i)
-    {
-        int number = numbers[start][i];
-        printNumber(number);
-    }
-    
-    // 从上到下打印一列
-    if(start < endY)
-    {
-        for(int i = start + 1; i <= endY; ++i)
-        {
-            int number = numbers[i][endX];
-            printNumber(number);
-        }
-    }
-    
-    // 从右到左打印一行
-    if(start < endX && start < endY)
-    {
-        for(int i = endX - 1; i >= start; --i)
-        {
-            int number = numbers[endY][i];
-            printNumber(number);
-        }
-    }
-    
-    // 从下到上打印一列
-    if(start < endX && start < endY - 1)
-    {
-        for(int i = endY - 1; i >= start + 1; --i)
-        {
-            int number = numbers[i][start];
-            printNumber(number);
-        }
-    }
-}
-
-void printNumber(int number)
-{
-    printf("%d\t", number);
-}
-
 
 
 //problem: 求一棵树的镜像
@@ -4435,22 +4413,21 @@ void mergeSortedList(vector<int>& nums1, int m, vector<int>& nums2, int n) {
 //problem: lowest common ancestor (LCA)
 //algorithm:
 
-//情况1：节点只有左指针、右指针，没有parent指针，root已知
-BinaryTreeNode* findLowestCommonAncestor(BinaryTreeNode* root , BinaryTreeNode* a , BinaryTreeNode* b)
+//情况1：节点只有左指针、右指针，没有parent指针，root已知，不是二叉搜索树
+TreeNode* lowestCommonAncestor(TreeNode* root , TreeNode* a , TreeNode* b)
 {
     if(root == NULL)
         return NULL;
     if(root == a || root == b)
         return root;
     
-    BinaryTreeNode* left =
-        findLowestCommonAncestor(root->m_pLeft , a , b);
-    BinaryTreeNode* right =
-        findLowestCommonAncestor(root->m_pRight , a , b);
+    TreeNode* left =  lowestCommonAncestor(root->left , a , b);
+    TreeNode* right = lowestCommonAncestor(root->right , a , b);
     
     if(left && right)
         return root;
     return left ? left : right;
+    
 }
 //情况2：节点有左指针、右指针、还有parent指针，可以知道两个点肯定有交点
 //可以转化为求两条链相交的最近点
@@ -4465,21 +4442,17 @@ BinaryTreeNode* findLowestCommonAncestor(BinaryTreeNode* root , BinaryTreeNode* 
  */
 
 //情况3： 二叉树是个二叉查找树，且root和两个节点的值(a, b)已知
-BinaryTreeNode* findLowestCommonAncestor3(BinaryTreeNode* root , BinaryTreeNode* a , BinaryTreeNode* b)
-{
+TreeNode* lowestCommonAncestor2(TreeNode* root, TreeNode* p, TreeNode* q) {
     int min, max;
-    if(a->m_nValue < b->m_nValue)
-        min = a->m_nValue , max = b->m_nValue;
-    else
-        min = b->m_nValue , max = a->m_nValue;
-    while(root)             //这是迭代的标志while(root)，首先要确定迭代哪一个变量，这里肯定就是root了，然后再在作用于中对root进行更新
-    {
-        if(root->m_nValue >= min && root->m_nValue <= max)
+    min = (p->val < q->val) ? p->val : q->val;
+    max = (p->val < q->val) ? q->val : p->val;
+    while(root) {
+        if (root->val >= min && root->val <= max)
             return root;
-        else if(root->m_nValue < min && root->m_nValue < max)
-            root = root->m_pRight;
+        if (root->val < min)
+            root = root->right;
         else
-            root = root->m_pLeft;
+            root = root->left;
     }
     return NULL;
 }
@@ -7439,7 +7412,7 @@ void  convertToDoubleList(BSTtreenode * pCurrent)
 {
     
     pCurrent->m_pLeft = pLastNodeInlist; //使当前结点的左指针指向双向链表中最后一个结点
-    if (NULL != pLastNodeInlist) ////使双向链表中最后一个结点的右指针指向当前ƒ结点
+    if (NULL != pLastNodeInlist) //使双向链表中最后一个结点的右指针指向当前ƒ结点
     {
         pLastNodeInlist->m_pRight = pCurrent;
     }
@@ -7480,6 +7453,51 @@ BSTtreenode* genBST(int start, int end, vector<BSTtreenode*> &treeNodes)
     root->m_pRight = genBST(mid+1, end, treeNodes);
     return root;
 }
+
+/*
+ 
+ Flatten Binary Tree to Linked List
+ Given a binary tree, flatten it to a linked list in-place.
+ 
+ For example,
+ Given
+ 
+     1
+    / \
+   2   5
+  / \   \
+ 3   4   6
+ The flattened tree should look like:
+ 1
+  \
+   2
+    \
+     3
+      \
+       4
+        \
+         5
+          \
+           6
+
+ */
+//拉伸
+void flatten(TreeNode* root) {
+    if (NULL == root)
+        return;
+    flatten(root->left);
+    flatten(root->right);
+    if (NULL == root->left) return;
+    //三方进行合并,将左子树所形成的链表插入到root和root->right之间
+    TreeNode* p = root->left;
+    while(p->right)
+        p = p->right;
+    p->right = root->right;
+    root->right = root->left;
+    root->left = NULL;
+}
+
+//迭代版
 
 
 //问题：给定两个串a和b，问b是否是a的子串的变位词。例如输入a = hello, b = lel, lle,
@@ -8888,26 +8906,30 @@ int shiftedBinsearch(int a[], int x, int low, int high) {
     return -1;
 }
 //algorithm2: nonrecursion，这与上面的二分查找类似，边界条件都差不多，只是需要再次判断
-int bsearch_rotate(int a[], int n, int t)
-{
-    int low = 0, high = n-1;
-    while (low <= high) {
-        int mid = low + (high-low) / 2;
-        if (t == a[mid])
+int binsearch_rotated(vector<int>& nums, int target) {
+    int n = nums.size();
+    assert(n > 0);
+    int left = 0;
+    int right  = n - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (nums[mid] == target)
             return mid;
-        if (a[mid] >= a[low]) { //数组左半有序
-            if (t >= a[low] && t < a[mid])
-                high = mid - 1;
+        if (nums[mid] >= nums[left])  {      //左半部分有序，注意这里都要用到等号
+            if (target >= nums[left] && target < nums[mid])
+                right = mid - 1;
             else
-                low = mid + 1;
-        } else {       //数组右半段有序
-            if (t > a[mid] && t <= a[high])
-                low = mid + 1;
+                left  = mid + 1;
+        }
+        else {                              //总有一半有序
+            if (target > nums[mid] && target <= nums[right])
+                left = mid + 1;
             else
-                high = mid - 1;
+                right = mid - 1;
         }
     }
     return -1;
+    
 }
 
 

@@ -21,45 +21,65 @@
 //#include "algorithms.h"
 using namespace std;
 
-void Permutation(char* pStr, char* pBegin);
+struct ListNode {
+        int val;
+        ListNode *next;
+        ListNode(int x) : val(x), next(NULL) {}
+};
 
-void Permutation(char* pStr)
-{
-    if(pStr == NULL)
-        return;
-    
-    Permutation(pStr, pStr);
-}
-
-int nPermu;
-void Permutation(char* s, char* cur)//pStr指向整个字符串的第一个字符，pBegin指向当前我们做排列操作的字符串的第一个字符
-{
-    if(*cur == '\0')
-    {   //static int nPermu = 0; //可以在这里面定义一个静态变量
-        printf("%d: ", nPermu);
-        printf("%s\n", s);
-        nPermu++;
-    }
-    else
-    {
-        for(char* p = cur; *p != '\0'; ++ p)
-            //每一次递归，从pBegin向后扫描每一个字符，在交换pBegin和pCh之后，再对pBegin后面的字符串递归的排列操作
-        {
-            char temp = *p;
-            *p = *cur;
-            *cur = temp;
-            
-            Permutation(s, cur + 1);
-            
-            temp = *p;
-            *p = *cur;
-            *cur = temp;
+class Solution {
+public:
+    bool isPalindrome(ListNode* head) {
+        if (head == NULL)
+            return false;
+        if (head->next == NULL)
+            return true;
+        ListNode* p = head;
+        ListNode* q = head;
+        while(q->next != NULL) {
+            p = p->next;
+            q = q->next->next;
         }
+        ListNode* mid = (q == NULL) ? p : p->next;
+        ListNode* mid_reverse = reverseList(mid);
+        ListNode* r = mid_reverse;
+        while (r != NULL) {
+            if (r->val != head->val)
+                return false;
+            r = r->next;
+            head = head ->next;
+        }
+        reverseList(mid_reverse);
+        return true;
     }
-}
+    
+private:
+    ListNode* reverseList(ListNode* head) {
+        if (head == NULL)
+            return NULL;
+        ListNode * p = head;
+        ListNode * q = head->next;
+        p->next = NULL;
+        while (q != NULL) {
+            p = q;
+            q = p->next;
+            p->next = head;
+            head = p;
+        }
+        return head;
+    }
+};
+
 
 int main(void)
 {
+    
+    vector<int> nums = {3, 5, 9, 6, 10,13};
+
+    bool a = 1;
+    cout << ~a << endl;
+    string st = "abc";
+
     std::string s = "aba";
     std::sort(s.begin(), s.end());
     do {
@@ -67,9 +87,8 @@ int main(void)
     } while(std::next_permutation(s.begin(), s.end()));
     
     char ss[] = "abcd";
-    Permutation(ss);
-    int a = 12344;
-    string atr = to_string(a);
+    //int a = 12344;
+    //string atr = to_string(a);
     /* to_string把参数当做是数字来处理
      std::string to_string( int value );
 
