@@ -7,14 +7,14 @@
 	<key>IDESourceControlProjectIdentifier</key>
 	<string>35F9DCFF-C089-47AF-8BFF-7FF4EFBA672A</string>
 	<key>IDESourceControlProjectName</key>
-	<string>Algorithm</string>
+	<string>project</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>6A436A2DD416A503A50C69D5BD2037EA26332945</key>
 		<string>github.com:Soledad89/LearnAlgorithm.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>Algorithm/Algorithm.xcodeproj</string>
+	<string>Algorithm/Algorithm.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>6A436A2DD416A503A50C69D5BD2037EA26332945</key>
