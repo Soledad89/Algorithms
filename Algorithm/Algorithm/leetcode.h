@@ -1130,9 +1130,9 @@ void traverseLevel(TreeNode* node) {            //树的层次遍历就相当于
  ]
  */
 //但本质还是一样的，主要是要设置一个标志来表明是从左往右还是从右往左
-class Solution_zigzagLevelOrder {   //递归版
+class Solution_zigzagLevelOrder {       //递归版
 public:
-    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+    vector<vector<int> > zigzagLevelOrder(TreeNode* root) {
         assert(root != NULL);
         vector<vector<int> > result;
         traverse(root, 1, result, true);
@@ -1153,38 +1153,78 @@ public:
 };
 
 
-class Solution_zigzagLevelOrder2 {
+class Solution_zigzagLevelOrder3 {
 public:
-    vector<vector<int>> zigzagLevelOrder(TreeNode *root) {
-        vector<vector<int>>res;
-        queue<TreeNode*>q;
-        if(root == NULL) return res;
-        int l = 0;
-        q.push(root);
-        while(!q.empty()){
-            vector<int>ans;
-            int _size = q.size();       //这还真巧妙，运用了queue的size函数虽然不能遍历，但至少知道有几个值
-            for(int i = 0; i < _size; i++){
-                TreeNode *temp = q.front();
-                q.pop();
-                ans.push_back(temp->val);
-                if(temp->left)
-                    q.push(temp->left);
-                if(temp->right)
-                    q.push(temp->right);
-            }
-            if(l % 2){
-                for(int i = 0; i < ans.size() / 2; i++){
-                    swap(ans[i], ans[ans.size() - 1 - i]);
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        vector<vector<int>> ans;
+        if(root == nullptr)
+            return ans;
+        stack<TreeNode*> currentLevel, nextLevel;   //用两个栈，存储连续两层的节点
+        TreeNode *p = root;
+        currentLevel.push(p);
+        vector<int> levelArray;
+        int levelFlag = 0;              //even : left to right , odd : right to left
+        while(!currentLevel.empty()) {
+            while(!currentLevel.empty()) {
+                p = currentLevel.top();
+                currentLevel.pop();
+                levelArray.push_back(p->val);
+                if(levelFlag & 1) {//odd，根据奇偶性来判断先push左子树还是右子树
+                    if(p->right)
+                        nextLevel.push(p->right);
+                    if(p->left)
+                        nextLevel.push(p->left);
+                }else {
+                    if(p->left)
+                        nextLevel.push(p->left);
+                    if(p->right)
+                        nextLevel.push(p->right);
                 }
             }
-            res.push_back(ans);
-            l++;
-            
+            ans.push_back(levelArray);
+            levelArray.clear();
+            swap(nextLevel, currentLevel);
+            levelFlag++;
         }
-        return res;
+        return ans;
     }
 };
+
+class Solution_zigzagLevelOrder4{
+public:
+    vector<vector<int> > zigzagLevelOrder(TreeNode *root)
+    {
+        vector<vector<int> > vvi;
+        
+        if(root == NULL)
+            return vvi;
+        
+        queue<TreeNode *> q;
+        q.push(root);
+        bool zigzag = false;
+        while(!q.empty())
+        {
+            vector<int> vi;
+            for(int i = 0, n = q.size(); i < n; ++ i)
+            {
+                TreeNode *temp = q.front();
+                q.pop();
+                if(temp -> left)
+                    q.push(temp -> left);
+                if(temp -> right)
+                    q.push(temp -> right);
+                vi.push_back(temp -> val);
+            }
+            if(zigzag)
+                reverse(vi.begin(), vi.end());
+            vvi.push_back(vi);
+            zigzag = !zigzag;
+        }
+        
+        return vvi;
+    }
+};
+
 //在树的遍历中要记得举一反三，那个VISIT函数可以有多种，下面就列举一个例子，用inorder来拷贝一个BST中的元素
 //判断一个二叉树是不是BST
 
