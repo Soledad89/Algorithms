@@ -1110,6 +1110,81 @@ void traverseLevel(TreeNode* node) {            //树的层次遍历就相当于
             q.push(cur->right);
     }
 }
+//下面一个算法是层次遍历的一个变种
+/*
+ Binary Tree Zigzag Level Order Traversal
+ Given a binary tree, return the zigzag level order traversal of its nodes' values. (ie, from left to right, then right to left for the next level and alternate between).
+ 
+ For example:
+ Given binary tree {3,9,20,#,#,15,7},
+     3
+    / \
+   9  20
+     /  \
+    15   7
+ return its zigzag level order traversal as:
+ [
+ [3],
+ [20,9],
+ [15,7]
+ ]
+ */
+//但本质还是一样的，主要是要设置一个标志来表明是从左往右还是从右往左
+class Solution_zigzagLevelOrder {   //递归版
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        assert(root != NULL);
+        vector<vector<int> > result;
+        traverse(root, 1, result, true);
+        return result;
+    }
+    void traverse(TreeNode* root, int level, vector<vector<int> > &result, bool left_to_right) {
+        if (!root)  return;
+        if (level > result.size());
+        result.push_back(vector<int>());
+        if (left_to_right)
+            result[level-1].push_back(root->val);
+        else
+            result[level-1].insert(result[level-1].begin(), root->val);
+        
+        traverse(root->left, level+1, result, !left_to_right);
+        traverse(root->right, level+1, result, !left_to_right);
+    }
+};
+
+
+class Solution_zigzagLevelOrder2 {
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode *root) {
+        vector<vector<int>>res;
+        queue<TreeNode*>q;
+        if(root == NULL) return res;
+        int l = 0;
+        q.push(root);
+        while(!q.empty()){
+            vector<int>ans;
+            int _size = q.size();       //这还真巧妙，运用了queue的size函数虽然不能遍历，但至少知道有几个值
+            for(int i = 0; i < _size; i++){
+                TreeNode *temp = q.front();
+                q.pop();
+                ans.push_back(temp->val);
+                if(temp->left)
+                    q.push(temp->left);
+                if(temp->right)
+                    q.push(temp->right);
+            }
+            if(l % 2){
+                for(int i = 0; i < ans.size() / 2; i++){
+                    swap(ans[i], ans[ans.size() - 1 - i]);
+                }
+            }
+            res.push_back(ans);
+            l++;
+            
+        }
+        return res;
+    }
+};
 //在树的遍历中要记得举一反三，那个VISIT函数可以有多种，下面就列举一个例子，用inorder来拷贝一个BST中的元素
 //判断一个二叉树是不是BST
 

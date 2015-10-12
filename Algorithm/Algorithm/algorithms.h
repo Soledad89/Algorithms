@@ -7498,7 +7498,24 @@ void flatten(TreeNode* root) {
 }
 
 //迭代版
-
+void flatten2(TreeNode* root) {
+    if (NULL == root)   return;
+    stack<TreeNode*> s;
+    s.push(root);
+    while (!s.empty()) {
+        auto p = s.top();
+        s.pop();
+        
+        if (p->right)
+            s.push(p->right);
+        if (p->left)
+            s.push(p->left);
+        
+        p->left = NULL;
+        if (!s.empty())
+            p->right = s.top();
+    }
+}
 
 //问题：给定两个串a和b，问b是否是a的子串的变位词。例如输入a = hello, b = lel, lle,
 //ello都是true,但是b = elo是false
