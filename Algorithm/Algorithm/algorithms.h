@@ -68,6 +68,7 @@ namespace BST_14 {
  12. 求二叉树中节点的最大距离
  13. 由前序遍历序列和中序遍历序列重建二叉树
  14.判断二叉树是不是完全二叉树
+ 15.求二叉树中的最长路径和
  */
 
 
@@ -557,7 +558,57 @@ bool IsCompleteBinaryTree(BinaryTreeNode * pRoot)
     }
     return result;
 }
-
+/*
+15.求二叉树中的最长路径和
+ Given a binary tree, find the maximum path sum.
+ 
+ For this problem, a path is defined as any sequence of nodes from some starting node to any node in the tree along the parent-child connections. The path does not need to go through the root.
+ 
+ For example:
+ Given the below binary tree,
+ 
+   1
+  / \
+ 2   3
+ Return 6.
+ */
+    //没有分清最大值和递归函数的返回值。
+    //在求值函数里面不能把计算出来的最大值作为返回值返回回去，否则会有问题。
+    /*
+     动态规划+深度优先搜索。（最关键的是找到最优子结构）
+     
+     把大问题（求整棵树的路径最大值）拆分成小问题（每颗子树的路径最大值）
+     
+     递推公式为：
+     
+     当前树的路径最大值 = max(左子树的路径最大值, 右子树的路径最大值)+当前根节点的值。
+     
+     在递归过程中，我们需要计算两个值：
+     
+     1）包含节点在内的最长路径（只可能跟该节点的左子树或者右子树相关）；
+     
+     2）该节点作为根节点的子树的最长路径和；
+     */
+    class Solution_maxPathSum {
+    public:
+        int ans;
+        int maxPathSum(TreeNode *root) {
+            ans = INT_MIN;
+            travel(root);
+            return ans;
+        }
+        int travel(TreeNode * root){
+            if(root == NULL) return 0;
+            int sum = root->val;
+            int leftsum = travel(root->left);
+            int rightsum = travel(root->right);
+            if(leftsum > 0)     sum += leftsum;
+            if(rightsum > 0)    sum += rightsum;
+            ans = max(ans,sum);
+            return root->val + max(max(leftsum,rightsum), 0);
+        }
+    };
+    
 }
 
 //smartpointer implemention
@@ -626,7 +677,7 @@ int main_smartpointer(){
 
 
 /*
- 在二维平面上，有一些点，请找出经过点数最多的那条线。
+ 在二维平面上，有一些点，请找出经过点数最多的那条线。maxpoints
  给定一个点集vector p和点集的大小n，请返回一个vector，代表经过点数最多的那条直线的斜率和截距。
  */
 
@@ -3490,6 +3541,69 @@ vector<vector<int>> generateMatrix(int n) {
     return matrix;
 }
 
+//旋转打印
+/*
+ 思路：使用两个结点分别记录当前尚未访问到的矩阵的左上角和右下角的位置，
+ 根据两个结点的值可以访问到矩阵最外层的数据，然后让两个结点指向新的位置
+ */
+class Solution_spiralMatrix {
+public:
+    vector<int> spiralOrder(vector<vector<int> > &matrix) {
+        vector<int> answer;
+        if(matrix.size()==0) return answer;
+        
+        int row(matrix.size()-1),col(matrix[0].size()-1);
+        int rowBeg=0,rowEnd=row,colBeg=0,colEnd=col;
+        
+        while(rowBeg<=rowEnd && colBeg<=colEnd){
+            
+            for(int c=colBeg; c<=colEnd; ++c) //row ->
+                answer.push_back(matrix[rowBeg][c]);
+            ++rowBeg;
+            
+            
+            for(int r=rowBeg; r<=rowEnd ; ++r)	//col v
+                answer.push_back(matrix[r][colEnd]);
+            --colEnd;
+            
+            if(rowBeg<=rowEnd){
+                for(int rc=colEnd ; rc>=colBeg ; --rc)	//row <-
+                    answer.push_back(matrix[rowEnd][rc]);
+            }
+            --rowEnd;
+            
+            if(colBeg<=colEnd){
+                for(int rr=rowEnd ; rr>=rowBeg ; --rr)	//col ^
+                    answer.push_back(matrix[rr][colBeg]);
+            }
+            ++colBeg;
+        }
+        
+        return answer;
+    }
+};
+
+class Solution {
+public:
+    vector<int> spiralOrder(vector<vector<int>>& matrix) {
+        int m = matrix.size();
+        if (m == 0)
+            return vector<int>();
+        int n = matrix[0].size();
+        vector<int> result;
+        int l, c;
+        int mid = max(m, n) / 2;
+        for (l = c = 0; l < m && c < n; l++, c++) {
+            for(int i = c; i < n - 1 - c; i++)   result.push_back(matrix[l][i]);
+            for(int j = l; j < m - 1 - l; j++)   result.push_back(matrix[j][n-1-c]);
+            for(int i = n - 1 - c; i > c; i--)   result.push_back(matrix[m-1-l][i]);
+            for(int j = m - 1 - l; j > l; j--)   result.push_back(matrix[j][c]);
+        }
+        return result;
+    }
+};
+
+
 
 //problem: 求一棵树的镜像
 //algorithm: 变相考察树的遍历
@@ -4476,7 +4590,7 @@ struct comparestr  //仿函数
         return s1 < s2;   //升序排列，如果改为s1 > s2则为逆序排列
     }
 };
-//函数功能 ： 把数组排成最小的数
+//函数功能 ： 把数组排成最小的数或者最大的数largest number
 //函数参数 ： pArray为数组,num为数组元素个数
 void ComArrayMin(int *pArray, int num){
     string *pStrArray = new string[num];
@@ -4490,6 +4604,52 @@ void ComArrayMin(int *pArray, int num){
     sort(pStrArray, pStrArray + num, comparestr()); //字符串数组排序
 
 }
+
+class Solution_largestNumber {
+public:
+    struct cmp {
+        bool operator()(const int i, const int j)
+        {
+            string s1 = to_string(i);
+            string s2 = to_string(j);
+            return s1 + s2 > s2 + s1;
+        }
+    };  //不要忘了这个分号
+    //两种重写比较函数的方法
+    static bool cmpString(const int& i, const int& j) { //为什么要是静态的
+        string s1 = to_string(i);
+        string s2 = to_string(j);
+        return s1 + s2 > s2 + s1;
+    }
+    
+    string largestNumber(vector<int>& nums) {
+        sort(nums.begin(), nums.end(), cmp());
+        //sort(nums.begin(), nums.end(), cmpString);
+        string result = "";
+        if (nums[0] == 0)
+            return "0";
+        for (int i = 0; i < nums.size(); i++) {
+            result = result + to_string(nums[i]);
+        }
+        return result;
+    }
+    
+    string largestNumber2(vector<int>& nums) {
+        vector<string> strs;
+        for (int num : nums)
+            strs.push_back(to_string(num));
+        sort(strs.begin(), strs.end(),
+             [](const string &m,const string &n){ return m+n > n+m; });
+        if (strs[0] == "0")
+            return "0";
+        return accumulate(begin(strs), end(strs), string(""));
+    }
+    
+};
+
+
+
+
 //剑指offer上的解答
 const int g_MaxNumberLength = 10;
 
@@ -7487,14 +7647,15 @@ void flatten(TreeNode* root) {
         return;
     flatten(root->left);
     flatten(root->right);
-    if (NULL == root->left) return;
+    if (NULL == root->left)
+        return;
     //三方进行合并,将左子树所形成的链表插入到root和root->right之间
     TreeNode* p = root->left;
     while(p->right)
         p = p->right;
     p->right = root->right;
     root->right = root->left;
-    root->left = NULL;
+    root->left  = NULL;
 }
 
 //迭代版

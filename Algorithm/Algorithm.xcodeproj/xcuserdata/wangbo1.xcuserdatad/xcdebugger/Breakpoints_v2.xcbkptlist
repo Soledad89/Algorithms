@@ -639,7 +639,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1861"
             endingLineNumber = "1861"
-            landmarkName = "isPalindromeList2(ListNode* pHead)"
+            landmarkName = "minPathSum(vector&lt;vector&lt;int&gt; &gt; &amp; grid)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -670,7 +670,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1894"
-            endingLineNumber = "1894">
+            endingLineNumber = "1894"
+            landmarkName = "stackmine()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -685,8 +687,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1913"
             endingLineNumber = "1913"
-            landmarkName = "longdup_main()"
-            landmarkType = "7">
+            landmarkName = "class stackmine"
+            landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -701,7 +703,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1793"
             endingLineNumber = "1793"
-            landmarkName = "shortestPalindrome(string s)"
+            landmarkName = "LIS2(T a[], int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -717,7 +719,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1797"
             endingLineNumber = "1797"
-            landmarkName = "shortestPalindrome(string s)"
+            landmarkName = "LIS2(T a[], int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -733,7 +735,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1798"
             endingLineNumber = "1798"
-            landmarkName = "shortestPalindrome(string s)"
+            landmarkName = "LIS2(T a[], int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -778,9 +780,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1360"
-            endingLineNumber = "1360"
-            landmarkName = "minimum(BST *head)"
-            landmarkType = "7">
+            endingLineNumber = "1360">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -811,8 +811,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1458"
             endingLineNumber = "1458"
-            landmarkName = "class myHash"
-            landmarkType = "3">
+            landmarkName = "delet(BST *z)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -827,7 +827,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1448"
             endingLineNumber = "1448"
-            landmarkName = "main_test_BST()"
+            landmarkName = "delet(BST *z)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -921,7 +921,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1154"
             endingLineNumber = "1154"
-            landmarkName = "insertNode(pNode &amp;pBSTTree, int value)"
+            landmarkName = "main_BST()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1065,7 +1065,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1765"
             endingLineNumber = "1765"
-            landmarkName = "minCutNums(string s)"
+            landmarkName = "bsearch(int c[],int n,int a)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1080,7 +1080,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "2697"
-            endingLineNumber = "2697">
+            endingLineNumber = "2697"
+            landmarkName = "FindNumsAppearOnce(int data[], int length, int* num1, int* num2)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

@@ -32,6 +32,106 @@ struct TreeNode {
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
 
+//single number
+class Solution_singleNumber {
+    
+    int singleNumber2(int A[], int n){
+        int x = 0;
+        for (size_t i = 0; i < n; i++)
+            x ^= A[i];
+        return x;
+    }
+
+
+    int singleNumber3(int A[], int n){
+        const int W = sizeof(int) * 8;
+        int count[W];
+        fill_n(&count[0], W, 0);
+        for (int i = 0; i < n; i++){
+            for (int j = 0; j < W; j++){
+                count[j] += (A[i] >> j) & 1;
+                count[j] %= 3;
+            }
+        }
+        
+        int result = 0;
+        for(int i = 0; i < W; i++)
+            result += (count[i] << i);
+        
+        return result;
+    }
+
+    //通用的方法用一个32位的数组，唯一一个只出现1次的，其余都是k次
+    int singleNumberK(vector<int>& s, int k )
+    {
+        vector<int> t(32,0);////Made a array contain 32 elements.
+        int sz = s.size();
+        int i, j, n;
+        for (i = 0; i < sz; ++i)
+        {
+            n = s[i];
+            for (j = 31; j >= 0; --j)   //只要这里的顺序与下面的相同即可
+            {
+                t[j] += n & 1;//Find the last digit.
+                n >>= 1;
+                if (!n)
+                    break;
+            }
+        }
+        int res = 0;
+        for (j = 31; j >= 0; --j)
+        {
+            n = t[j] % k;       //"3" represents k times.
+            if (n)
+                res += 1 << (31 - j);
+        }
+        return res;
+    }
+    
+    //Given an array of numbers nums, in which exactly two elements appear only once and all the other elements appear exactly twice.
+    vector<int> singleNumber_2single(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> result;
+        if (n == 0)
+            return result;
+        int ac = nums[0];
+        for (int i = 1; i < n; i++) {
+            ac ^= nums[i];
+        }
+        int index = 0;
+        while((ac & 1) == 0) {
+            index++;
+            ac >>= 1;
+        }
+        
+        int n1 = 0;
+        int n2 = 0;
+        for (int i = 0; i < n; i++) {
+            if (nums[i] & (1 << index))
+                n1 ^= nums[i];
+            else
+                n2 ^= nums[i];
+        }
+        return vector<int>{n1, n2};
+    }
+    
+    //简洁版
+    vector<int> singleNumber_2single2(vector<int>& nums) {
+        int s = 0;  // the result of a xor b;
+        for (auto item : nums) s ^= item;
+        int lastBit = (s & (s - 1)) ^ s;  // the last bit that a diffs b
+        //int lastBit = s & ( ~ ( s - 1));
+        int intA = 0, intB = 0;
+        for (auto item : nums) {
+            if (item & lastBit) intA = intA ^ item;
+            else intB = intB ^ item;
+        }
+        return vector<int>{intA, intB};
+    }
+    
+
+};
+
 /*
  Given a binary search tree, write a function kthSmallest to find the kth smallest element in it.
  
@@ -1169,7 +1269,7 @@ public:
                 p = currentLevel.top();
                 currentLevel.pop();
                 levelArray.push_back(p->val);
-                if(levelFlag & 1) {//odd，根据奇偶性来判断先push左子树还是右子树
+                if(levelFlag & 1) {     //odd，根据奇偶性来判断先push左子树还是右子树
                     if(p->right)
                         nextLevel.push(p->right);
                     if(p->left)
@@ -1199,13 +1299,13 @@ public:
         if(root == NULL)
             return vvi;
         
-        queue<TreeNode *> q;
+        queue<TreeNode *> q;            //还是利用队列，层次遍历的
         q.push(root);
         bool zigzag = false;
         while(!q.empty())
         {
             vector<int> vi;
-            for(int i = 0, n = q.size(); i < n; ++ i)
+            for(int i = 0, n = q.size(); i < n; ++ i)   //使用队列，利用size得到每一排的个数
             {
                 TreeNode *temp = q.front();
                 q.pop();
@@ -1295,6 +1395,82 @@ void rotateMatrix2(vector<vector<int> > &matrix) {
         for (int j = 0; j < n; ++j)
             swap(matrix[i][j], matrix[n-1-i][j]);
 }
+
+//setZeros
+//以下算法的复杂度为O(m+n)，可不可能有const space
+void setMatrixZeros(vector<vector<int> > &matrix)
+{
+    const size_t m = matrix.size();
+    const size_t n = matrix[0].size();
+    vector<bool> row(m, false);
+    vectro<bool> col(n, false);
+    
+    for (size_t i = 0; i < m; ++i)
+    {
+        for (size_t j = 0; j < n; ++j)
+            if (matrix[i][j] == 0)
+                row[i] = col[j] = true;
+    }
+    
+    for (size_t i = 0; i < m ; ++i)
+        if (row[i])
+            fill(&matrix[i][0], &matrix[i][0] + n, 0);
+    
+    for (size_t j = 0; j < n; ++j)
+        if (col[j]){
+            for (size_t i = 0; i < m; ++i)
+                matrix[i][j] = 0;
+        }
+}
+
+//利用矩阵的第一行和第一列来作为辅助空间使用。不用开辟新的存储空间
+//要点：首先要记录第一行和第一列是不是有零
+void setZeroes(vector<vector<int> > &matrix) {
+    // Start typing your C/C++ solution below
+    // DO NOT write int main() function
+    int row = matrix.size();
+    if(row == 0) return;
+    int col = matrix[0].size();
+    if(col == 0) return;
+    
+    bool firstrowiszero = false;
+    bool firstcoliszero = false;
+    for(int j = 0; j < col; ++j)
+        if(matrix[0][j] == 0){
+            firstrowiszero = true;
+            break;
+        }
+    for(int i = 0; i < row; ++i)
+        if(matrix[i][0] == 0){
+            firstcoliszero = true;
+            break;
+        }
+    
+    for(int i = 1; i < row; ++i)
+        for(int j = 1; j < col; ++j){
+            if(matrix[i][j] == 0) {
+                matrix[i][0] = 0;
+                matrix[0][j] = 0;
+            }
+        }
+    
+    for(int i = 1; i < row; ++i)
+        for(int j = 1; j < col; ++j)
+            if(matrix[i][0] == 0 || matrix[0][j] == 0)
+                matrix[i][j] = 0;
+    
+    if(firstrowiszero){
+        for(int j = 0; j < col; ++j)
+            matrix[0][j] = 0;
+    }
+    if(firstcoliszero){
+        for(int i = 0; i < row; ++i)
+            matrix[i][0] = 0;
+    }
+}
+
+
+
 
 //问题：剑指offer,Divide Two Integers Divide two integers without using multiplication, division and mod operator.
 //算法：位运算,加，减（不断减去被除数,这样比较慢，可以每次将被除数翻倍
@@ -1439,7 +1615,7 @@ public:
         int i = left;
         for (int j = left + 1; j <= right; j++)
             if (nums[j] >= pivot)
-                swap(nums[++i], nums[j]);
+                swap(nums[++i], nums[j]);   //swap的妙用啊，太妙了妙妙妙
         swap(nums[left], nums[i]);
         return i;
     }
@@ -1559,6 +1735,7 @@ int hamming_distance(unsigned x, unsigned y)
     return dist;
 }
 
+//DP。。。DP。。。DP。。。DP。。。go ahead!!!!!!!!!!!!!
 //problem: longest common subsequence(LCS)
 //algorithm: dynanmic programming.
 int LCS(char* x, char* y) {
@@ -1634,17 +1811,17 @@ int LongestCommonSubstring(const char * strA, const char * strB)
     int i, j;
     int Matrix[LengthA + 1][LengthB + 1];;
     
-    for(i = 0; i < LengthA ; ++i)
+    for(i = 0; i < LengthA+1 ; ++i)
     {
-        for(j = 0; j < LengthB ; ++j)
+        for(j = 0; j < LengthB+1 ; ++j)
         {
             Matrix[i][j] = 0;
         }
     }
     
-    for(i = 0; i < LengthA; ++i)
+    for(i = 0; i < LengthA+1; ++i)
     {
-        for(j = 0; j < LengthB; ++j)
+        for(j = 0; j < LengthB+1; ++j)
         {
             if(strA[i] == strB[j])
             {
@@ -1667,16 +1844,17 @@ int LongestCommonSubstring(const char * strA, const char * strB)
 
 //问题：longest increasing subsequence(LIS)
 //算法：动态规划，复杂度为O(n2)
-//f[i] = max(f[j] + 1, 1), j < i && A[j] <= A[i]
+//F[i]表示从1到i这一段中以i结尾的最长上升子序列的长度
+//f[i] = max(f[j] + 1, 1), j < i && A[j] <= A[i]    //有一个1是有可能A[i]比前面所有的元素都小，只能自成一个最长上升子序列
 int lis(int A[], int n){
     int *f = new int[n];
     int len = 1;
     for(int i=0; i<n; ++i){
-        f[i] = 1;
+        f[i] = 1;       //默认肯定都为1
         for(int j=0; j<i; ++j)
-            if(A[j]<=A[i] && f[j]+1>f[i])
+            if(A[j] <= A[i] && f[j]+1 > f[i])
                 f[i] = f[j] + 1;
-        if(f[i]>len)
+        if(f[i] > len)
             len = f[i];
     }
     delete[] f;
@@ -1888,6 +2066,87 @@ int minCutNums(string s) {
     }
     return f[0];
 }
+
+/*
+ Interleaving String:
+ 
+ 
+ Given s1, s2, s3, find whether s3 is formed by the interleaving of s1 and s2.
+ 
+ For example,
+ Given:
+ s1 = "aabcc",
+ s2 = "dbbca",
+ 
+ When s3 = "aadbbcbcac", return true.
+ When s3 = "aadbbbaccc", return false.
+ 
+ 试了下跟归并一样的贪心思路，果然是不行的，比如 s1= "aa", s2="ab", s3="aaba" 贪心就不行，因为在s1[i] ,s2[j] 都和s3中字母相等的时候，你不知道应该用哪一个。
+ 那就老老实实DP吧，下面空间还可以优化成O(n)的。
+ */
+//刚开始我也是用了贪心，但是发现贪心会出现问题，所以改为动态规划了
+/*
+ 设状态 f[i][j]，表示 s1[0,i-1] 和 s2[0,j-1]，匹配 s3[0, i+j-1]。如果 s1 的最后一个字符等于 s3 的最后一个字符，则 f[i][j]=f[i-1][j]；如果 s2 的最后一个字符等于 s3 的最后一个字符，则 f[i][j]=f[i][j-1]。
+ 因此状态转移方程如下：
+ f[i][j] = 
+           (s1[i - 1] == s3 [i + j - 1] && f[i - 1][j])
+        || (s2[j - 1] == s3 [i + j - 1] && f[i][j - 1]);
+ */
+//二维动态规划，画一个矩阵就可以理解了
+class Solution_Interleaving {
+public:
+    bool isInterleave(string s1, string s2, string s3) {
+        int m = s1.size();
+        int n = s2.size();
+        if(m+n != s3.size())
+            return false;
+        vector<vector<bool> > path(m+1, vector<bool>(n+1, false));
+        for(int i = 0; i < m+1; i ++)
+        {
+            for(int j = 0; j < n+1; j ++)
+            {
+                if(i == 0 && j == 0)
+                    // start
+                    path[i][j] = true;
+                else if(i == 0)
+                    path[i][j] = path[i][j-1] & (s2[j-1]==s3[j-1]);
+                else if(j == 0)
+                    path[i][j] = path[i-1][j] & (s1[i-1]==s3[i-1]);
+                else
+                    path[i][j] = (path[i][j-1] & (s2[j-1]==s3[i+j-1])) || (path[i-1][j] & (s1[i-1]==s3[i+j-1]));
+            }
+        }
+        return path[m][n];
+    }
+};
+
+//滚动数组，只需要O(n)的空间复杂度
+bool isInterleave(string s1, string s2, string s3) {
+    int m = s1.size();
+    int n = s2.size();
+    if(m+n != s3.size())
+        return false;
+    if (s1.size() < s2.size())
+        return isInterleave(s2, s1, s3);
+    vector<bool>  path(n+1, false);         //选短了那一个
+    for(int i = 0; i < m+1; i ++)
+    {
+        for(int j = 0; j < n+1; j ++)
+        {
+            if(i == 0 && j == 0)
+                // start
+                path[i][j] = true;
+            else if(i == 0)
+                path[i][j] = path[i][j-1] & (s2[j-1]==s3[j-1]);
+            else if(j == 0)
+                path[i][j] = path[i-1][j] & (s1[i-1]==s3[i-1]);
+            else
+                path[i][j] = (path[i][j-1] & (s2[j-1]==s3[i+j-1])) || (path[i-1][j] & (s1[i-1]==s3[i+j-1]));
+        }
+    }
+    return path[m][n];
+}
+
 /*
  Given a string S, you are allowed to convert it to a palindrome by adding characters in front of it. Find and return the shortest palindrome you can find by performing this transformation.
  
@@ -2487,6 +2746,38 @@ private:
 };
 
 /*
+ Given an array containing n distinct numbers taken from 0, 1, 2, ..., n, find the one that is missing from the array.
+ 
+ For example,
+ Given nums = [0, 1, 3] return 2.
+ 
+ Note:
+ Your algorithm should run in linear runtime complexity. Could you implement it using only constant extra space complexity?
+ */
+class Solution_missingNumber {
+public:
+    int missingNumber(vector<int>& nums) {  //这种方法比直接求和更好，但是极端情况下也有可能溢出
+        int n = nums.size();
+        assert(n > 0);
+        int sum = 0;
+        for (int i= 0; i < n; i++) {
+            sum += nums[i] - i;
+        }
+        int result = n - sum;
+        return result;
+    }
+    int missingNumber1(vector<int>& nums) {
+        int n = nums.size();
+        int x = nums[0] ^ 0;
+        for (int i = 1; i < n; i++){
+            x ^= nums[i] ^ i;           //不可能溢出
+        }
+        x ^= n;
+        return x;
+    }
+};
+
+/*
  [Leetcode] Maximal Rectangle
  Given a 2D binary matrix filled with 0's and 1's, find the largest rectangle containing all ones and return its area.
  
@@ -3030,6 +3321,41 @@ int candy(vector<int> &ratings) {
 
 //problem:
 //algorithm:
+int removeDuplicates(vector<int>& nums) {
+    int n = nums.size();
+    if (n <= 2)
+        return n;
+    bool flag = false;
+    int i = 0, j;
+    for (j = 1; j < n; j++){
+        if (nums[j] != nums[i]) {
+            nums[++i] = nums[j];
+            flag = false;
+        }
+        else if (nums[j] == nums[i] && !flag) {
+            nums[++i] = nums[j];
+            flag = !flag;
+        }
+    }
+    return i+1;
+}
+
+int remove_duplicates2(int a[], int num)
+{
+    if (num == 0) return 0;
+    int i, flag = 0, index = 0;
+    for (i = 1; i < num; i++)
+        if (a[index] != a[i])
+            a[++index] = a[i];
+        else{
+            if (a[i] == a[i+1])
+                i++;
+            else
+                a[++index] = a[i];
+        }
+    
+    return index+1;
+}
 
 
 //----------------------------------------------------------------
@@ -3609,59 +3935,11 @@ ListNode* rotateRightList(ListNode *head, int k){
 }
 
 
-void setMatrixZeros(vector<vector<int> > &matrix)
-{
-    const size_t m = matrix.size();
-    const size_t n = matrix[0].size();
-    vector<bool> row(m, false);
-    vectro<bool> col(n, false);
-    
-    for (size_t i = 0; i < m; ++i)
-    {
-        for (size_t j = 0; j < n; ++j)
-            if (matrix[i][j] == 0)
-                row[i] = col[j] = true;
-    }
-    
-    for (size_t i = 0; i < m ; ++i)
-        if (row[i])
-            fill(&matrix[i][0], &matrix[i][0] + n, 0);
-    
-    for (size_t j = 0; j < n; ++j)
-        if (col[j]){
-            for (size_t i = 0; i < m; ++i)
-                matrix[i][j] = 0;
-        }
-}
  
  
 
 
-int singleNumber(int A[], int n){
-    int x = 0;
-    for (size_t i = 0; i < n; i++)
-        x ^= A[i];
-    return x;
-}
 
-
-int singleNumber2(int A[], int n){
-    const int W = sizeof(int) * 8;
-    int count[W];
-    fill_n(&count[0], W, 0);
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < W; j++){
-            count[j] += (A[i] >> j) & 1;
-            count[j] %= 3;
-        }
-    }
-    
-    int result = 0;
-    for(int i = 0; i < W; i++)
-        result += (count[i] << i);
-    
-    return result;
-}
 
 
 
@@ -3780,22 +4058,9 @@ int removeElement(int A[], int n, int target)
         return index+1;
     }
                 
-                int remove_duplicates2(int a[], int num)
-    {
-        if (num == 0) return 0;
-        int i, flag = 0, index = 0;
-        for (i = 1; i < num; i++)
-            if (a[index] != a[i])
-                a[++index] = a[i];
-            else{
-                if (a[i] == a[i+1])
-                    i++;
-                else
-                    a[++index] = a[i];
-            }
-        
-        return index+1;
-    }
+
+ 
+ 
                 
                 int remove_duplicates3(int a[], int num)
     {
