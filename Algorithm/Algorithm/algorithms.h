@@ -2575,28 +2575,43 @@ void subarrayMultiplication(int array[], int size)
 
 //problem:求N的阶乘的末尾有多少个零，N的阶乘的二进制表示最低位1的位置
 //algorithm: N的阶乘可以表示为2^x * 3^y * 5^z。零的个数即为min(x,z)，由于x肯定远大于z所以只需要求5的个数z，二进制表示最低位1即为求x
-void nFactor(int N) {   //N!含有质因子为5的个数
-    int ret = 0;
-    for(int i = 1; i <= N; i++)
-    {
-        int j = i;
-        while(j % 5 ==0)
+class Solution_trailingZeroes {
+public:
+    int trailingZeroes(int n) {
+        int count = 0;
+        while(n /= 5)
+            count += n;
+        //依次判断里面有多少个5、25、125、625......
+        return count;
+    }
+    
+    int trailingZeroes2(int n) {   //N!含有质因子为5的个数
+        int ret = 0;
+        for(int i = 5; i <= n; i += 5)
         {
-            ret++;
-            j /= 5;
+            int j = i;
+            while(j % 5 ==0)
+            {
+                ret++;
+                j /= 5;
+            }
         }
+        return ret;
     }
-}
-int lowestOne(int N)  //N!含有质因子为2的个数
-{
-    int Ret = 0;
-    while(N)
+    
+    int lowestOne(int N)  //N!含有质因子为2的个数
     {
-        N >>= 1;
-        Ret += N;
+        int Ret = 0;
+        while(N)
+        {
+            N >>= 1;
+            Ret += N;
+        }
+        return Ret;
     }
-    return Ret;
-}
+};
+
+
 
 //problem:
 //algorithm: 用STL中的list来模拟双向链表的结构以及删除工作，只需在迭代器指向末尾节点时，将其指向的下一个节点设置为头结点即可
@@ -8068,29 +8083,62 @@ int MoreThanHalfNum_Solution1(int* numbers, int length)  //直接判断中位数
 
 //还有一种比较巧妙的方法
 //a代表数组，length代表数组长度，median/majority
-int FindOneNumber(int* a, int length)   //这个的前提是一定存在众数
-{
-    int candidate = a[0];
-    int nTimes = 1;
-    for (int i = 1; i < length; i++)
+class majorityElement {
+    /*
+     如果是找出出现次数大于n/2的数，解决这个问题的思路并不难，可以用Map扫描一遍，并且统计出现次数。但是这种方法的时间复杂度虽然是O(N)，空间复杂度也相应的是O(N)。还有一种方法是多数投票算法，算法的名字虽然没听说过，但是思路相信大多数人还是知道的。
+     
+     如果count==0，则将now的值设置为数组的当前元素，将count赋值为1；
+     反之，如果now和现在数组元素值相同，则count++，反之count–；
+     重复上述两步，直到扫描完数组。
+     */
+    int FindOneNumber(int* a, int length)   //这个的前提是一定存在众数
     {
-        if (nTimes == 0)
+        int candidate = a[0];
+        int nTimes = 1;
+        for (int i = 1; i < length; i++)
         {
-            candidate = a[i];
-            nTimes = 1;
-        }
-        else
-        {
-            if (candidate == a[i])
-                nTimes++;
+            if (nTimes == 0)
+            {
+                candidate = a[i];
+                nTimes = 1;
+            }
             else
-                nTimes--;
+            {
+                if (candidate == a[i])
+                    nTimes++;
+                else
+                    nTimes--;
+            }
         }
+        return candidate;
     }
-    return candidate;
-}
+    
+    //找众数是大于n/3的数
+    /*
+     看到这题首先想到的是出现次数大于? n/3 ?的数不只有一个，思考了一下，
+     这个数最多有两个，最少一个也没有。
+     */
+    vector<int> majorityElement(vector<int>& nums) {
+        vector<int> res;
+        int m = 0, n = 0, cm = 0, cn = 0;
+        for (auto &a : nums) {
+            if (a == m) ++cm;
+            else if (a ==n) ++cn;
+            else if (cm == 0) m = a, cm = 1;
+            else if (cn == 0) n = a, cn = 1;
+            else --cm, --cn;
+        }
+        cm = cn = 0;
+        for (auto &a : nums) {
+            if (a == m) ++cm;
+            else if (a == n) ++cn;
+        }
+        if (cm > nums.size() / 3) res.push_back(m);
+        if (cn > nums.size() / 3) res.push_back(n);
+        return res;
+    }
 
-
+};
 //如果是要经常得到一组数组的中位数的话(数据是不断变化的,这种应用场景很普遍)，以上的方法的都不是增量的，建立最大最小堆来随时列举中位数
 /*
  可以用最大堆和最小堆来解答这个问题：

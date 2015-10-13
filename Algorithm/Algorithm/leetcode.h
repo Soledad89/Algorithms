@@ -133,6 +133,64 @@ class Solution_singleNumber {
 };
 
 /*
+ Given a range [m, n] where 0 <= m <= n <= 2147483647, return the bitwise AND of all numbers in this range, inclusive.
+ 
+ For example, given the range [5, 7], you should return 4.
+ 
+ 
+ 
+ 直接计算肯定会超时。
+ 
+ 可以举几个例子来看看(都用二进制来表示)。
+ 
+ m=001, n=111, 最终结果是000，
+ 
+ m=11001, n=11110, 最终结果是11000，最左边11***是[m,n]区间的每个数都一样的
+ 
+ m=10100, n=10111, 最终结果是10100   最左边101**是[m,n]区间的每个数都一样的
+ 
+ 可以看到我们只需要观察m和n这两个数字就可以得到结果，只需要知道他们最左边不变的部分，组合右边全0，就是最终的结果。
+ 
+ 所以我们来顶一个全1的mask，用来标记左边有多少位置是不变的。mask中右边0的部分代表的是[m,n]中会发生变化的部分，也就是说最终结果的这部分肯定也是0， 每次通过mask=mask<<1来更新， 当 m&mask == n& mask的时候，判断结束，
+ 
+ 最终的结果就是 m&mask 或者 n& mask
+ */
+class Solution_rangeBitwiseAnd {
+public:
+    int rangeBitwiseAnd(int m, int n) {
+        int mask = ~0;      // all 1 sequence
+        while (mask != 0)
+        {
+            if ((m & mask) == (n & mask)) //to test the unchanged part of the left-side
+            {
+                break;
+            }
+            mask <<= 1;             // the 0 in the mask indicate the changed part, which will be 0 in the result
+        }
+        return m & mask;
+    }
+    
+    public int rangeBitwiseAnd2(int m, int n) {
+        int i=0;
+        while(m!=n){
+            m>>=1;
+            n>>=1;
+            i++;
+        }
+        return m<<i;
+    }
+}
+
+    int rangeBitwiseAnd3(int m, int n) { //最简单直观，方便理解
+        while (m < n)   {
+            n = n & (n - 1);
+        }
+        return n;
+    }
+};
+
+
+/*
  Given a binary search tree, write a function kthSmallest to find the kth smallest element in it.
  
  Note:
