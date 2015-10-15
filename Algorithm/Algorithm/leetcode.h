@@ -32,6 +32,57 @@ struct TreeNode {
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
 
+/*
+ Given a 2d grid map of '1's (land) and '0's (water), count the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.
+ 
+ Example 1:
+ 
+ 11110
+ 11010
+ 11000
+ 00000
+ Answer: 1
+ 
+ Example 2:
+ 
+ 11000
+ 11000
+ 00100
+ 00011
+ Answer: 3
+ */
+class Solution_Numberofislands {
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        int count = 0;
+        for (int i = 0; i < grid.size(); i++) {
+            for (int j = 0; j < grid[0].size(); j++) {
+                if (grid[i][j] == '1') {
+                    dfs(grid, i, j);
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+    
+    void dfs(vector<vector<char> >&grid , int i , int j){
+        if (i < 0 || j < 0 || i >= grid.size() || j >= grid[0].size()) {
+            return
+        }
+        
+        if (grid[i][j] == '1') {
+            grid[i][j] = 'X';
+            dfs(grid, i+1, j);
+            dfs(grid, i-1, j);
+            dfs(grid, i, j-1);
+            dfs(grid, i, j+1);
+        }
+    }
+    
+};
+
+
 //single number
 class Solution_singleNumber {
     
@@ -2454,28 +2505,61 @@ int countNodes(TreeNode* root) {
 
 //问题：Combination Sum
 //算法：利用回溯剪枝法，使用DFS深度优先搜索策略
-void dfs(vector<int>& nums, int gap, int start, vector<int>& intermediate,
-         vector<vector<int> >& result);
-vector<vector<int> > combinationSum(vector<int>& candidates, int target) {
-    sort(candidates.begin(), candidates.end());
-    vector<vector<int> > result;
-    vector<int> intermediate;
-    dfs(candidates, target, 0, intermediate, result);
-    return result;
-}
-void dfs(vector<int>& nums, int gap, int start, vector<int>& intermediate,
-vector<vector<int> >& result) {
-    if (gap == 0) {
-        result.push_back(intermediate);
-        return;
+class Solution_combinationSum {
+public:
+    vector<vector<int>> combinationSum(vector<int>& v, int target) {
+        sort(v.begin(), v.end());
+        vector<vector<int> > result;
+        vector<int> cur;
+        dfs(v, target, 0, cur, result);
+        return result;
     }
-    for (int i = start; i < nums.size(); i++) {
-        if (gap < nums[i])  return; //prunning
-        intermediate.push_back(nums[i]);
-        dfs(nums, gap - nums[i], i, intermediate, result);
-        intermediate.pop_back();
+    
+    void dfs(vector<int>& v, int gap, int start, vector<int> & cur, vector<vector<int> > &result) {
+        if (gap == 0) {
+            result.push_back(cur);
+            return;
+        }
+        for (int i = start; i < v.size(); i++) {
+            if (gap < v[i])
+                return;
+            cur.push_back(v[i]);
+            dfs(v, gap - v[i], i, cur, result);
+            cur.pop_back();
+        }
     }
-}
+    
+};
+
+//问题：Combination Sum2
+//算法：利用回溯剪枝，注意防止重复
+class Solution_combinationSum2 {
+public:
+
+    vector<vector<int>> combinationSum2(vector<int>& v, int target) {
+        sort(v.begin(), v.end());
+        vector<vector<int> > result;
+        vector<int> cur;
+        dfs(v, target, 0, cur, result);
+        return result;
+    }
+    
+    void dfs(vector<int>& v, int gap, int start, vector<int> & cur, vector<vector<int> > &result) {
+        if (gap == 0) {
+            result.push_back(cur);
+            return;
+        }
+        for (int i = start; i < v.size(); i++) {
+            if (gap < v[i])
+                return;
+            cur.push_back(v[i]);
+            dfs(v, gap - v[i], i + 1, cur, result);     //与上面的差别
+            cur.pop_back();
+            while (i < v.size() - 1 && v[i] == v[i+1])  //与上面的差别
+                i++;
+        }
+    }
+};
 
 //问题：reverse sentence of words
 //算法：利用两个栈，一个用于存放单词，一个用于存放句子
@@ -2931,6 +3015,7 @@ bool isSymmetric(TreeNode* left, TreeNode* right) {
     && isSymmetric(left->left, right->right)
     && isSymmetric(left->right, right->left);
 }
+
 //算法：迭代版
 bool isSymmetric2(TreeNode* root) {
     if (!root) return true;

@@ -2291,7 +2291,8 @@ void genSets(int m, int n){
 //problem: 判断一点是否在多边形内
 //algorithm: 射线交点判奇法
 // 方法：求解通过该点的水平线与多边形各边的交点
-// 结论：单边交点为奇数，成立!
+// 结论：单边交点为奇数则该点一定在多边形以内，成立!
+//Point Inclusion in Polygon Test
 struct point
 {
     double x, y;
@@ -2321,7 +2322,7 @@ bool PtInPolygon(point p, vector<point> ptPolygon, int nCount)
     return (nCross % 2 == 1);
 }
 
-//algorithm2: 向量乘积法
+//algorithm2: 向量乘积法，判断一个点是不是在一个三角形/矩形/四边形内
 //A，B，C 在逆时针方向
 //如果D在ABC之外，返回false，否则返回true
 //注：此处依赖于A、B、C的位置关系，其位置不能调换
@@ -2351,6 +2352,7 @@ int pnpoly(int nvert, float *vertx, float *verty, float testx, float testy)
     }
     return c;
 }
+//多边形的题还可以引申：判断两个矩形是否相交
 
 //problem: lower_bound 和 upper_bound的实现,Search Insert Position of leetcode
 //algorithm:
@@ -4451,12 +4453,12 @@ Node * mergelistRecursively(Node *head1, Node *head2)
     if(head1->data < head2->data)
     {
         head = head1;
-        head->next = Merge3(head1->next, head2);
+        head->next = mergelistRecursively(head1->next, head2);
     }
     else
     {
         head = head2;
-        head->next = Merge3(head1, head2->next);
+        head->next = mergelistRecursively(head1, head2->next);
     }
     return head;
 }
@@ -7600,34 +7602,171 @@ void  convertToDoubleList(BSTtreenode * pCurrent)
 }
 
 //单向排序链表转换为二叉排序树
-BSTtreenode* genBST(int start, int end, vector<BSTtreenode*> &treeNodes);
-BSTtreenode *sortedListToBST(node *head)
-{
-    vector<BSTtreenode*> treeNodes;
-    while (head != NULL)
+/*
+ Given a singly linked list where elements are sorted in ascending 
+ order, convert it to a height balanced BST.
+ */
+class Solution_sortedListToBST {
+public:
+    TreeNode *sortedListToBST(ListNode *head)
     {
-        BSTtreenode *p = new BSTtreenode(head->data);
-        treeNodes.push_back(p);
-        head = head->next;
-    }
-    return genBST(0, (int)treeNodes.size() - 1, treeNodes);
-}
-
-BSTtreenode* genBST(int start, int end, vector<BSTtreenode*> &treeNodes)
-{
-    if (start == end) return treeNodes[start];
-    else if (start+1 == end)
-    {
-        treeNodes[start]->m_pRight = treeNodes[end];
-        return treeNodes[start];
+        if (NULL == head)   return NULL;
+        vector<TreeNode*> treeNodes;
+        //先把它转化为数组，再进行数组到BST转换，这种效率太低了
+        while (head != NULL)
+        {
+            TreeNode *p = new TreeNode(head->val);
+            treeNodes.push_back(p);
+            head = head->next;
+        }
+        return genBST(0, (int)treeNodes.size() - 1, treeNodes);
     }
     
-    int mid = (start+end)/2;
-    BSTtreenode* root = treeNodes[mid];
-    root->m_pLeft = genBST(start, mid-1, treeNodes);
-    root->m_pRight = genBST(mid+1, end, treeNodes);
-    return root;
-}
+private:
+    TreeNode* genBST(int start, int end, vector<TreeNode*> &treeNodes)
+    {
+        if (start == end)
+            return treeNodes[start];
+        else if (start+1 == end)
+        {
+            treeNodes[start]->right = treeNodes[end];
+            return treeNodes[start];
+        }
+        
+        int mid = (start+end)/2;
+        TreeNode* root = treeNodes[mid];
+        root->left = genBST(start, mid-1, treeNodes);
+        root->right = genBST(mid+1, end, treeNodes);
+        return root;
+    }
+    
+    
+};
+
+//最容易理解的，这题的关键是能找出当前链表的中间节点，然后再递归左右的子链表，
+//开始的时候程序先计算链表总长，然后传入两个前后索引指针，最后每次递归找出中间节点即可
+class Solution_sortedListToBST0 {
+public:
+    int calLen(ListNode *node)
+    {
+        int len = 0;
+        while(node)
+        {
+            len++;
+            node = node->next;
+        }
+        return len;
+    }
+    
+    TreeNode *createTree(ListNode *node, int left, int right)
+    {
+        if (left > right)
+            return NULL;
+        
+        int mid = (left + right) / 2;
+        
+        ListNode *p = node;
+        
+        for(int i = left; i < mid; i++)
+            p = p->next;
+        
+        TreeNode *leftNode = createTree(node, left, mid - 1);
+        TreeNode *rightNode = createTree(p->next, mid + 1, right);
+        
+        TreeNode *tNode = new TreeNode(p->val);
+        
+        tNode->left = leftNode;
+        tNode->right = rightNode;
+        
+        return tNode;
+    }
+    
+    TreeNode *sortedListToBST(ListNode *head) {
+        // Start typing your C/C++ solution below
+        // DO NOT write int main() function
+        int len = calLen(head);
+        return createTree(head, 0, len - 1);
+    }
+};
+
+
+
+//中递归的思路，很新颖，摆脱了找中间值的步骤
+class Solution_sortedListToBST2 {
+public:
+    TreeNode *sortedListToBST(ListNode *head) {
+        if(head==NULL)return NULL;
+        ListNode *cur=head;
+        int n=0;
+        while(cur){
+            n++;cur=cur->next;
+        }
+        return buildBST(head,0,n-1);
+    }
+    TreeNode *buildBST(ListNode *&head,int left,int right){
+        if(left>right)return NULL;
+        int mid = left+(right-left)/2;
+        TreeNode *leftChild = buildBST(head,left,mid-1);
+        TreeNode *root = new TreeNode(head->val);
+        head=head->next;
+        TreeNode *rightChild = buildBST(head,mid+1,right);
+        root->left = leftChild;
+        root->right = rightChild;
+        return root;
+    }
+};
+
+//
+class Solution_sortedListToBST3 {
+public:
+    TreeNode *sortedListToBST(ListNode *head) {
+        return helper(head, NULL);  //这种构造还是第一次看到
+    }
+    
+private:
+    TreeNode* helper(ListNode* start, ListNode* end) {
+        if (start == end)   return NULL;
+        ListNode* p = start, *q = start;
+        while (p != end && p->next != end) {
+            p = p->next->next;
+            q = q->next;
+        }
+        TreeNode* root = new TreeNode(q->val);
+        root->left = helper(start, q);
+        root->right = helper(q->next, end);
+        return root;
+    }
+    
+    
+};
+
+
+//Given an array where elements are sorted in ascending order, convert it to a height balanced BST.
+//将排序的数组转换成一个平衡二叉树
+class Solution_sortedArrayToBST {
+public:
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+        int n = nums.size();
+        if (0 == n) return NULL;
+        return helper(nums, 0, n-1);
+    }
+    
+    TreeNode* helper(vector<int>& nums, int start, int end) {
+        if (start > end)    return NULL;
+        if (start == end) {
+            TreeNode* root = new TreeNode(nums[start]);
+            return root;
+        }else if (start < end) {
+            int mid = start + (end - start) / 2;
+            TreeNode* root = new TreeNode(nums[mid]);
+            root->left = helper(nums, start, mid - 1);
+            root->right = helper(nums, mid + 1, end);
+            return root;
+        }
+        
+    }
+};
+
 
 /*
  
