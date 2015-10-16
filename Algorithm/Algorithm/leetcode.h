@@ -32,6 +32,33 @@ struct TreeNode {
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
 
+class Solution_happyNumber {
+public:
+    bool isHappy(int n) {
+        if (n < 1)
+            return false;
+        if (n == 1)
+            return true;
+        unordered_set<int> showedNums;      //hash save the world
+        showedNums.insert(n);
+        
+        while(true){
+            int s = 0;
+            while(n) {            //这个是对整数进行分解的方法
+                s += (n % 10) * (n % 10);
+                n = n / 10;
+            }
+            
+            if (s == 1)
+                return true;
+            else if (showedNums.find(s) != showedNums.end())
+                return false;
+            n = s;
+            showedNums.insert(s);
+        }
+    }
+};
+
 /*
  Given a 2d grid map of '1's (land) and '0's (water), count the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.
  
@@ -1433,47 +1460,6 @@ public:
         return vvi;
     }
 };
-
-//在树的遍历中要记得举一反三，那个VISIT函数可以有多种，下面就列举一个例子，用inorder来拷贝一个BST中的元素
-//判断一个二叉树是不是BST
-
-//采用中序遍历将节点的值保存到一个数组中，然后判断数组是不是满足递增的条件
-static int index = 0;
-void copyBST(BinaryTreeNode* root, int array[]) {
-    if (root == NULL)
-        return;
-    copyBST(root->left, array);
-    array[index] = root->m_value;           //inorder中的VISIT函数的改版就OK了，太牛逼了
-    index++;                                //当然这里也可以用引用
-    copyBST(root->right, array);
-}
-bool checkBST(BinaryTreeNode* root) {
-    int* array = new int[index + 1];
-    copyBST(root, array);
-    for (int i = 1; i < index; i++) {
-        if (array[i] <= array[i-1])
-            return false;
-    }
-    return true;
-}
-//可以看出上面保存的数组其实没有必要，只需要比较后一个元素与前一个元素的大小关系
-static int last_printed = INT_MIN;
-bool checkBST2(BinaryTreeNode* root) {
-    if (root == NULL)
-        return true;
-    if (!checkBST2(root->m_pLeft))
-        return false;
-    
-    if (root->m_value <= last_printed)
-        return false;
-    last_printed = root->m_value;
-    
-    
-    if (!checkBST2(root->m_pRight))
-        return false;
-    return true;
-}
-
 
 
 
@@ -3464,42 +3450,149 @@ int candy(vector<int> &ratings) {
 
 //problem:
 //algorithm:
-int removeDuplicates(vector<int>& nums) {
-    int n = nums.size();
-    if (n <= 2)
-        return n;
-    bool flag = false;
-    int i = 0, j;
-    for (j = 1; j < n; j++){
-        if (nums[j] != nums[i]) {
-            nums[++i] = nums[j];
-            flag = false;
+
+class removeNodes {
+
+public:
+    int removeElementsOfArray(vector<int>& nums, int val) {
+        int n = nums.size();
+        if (0 == n) return 0;
+        int j = 0;
+        for (int i = 0; i < n; i++) {
+            if (nums[i] != val)
+                nums[j++] = nums[i];
         }
-        else if (nums[j] == nums[i] && !flag) {
-            nums[++i] = nums[j];
-            flag = !flag;
-        }
+        return j;
     }
-    return i+1;
-}
-
-int remove_duplicates2(int a[], int num)
-{
-    if (num == 0) return 0;
-    int i, flag = 0, index = 0;
-    for (i = 1; i < num; i++)
-        if (a[index] != a[i])
-            a[++index] = a[i];
-        else{
-            if (a[i] == a[i+1])
-                i++;
-            else
-                a[++index] = a[i];
-        }
     
-    return index+1;
-}
+    ListNode* removeElementsOfList(ListNode* head, int val) {
+        if (NULL == head)   return NULL;
+        ListNode dummy(-1); //利用好dummy法
+        dummy.next = head;
+        ListNode* pre = &dummy;
+        ListNode* cur = head;
+        while( cur != NULL) {
+            if (cur->val == val) {  //这里没有将满足要求的节点的内存释放，可以加上一个delete
+                cur = cur->next;
+                pre->next = cur;
+            }else {
+                pre = cur;
+                cur = cur->next;
+            }
+        }
+        return dummy.next;
+    }
+    
+    ListNode* removeDuplicatesFromSortedList(ListNode * head)
+    {
+        ListNode* pre = head;
+        if (head == nullptr)
+            return nullptr;
+        ListNode* cur;
+            //双指针法
+        for (cur = pre->next; cur != nullptr; cur = cur->next)
+        {
+            if (cur->val == pre->val){
+                pre->next = cur->next;
+                delete cur;
+            }
+            else
+                pre = cur;
+        }
+        return head;
+    }
 
+    ListNode* removeDuplicatesFromLists2(ListNode* head)
+    {
+        if (head->next == nullptr)
+            return head;
+        ListNode dummy(INT_MIN);//头节点
+        dummy.next = head;
+        ListNode *prev = &dummy, *cur = head;
+        while(cur != nullptr){
+            bool duplicated = false;
+            while (cur->next!=nullptr && cur->val == cur->next->val){
+                duplicated = true;
+                ListNode *temp = cur;
+                cur = cur->next;
+                delete temp;
+            }
+            if (duplicated){//删除重复的最后一个元素
+                ListNode* temp = cur;
+                cur = cur->next;
+                delete temp;
+                continue;
+            }
+            prev->next = cur;
+            prev = prev->next;
+            cur = cur->next;
+        }
+        prev->next = cur;
+        return dummy.next;
+    }
+
+
+
+    ListNode* removeNthFromList(ListNode* head, int n)// 只扫描了一次
+    {
+        ListNode dummy(-1);
+        dummy.next = head;
+        
+        ListNode* p = &dummy;
+        ListNode* q = &dummy;
+        
+        for (int i = 0; i < n; i++)
+            q = q->next;
+        
+        while (q->next)
+        {
+            q = q->next;
+            p = p->next;
+        }
+        
+        ListNode* tmp;
+        tmp = p->next;
+        p->next = p->next->next;
+        delete tmp;
+        return dummy.next;
+    }
+
+    int removeDuplicates(vector<int>& nums) {
+        int n = nums.size();
+        if (n <= 2)
+            return n;
+        bool flag = false;
+        int i = 0, j;
+        for (j = 1; j < n; j++){
+            if (nums[j] != nums[i]) {
+                nums[++i] = nums[j];
+                flag = false;
+            }
+            else if (nums[j] == nums[i] && !flag) {
+                nums[++i] = nums[j];
+                flag = !flag;
+            }
+        }
+        return i+1;
+    }
+
+    int remove_duplicates2(int a[], int num)
+    {
+        if (num == 0) return 0;
+        int i, flag = 0, index = 0;
+        for (i = 1; i < num; i++)
+            if (a[index] != a[i])
+                a[++index] = a[i];
+            else{
+                if (a[i] == a[i+1])
+                    i++;
+                else
+                    a[++index] = a[i];
+            }
+        
+        return index+1;
+    }
+};
 
 //----------------------------------------------------------------
 
@@ -3891,83 +3984,7 @@ vector<int> preorderTraversal(TreeNode *root){
 }
 
 
-
-ListNode* removeDuplicatesFromSortedList(ListNode * head)
-{
-    ListNode* pre = head;
-    if (head == nullptr)
-        return nullptr;
-    ListNode* cur;
-    
-    for (cur = pre->next; cur != nullptr; cur = cur->next)
-    {
-        if (cur->val == pre->val){
-            pre->next = cur->next;
-            delete cur;
-        }
-        else
-            pre = cur;
-    }
-    return head;
-}
-
-ListNode* removeDuplicatesFromLists2(ListNode* head)
-{
-    if (head->next == nullptr)
-        return head;
-    ListNode dummy(INT_MIN);//头节点
-    dummy.next = head;
-    ListNode *prev = &dummy, *cur = head;
-    while(cur != nullptr){
-        bool duplicated = false;
-        while (cur->next!=nullptr && cur->val == cur->next->val){
-            duplicated = true;
-            ListNode *temp = cur;
-            cur = cur->next;
-            delete temp;
-        }
-        if (duplicated){//删除重复的最后一个元素
-            ListNode* temp = cur;
-            cur = cur->next;
-            delete temp;
-            continue;
-        }
-        prev->next = cur;
-        prev = prev->next;
-        cur = cur->next;
-    }
-    prev->next = cur;
-    return dummy.next;
-}
-
-
-
-ListNode* removeNthFromList(ListNode* head, int n)// 只扫描了一次
-{
-    ListNode dummy(-1);
-    dummy.next = head;
-    
-    ListNode* p = &dummy;
-    ListNode* q = &dummy;
-    
-    for (int i = 0; i < n; i++)
-        q = q->next;
-    
-    while (q->next)
-    {
-        q = q->next;
-        p = p->next;
-    }
-    
-    ListNode* tmp;
-    tmp = p->next;
-    p->next = p->next->next;
-    delete tmp;
-    return dummy.next;
-}
-
-
-
+ 
 //找到中间节点，把后半节链表reverse，然后合并成一个大的链表, reverselist listreverse
 ListNode* reverse(ListNode* head);
 void reorderList(ListNode* head){

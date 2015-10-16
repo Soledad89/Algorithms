@@ -26,53 +26,43 @@ struct ListNode {
         ListNode *next;
         ListNode(int x) : val(x), next(NULL) {}
 };
+struct TreeNode {
+         int val;
+         TreeNode *left;
+         TreeNode *right;
+         TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    };
 
 class Solution {
 public:
-    bool isPalindrome(ListNode* head) {
-        if (head == NULL)
-            return false;
-        if (head->next == NULL)
+    bool isValidBST(TreeNode* root) {
+        //bool isBST(struct BinaryTreeNode* root)
+        static TreeNode* prev = NULL;  //使用局部变量
+        
+        // traverse the tree in inorder fashion and keep track of prev node
+        if(root == NULL)
             return true;
-        ListNode* p = head;
-        ListNode* q = head;
-        while(q->next != NULL) {
-            p = p->next;
-            q = q->next->next;
-        }
-        ListNode* mid = (q == NULL) ? p : p->next;
-        ListNode* mid_reverse = reverseList(mid);
-        ListNode* r = mid_reverse;
-        while (r != NULL) {
-            if (r->val != head->val)
-                return false;
-            r = r->next;
-            head = head ->next;
-        }
-        reverseList(mid_reverse);
-        return true;
-    }
-    
-private:
-    ListNode* reverseList(ListNode* head) {
-        if (head == NULL)
-            return NULL;
-        ListNode * p = head;
-        ListNode * q = head->next;
-        p->next = NULL;
-        while (q != NULL) {
-            p = q;
-            q = p->next;
-            p->next = head;
-            head = p;
-        }
-        return head;
+        
+        if(!isValidBST(root->left))
+            return false;
+        
+        // Allows only distinct valued nodes
+        if(prev != NULL && root->val <= prev->val)
+            return false;
+        
+        prev = root;
+        
+        return isValidBST(root->right);
+        
+        
     }
 };
 
-
 int main(void)
 {
+    TreeNode* root = new TreeNode(1);
+    Solution as;
+    bool asf = as.isValidBST(root);
     
     vector<int> nums = {3, 5, 9, 6, 10,13};
 

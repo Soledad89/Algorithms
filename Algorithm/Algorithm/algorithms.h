@@ -680,6 +680,54 @@ int main_smartpointer(){
  在二维平面上，有一些点，请找出经过点数最多的那条线。maxpoints
  给定一个点集vector p和点集的大小n，请返回一个vector，代表经过点数最多的那条直线的斜率和截距。
  */
+/**
+ * Definition for a point.
+ * struct Point {
+ *     int x;
+ *     int y;
+ *     Point() : x(0), y(0) {}
+ *     Point(int a, int b) : x(a), y(b) {}
+ * };
+ */
+//这个算法只能用于找出最多在同一条线上的点，不能算出具体是哪一条线
+//注意事项：存在坐标一样的点；存在斜率不存在的点（与x轴平行的直线）
+class Solution_maxPoints {
+public:
+    int maxPoints(vector<Point> &points) {
+        if(points.size() == 0) return 0;
+        unordered_map<double , int> count;
+        int size = points.size();
+        int ans = 0;
+        for(int i = 0 ; i < size ; i++){    //先固定其中一个点
+            int x = points[i].x;
+            int y = points[i].y;
+            int du = 0;
+            count.clear();
+            count[(double)INT_MAX] = 0;
+            for(int j = 0 ; j < size ; j++){
+                if(i != j){
+                    int x1 = points[j].x;
+                    int y1 = points[j].y;
+                    if(x == x1 && y == y1){
+                        du++;
+                    }else if(x == x1){
+                        count[(double)INT_MAX] ++;
+                    }else{
+                        double k = (double)(y1-y) / (double)(x1-x);
+                        count[k]++;
+                    }
+                }
+            }
+            
+            for(auto it = count.begin() ; it != count.end() ; it++){
+                ans = max(ans, it->second + du);
+            }
+            
+        }
+        return ans + 1;
+    }
+};
+
 
 //这个的复杂度有点高O(N^3)，有没有可能降到O(N^2logN)，极限应该是O(N^2)
 class DenseLine {
@@ -3006,7 +3054,7 @@ int main_permutationD(void)
 }
 
 
-//排列
+//排列combination 和 subsets类似
 void Combination(char *string ,int number,vector<char> &result);
 
 void Combination(char *string)
@@ -3062,6 +3110,97 @@ int main_combination(void)
     Combination(str);
     return 0;
 }
+
+vector<vector<int> > subsets(vector<int> &S,int n)
+{
+    //n个数有0~max-1即2^n中组合，1<<n表示2^n
+    int max = 1<<n;
+    vector<vector<int> >result;
+    for(int i = 0;i < max;i++)
+    {
+        vector<int> temp;
+        int idx = 0;
+        int j = i;
+        while(j > 0)
+        {
+            //判断最后一位是否为1，若为1则将对应数加入到当前组合中
+            if(j&1)
+            {
+                temp.push_back(S[idx]);
+            }
+            idx++;
+            //判断了这一位是否为1后要右移
+            j = j>>1;
+        }
+        //判断完了一种组合，加入到结果集中
+        result.push_back(temp);
+    }
+    return result;
+}
+
+
+
+//排列真子集combination
+class Solution_subsets {
+public:
+    void dfs(vector<int>& temp,
+             vector<vector<int>>&result,
+             int i,
+             vector<int>& nums){
+        
+        if(i==nums.size()){
+            result.push_back(temp);
+            return;
+        }
+        temp.push_back(nums[i]);
+        dfs(temp,result,i+1,nums);
+        temp.pop_back();
+        dfs(temp,result,i+1,nums);
+        return;
+    }
+    vector<vector<int>> subsets(vector<int>& nums) {
+        sort(nums.begin(),nums.end());
+        vector<int> temp;
+        vector<vector<int>>result;
+        dfs(temp, result, 0, nums);
+        return result;
+    }
+};
+
+/*
+ 原数组中每一个元素在子集中有两种状态：要么存在、要么不存在。这样构造子集的过程中每个
+ 元素就有两种选择方法：选择、不选择，因此可以构造一颗二叉树来表示所有的选择状态：二叉
+ 树中的第i+1层第0层无节点表示子集中加入或不加入第i个元素，左子树表示加入，右子树表示
+ 不加入。所有叶节点即为所求子集。因此可以采用DFS的递归思想求得所有叶节点
+ */
+class Solution_subsets2 {
+public:
+    
+    vector<vector<int> > subsets(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<int> tmp;
+        vector<vector<int> > result;
+        dfs(nums, tmp, 0, result);
+        return result;
+    }
+
+    //S为原数组，temp为当前子集，level为原数组中的元素下标亦为二叉树的层数，result为所求子集集合
+    void dfs(vector<int> &S,vector<int> temp,int level,
+             vector<vector<int> > &result)
+    {
+        //如果是叶子节点则加入到result中
+        if(level == S.size()){
+            result.push_back(temp);
+            return;
+        }
+        //对于非叶子节点，不将当前元素加入到temp中
+        dfs(S,temp,level + 1,result);
+        //将元素加入到temp中
+        temp.push_back(S[level]);
+        dfs(S,temp,level + 1,result);
+    }
+
+};
 
 //problem:放皇后问题
 //algorithm: 回溯-分支限定
@@ -5737,6 +5876,41 @@ int NumberOf1_Solution_Wikipedia(int n) //分治法
     return n;
 }
 
+class SolutionOnesLessThanN
+{
+    //每10个数, 有一个个位是1,
+    //每100个数, 有10个十位是1,
+    //每1000个数, 有100个百位是1.
+    //做一个循环, 每次计算 单个位上1 的总个数（个位,十位, 百位）
+    
+    //以算百位上1为例子:   假设百位上是0, 1, 和 >=2 三种情况:
+    //case 1: n=3141092, a= 31410, b=92. 计算百位上1的个数应该为 3141 *100 次.
+    //case 2: n=3141192, a= 31411, b=92. 计算百位上1的个数应该为 3141 *100 + (92+1) 次.
+    //case 3: n=3141592, a= 31415, b=92. 计算百位上1的个数应该为 (3141+1) *100 次.
+    
+    //以上三种情况可以用 一个公式概括:m表示位数
+    //(a + 8) / 10 * m + (a % 10 == 1) * (b + 1);
+public:
+    int countDigitOne(int n)
+    {
+        int ans_count=0;
+        
+        for(long m=1;m<n+1;m=m*10)
+        {
+            long a=n/m;
+            long b=n%m;
+            //（1）为什么注释掉的这一句不可以，不能从long转int
+            //（2）为什么要是用int的话，会变成一个负的结果呢
+            //ans_count = ans_count + (a + 8) / 10 * m ;
+            ans_count += (a + 8) / 10 * m ;
+            if(a%10==1)
+            {
+                ans_count+=b+1;
+            }
+        }
+        return ans_count;
+    }
+};
 
 //问题：
 /*
@@ -6393,7 +6567,8 @@ bool VerifySquenceOfBST(int sequence[], int length)
 }
 
 
-//判断一个二叉树是不是BST
+//判断一个二叉树是不是BST, validBST/validate
+//Given a binary tree, determine if it is a valid binary search tree (BST).
 //algorithm1: 每一个根节点保存一个最大值和一个最小值min/max法
 bool isBSThelper(BinaryTreeNode* root, int min, int max) {
     if (root == NULL)
@@ -6444,7 +6619,7 @@ bool checkBST2(BinaryTreeNode* root) {
     return true;
 }
 
-//也可以使用静态变量prev来保持前驱节点很巧妙
+//也可以使用静态变量prev来保持前驱节点很巧妙isValidBST
 bool isBST(struct BinaryTreeNode* root)
 {
     static struct BinaryTreeNode* prev = NULL;  //使用局部变量
@@ -6466,6 +6641,64 @@ bool isBST(struct BinaryTreeNode* root)
 
     
 }
+//利用非递归的中序遍历
+class Solution_isValidBST {
+public:
+    bool isValidBST(TreeNode* root) {
+        if (NULL == root)
+            return true;
+        bool flag = true;
+        TreeNode* prev = NULL;
+        stack<TreeNode*> s;
+        TreeNode* cur = root;
+        while(true) {
+            while(cur) {
+                s.push(cur);
+                cur = cur->left;
+                
+            }
+            if (s.empty())  break;
+            cur = s.top(); s.pop();
+            if (flag) {
+                prev = cur;
+                flag = false;
+            }
+            else if (cur->val <= prev->val) {
+                return false;
+            }
+            else {
+                prev = cur;
+            }
+            
+            cur = cur->right;
+        }
+        return true;
+    }
+};
+
+class Solution_isValidBST2 {
+private:
+    TreeNode* prev = NULL;  //使用局部变量
+public:
+    bool isValidBST(TreeNode* root) {
+        if(root == NULL)
+            return true;
+        
+        if(!isValidBST(root->left))
+            return false;
+        s
+        if(prev != NULL && root->val <= prev->val)
+            return false;
+        
+        prev = root;
+        
+        return isValidBST(root->right);
+        
+        
+    }
+};
+
+
 /*
  Given a Binary Tree where each node has following structure, write a function to populate next pointer for all nodes. The next pointer for every node should be set to point to inorder successor.
  */
