@@ -31,6 +31,58 @@ struct TreeNode {
 };
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
+/*
+ game of life
+ */
+// Game of Life
+/*
+ 状态: 前一位表示下一代的状态,后一位表示当前的状态
+ 00: 死->死
+ 10: 死->活
+ 01: 活->死
+ 11: 活->活
+ */
+class Solution {
+public:
+    void gameOfLife(vector<vector<int>>& board) {
+        int dir[][2] = {{1,-1}, {1,0},{1,1},{0,-1},{-1,-1},{-1,0},{-1,1},{0,1}};
+        int m = board.size();
+        int n = board[0].size();
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                int cnt = 0;
+                for (int k = 0; k < 8; k++) {
+                    int x = dir[k][0] + i;
+                    int y = dir[k][1] + j;
+                    if (x < 0 || x >= m || y < 0 || y >= n) {
+                        continue;
+                    }
+                    if (board[x][y] & 1)    cnt++;
+                }
+                //dead
+                if (board[i][j] == 0) {
+                    if (cnt == 3)
+                        board[i][j] = 2;    //2: 10
+                }
+                //live
+                else {
+                    if (cnt < 2 || cnt > 3)
+                        board[i][j] = 1;    //1: 01
+                    else
+                        board[i][j] = 3;    //3: 11
+                }
+            }
+        }
+        
+        for (int i = 0; i < m; i++)
+            for (int j = 0; j < n;j++)
+                board[i][j] >>= 1;
+        
+    }
+    
+};
+
+
 /*trapping rain water containing
  Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it is able to trap after raining.
  
@@ -285,10 +337,9 @@ class Solution_IsMatch {
 class Solution_happyNumber {
 public:
     bool isHappy(int n) {
-        if (n < 1)
-            return false;
-        if (n == 1)
-            return true;
+        if (n < 1)  return false;
+        if (n == 1) return true;
+        
         unordered_set<int> showedNums;      //hash save the world
         showedNums.insert(n);
         
@@ -1523,7 +1574,7 @@ void postorderRecursive(TreeNode* node) {
 
 void preorderNonrecursive(TreeNode * node) {    //树的前序遍历就是图的深度优先遍历
     stack<TreeNode *> s;
-    s.push(node);
+    s.push(node);   //preorder 还是先压入栈的好
     while (!s.empty())
     {
         TreeNode * cur = s.top(); s.pop();
@@ -1553,7 +1604,7 @@ void inorderNonrecursive(TreeNode * node)
 void inorderNonrecursive2(TreeNode* node){
     stack<TreeNode*> s;
     TreeNode* cur = node;
-    while (true) {
+    while (true) {  //inorder才喜欢这样来做
         while (cur) {
             s.push(cur);
             cur = cur->left; //从根节点出发沿左分支下行,直到最深的节点
@@ -1708,6 +1759,37 @@ public:
         }
         
         return vvi;
+    }
+    
+    /*
+     Given a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.
+     
+     For example:
+     Given the following binary tree,
+        1            <---
+      /   \
+     2     3         <---
+      \     \
+       5     4       <---
+     You should return [1, 3, 4].
+     */
+    //这个也是层次遍历的一个变种
+    vector<int> rightSideView(TreeNode* root) {
+        vector<int> res;
+        if (NULL == root)   return res;
+        queue<TreeNode*> q;
+        q.push(root);
+        while(true) {
+            int n = q.size();
+            for (int i = 0; i < n; i++) {
+                TreeNode* tmp = q.front(); q.pop();
+                if (tmp->left)  q.push(tmp->left);
+                if (tmp->right) q.push(tmp->right);
+                if ( i == n-1)  res.push_back(tmp->val);
+            }
+            if (q.empty())  break;
+        }
+        return res;
     }
 };
 
@@ -2336,7 +2418,70 @@ int minPathSum2(vector<vector<int> > &grid) {
     return dp[n-1];
 }
 
-//算法3：Unique Paths, 没有了权重，看有多少条路径可以通到finish点
+//算法3：Unique Paths, 没有了权重，看有多少条路径可以从start点，只能向下的向前走，通到finish点
+class Solution {
+    
+public:
+    int uniquePaths(vector<vector<int> >&grid) {
+        int m = grid.size(), n = grid[0].size();
+        vector<vector<int> > dp(m, vector<int>(n, 1));
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                    dp[i][j] = dp[i-1][j] + dp[i][j-1];
+            }
+        }
+        return dp[m-1][n-1];
+    }
+    
+    //滚动数组+动态规划
+    int uniquePaths(vector<vector<int> >&grid) {
+        int m = grid.size(), n = grid[0].size();
+        vector<int> dp(n, 0);
+        dp[0] = 1;
+        for(int i = 0; i < m; i++ ) {
+            for (int j = 1; j < n; j++) {
+                dp[j] = dp[j-1] + dp[j];
+            }
+        }
+        return dp[n-1];
+    }
+
+    int uniquePathsWithObstacles(vector<vector<int> >&grid) {
+        int m = grid.size(), n = grid[0].size();
+        vector<vector<int> > dp(m+1, vector<int>(n+1, 0));
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (i == 1 && j == 1) {
+                    if (grid[0][0]) return 0;
+                    dp[1][1] = 1;
+                    continue;
+                }
+                if (!grid[i-1][j-1])
+                    dp[i][j] = dp[i-1][j] + dp[i][j-1];
+            }
+        }
+        return dp[m][n];
+    }
+    
+    //动态规划+滚动数组
+    int uniquePathsWithObstacles(vector<vector<int> >&grid) {
+        int m = grid.size(), n = grid[0].size();
+        vector<int> dp(n,0);
+        if (grid[0][0] || grid[m-1][n-1]) return 0;
+        dp[0] = 1;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j])
+                    dp[j] = 0;
+                else {
+                    if (j > 0)  //这个条件还是要满足
+                        dp[j] = dp[j-1]+ dp[j];
+                }
+            }
+        }
+        return dp[n-1];
+    }
+};
 
 //问题：Triangle 路径求最小和（ 动态规划问题）
 //算法：动态规划，用了O(n2)的空间
@@ -3897,8 +4042,85 @@ public:
         return n + 1;
         
     }
+    
 
 };
+
+class Solution {
+public:
+    bool containsDuplicate(vector<int>& nums) {
+        return set<int>(nums.begin(), nums.end()).size() < nums.size();
+    }
+    
+    //利用hash
+    bool containsDuplicate(vector<int>& nums) {
+        if (nums.size() == 0)   return false;
+        unordered_set<int> s;
+        s.insert(nums[0]);
+        for (int i = 1 ; i < nums.size(); i++) {
+            if (s.find(nums[i]) != s.end())
+                return true;
+            else
+                s.insert(nums[i]);
+        }
+        return false;
+    }
+    
+    //利用map
+    bool containsDuplicate(vector<int>& nums) {
+        if (nums.empty())  return false;
+        unordered_map<int,int> mp;
+        for (int i : nums) {
+            if (++mp[i] > 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /*
+     Given an array of integers and an integer k, find out whether there are 
+     two distinct indices i and j in the array such that nums[i] = nums[j] and 
+     the difference between i and j is at most k.
+     */
+    bool containsNearbyDuplicate(vector<int>& nums, int k) {
+        int n = nums.size();
+        if (n == 0) return false;
+        unordered_map<int, int> hashmap;
+        for (int i = 0; i < n; i++) {
+            if (hashmap.find(nums[i]) != hashmap.end() && i - hashmap[nums[i]] <= k)
+                return true;
+            else
+                hashmap[nums[i]] = i;   //这里不用insert，直接这样就可以了
+        }
+        return false;
+    }
+    
+    /*
+     Given an array of integers, find out whether there are two distinct indices i and j in the array such that the difference between nums[i] and nums[j] is at most t and the difference between i and j is at most k.
+     */
+    bool containsNearbyAlmostDuplicate(vector<int>& nums, int k, int t) {
+        if (k < 1 || t < 0 || nums.size() < 2)
+            return false;
+        multiset<int> box;              //这个说白了就是利用BST的特性
+        for(int i = 0; i < nums.size() - 1; ) {
+            box.insert(nums[i++]);
+            set<int>::iterator it = box.lower_bound(nums[i]-t); //说白了是利用了BST的特性
+            
+            if(it != box.end()) {
+                if(abs(*it - nums[i]) > t)
+                    return true;
+            }
+            
+            if(i >= k) {            //维护一个k大小的窗
+                box.erase(nums[i - k]);
+            }
+        }
+        return false;
+    }
+};
+
+
 
 //----------------------------------------------------------------
 

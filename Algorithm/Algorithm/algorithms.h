@@ -610,7 +610,16 @@ bool IsCompleteBinaryTree(BinaryTreeNode * pRoot)
         }
     };
     
-/*
+    /*    bool containsDuplicate(vector<int>& nums) {
+     if (nums.empty()) { return false; }
+     unordered_map<int,int> mp;
+     for (int i : nums) {
+     if (++mp[i] > 1) {
+     return true;
+     }
+     }
+     return false;
+     }
  16.恢复被破坏的二叉树
  Two elements of a binary search tree (BST) are swapped by mistake.
  
