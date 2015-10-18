@@ -20,44 +20,37 @@
 #include <string.h>
 //#include "algorithms.h"
 using namespace std;
-
-struct ListNode {
-        int val;
-        ListNode *next;
-        ListNode(int x) : val(x), next(NULL) {}
-};
-struct TreeNode {
-         int val;
-         TreeNode *left;
-         TreeNode *right;
-         TreeNode(int x) : val(x), left(NULL), right(NULL) {}
-    };
-
-class Solution {
-public:
-    bool isValidBST(TreeNode* root) {
-        //bool isBST(struct BinaryTreeNode* root)
-        static TreeNode* prev = NULL;  //使用局部变量
-        
-        // traverse the tree in inorder fashion and keep track of prev node
-        if(root == NULL)
-            return true;
-        
-        if(!isValidBST(root->left))
-            return false;
-        
-        // Allows only distinct valued nodes
-        if(prev != NULL && root->val <= prev->val)
-            return false;
-        
-        prev = root;
-        
-        return isValidBST(root->right);
-        
-        
+int main() {
+    int m , n;
+    string str = "";
+    str += 'A' + 1;
+    str += 'A' + 2;
+    
+    cin >> m;
+    cin >> n;
+    int matrix[m][n];
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+                cin >> matrix[i][j];
+        }
     }
-};
+    int ret = INT_MIN;
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            int tmp = 1;
+            for (int k = 0; k < m; k++)
+                if (k != i)
+                    tmp *= matrix[k][j];
+            for (int k = 0; k < n; k++)
+                if (k != j)
+                    tmp *= matrix[i][k];
+            ret = max(tmp, ret);
+        }
+    }
+    cout<<ret<<endl;
+}
 
+/*
 int main(void)
 {
     TreeNode* root = new TreeNode(1);
@@ -79,7 +72,7 @@ int main(void)
     char ss[] = "abcd";
     //int a = 12344;
     //string atr = to_string(a);
-    /* to_string把参数当做是数字来处理
+    to_string把参数当做是数字来处理
      std::string to_string( int value );
 
      std::string to_string( long value );
@@ -97,7 +90,7 @@ int main(void)
      std::string to_string( double value );
 
      std::string to_string( long double value );
-     */
+ 
     string str1 = "";
     char c = '0' + 2;
     
@@ -105,7 +98,7 @@ int main(void)
 
     return 0;
 }
-
+*/
 //int main() {
 //    //main_hanoi();
 //    string str("wangbo");

@@ -442,12 +442,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465702463.14044"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "969"
-            endingLineNumber = "969"
-            landmarkName = "MystrStr(char* haystack, char* needle)"
+            startingLineNumber = "1084"
+            endingLineNumber = "1084"
+            landmarkName = "subsets2(vector&lt;int&gt; &amp;S,int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -634,13 +634,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465966198.75801"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1861"
-            endingLineNumber = "1861"
-            landmarkName = "minPathSum(vector&lt;vector&lt;int&gt; &gt; &amp; grid)"
-            landmarkType = "7">
+            startingLineNumber = "1935"
+            endingLineNumber = "1935">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -666,28 +664,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/algorithms.h"
-            timestampString = "465880351.097419"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1894"
-            endingLineNumber = "1894"
-            landmarkName = "stackmine()"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Algorithm/algorithms.h"
-            timestampString = "465880351.097419"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1913"
-            endingLineNumber = "1913"
-            landmarkName = "class stackmine"
+            startingLineNumber = "1931"
+            endingLineNumber = "1931"
+            landmarkName = "class SetOfStacks"
             landmarkType = "3">
          </BreakpointContent>
       </BreakpointProxy>
@@ -697,13 +679,29 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Algorithm/leetcode.h"
-            timestampString = "465966198.75801"
+            filePath = "Algorithm/algorithms.h"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1793"
-            endingLineNumber = "1793"
-            landmarkName = "LIS2(T a[], int n)"
+            startingLineNumber = "1950"
+            endingLineNumber = "1950"
+            landmarkName = "pop()"
+            landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algorithm/leetcode.h"
+            timestampString = "466784098.816317"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1867"
+            endingLineNumber = "1867"
+            landmarkName = "climbStairs(int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -714,12 +712,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465966198.75801"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1797"
-            endingLineNumber = "1797"
-            landmarkName = "LIS2(T a[], int n)"
+            startingLineNumber = "1871"
+            endingLineNumber = "1871"
+            landmarkName = "climbStairs2(int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -730,12 +728,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465966198.75801"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1798"
-            endingLineNumber = "1798"
-            landmarkName = "LIS2(T a[], int n)"
+            startingLineNumber = "1872"
+            endingLineNumber = "1872"
+            landmarkName = "climbStairs2(int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -746,11 +744,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465966198.75801"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1803"
-            endingLineNumber = "1803">
+            startingLineNumber = "1877"
+            endingLineNumber = "1877"
+            landmarkName = "climbStairs2(int n)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -776,11 +776,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/algorithms.h"
-            timestampString = "465792952.475498"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1360"
-            endingLineNumber = "1360">
+            startingLineNumber = "1397"
+            endingLineNumber = "1397"
+            landmarkName = "findSuccessor(pNode &amp;pSearchNode)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -806,12 +808,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/algorithms.h"
-            timestampString = "465792952.475498"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1458"
-            endingLineNumber = "1458"
-            landmarkName = "delet(BST *z)"
+            startingLineNumber = "1495"
+            endingLineNumber = "1495"
+            landmarkName = "minimum(BST *head)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -822,13 +824,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/algorithms.h"
-            timestampString = "465792952.475498"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1448"
-            endingLineNumber = "1448"
-            landmarkName = "delet(BST *z)"
-            landmarkType = "7">
+            startingLineNumber = "1485"
+            endingLineNumber = "1485">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -854,11 +854,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465702463.14044"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "553"
-            endingLineNumber = "553">
+            startingLineNumber = "668"
+            endingLineNumber = "668"
+            landmarkName = "BFS_nonRecursive(MGraph G,int v)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -916,13 +918,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/algorithms.h"
-            timestampString = "465792952.475498"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1154"
-            endingLineNumber = "1154"
-            landmarkName = "main_BST()"
-            landmarkType = "7">
+            startingLineNumber = "1191"
+            endingLineNumber = "1191">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1012,11 +1012,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/algorithms.h"
-            timestampString = "465792952.475498"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "492"
-            endingLineNumber = "492"
+            startingLineNumber = "493"
+            endingLineNumber = "493"
             landmarkName = "RebuildBinaryTree(int* pPreOrder, int* pInOrder, int nodeNum)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1060,13 +1060,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465966198.75801"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1765"
-            endingLineNumber = "1765"
-            landmarkName = "bsearch(int c[],int n,int a)"
-            landmarkType = "7">
+            startingLineNumber = "1839"
+            endingLineNumber = "1839">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1076,12 +1074,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/algorithms.h"
-            timestampString = "465966198.75801"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2697"
-            endingLineNumber = "2697"
-            landmarkName = "FindNumsAppearOnce(int data[], int length, int* num1, int* num2)"
+            startingLineNumber = "2839"
+            endingLineNumber = "2839"
+            landmarkName = "LastRemaining_Solution1(unsigned int n, unsigned int m)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1282,68 +1280,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/leetcode.h"
-            timestampString = "465781781.228238"
+            timestampString = "466784098.816317"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "269"
-            endingLineNumber = "269">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "169"
-            endingLineNumber = "169">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "162"
-            endingLineNumber = "162">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "161"
-            endingLineNumber = "161">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "112"
-            endingLineNumber = "112"
-            landmarkName = "main(void)"
+            startingLineNumber = "384"
+            endingLineNumber = "384"
+            landmarkName = "rangeBitwiseAnd3(int m, int n)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -1354,13 +1296,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
+            timestampString = "466784305.78551"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "89"
-            endingLineNumber = "89"
-            landmarkName = "main(void)"
-            landmarkType = "7">
+            startingLineNumber = "152"
+            endingLineNumber = "152">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1370,13 +1310,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
+            timestampString = "466784305.78551"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "84"
-            endingLineNumber = "84"
-            landmarkName = "main(void)"
-            landmarkType = "7">
+            startingLineNumber = "145"
+            endingLineNumber = "145">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1386,13 +1324,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
+            timestampString = "466784305.78551"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "81"
-            endingLineNumber = "81"
-            landmarkName = "main(void)"
-            landmarkType = "7">
+            startingLineNumber = "144"
+            endingLineNumber = "144">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1402,12 +1338,96 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Algorithm/oj.cpp"
-            timestampString = "466213306.398986"
+            timestampString = "466784305.78551"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "78"
-            endingLineNumber = "78"
-            landmarkName = "main(void)"
+            startingLineNumber = "95"
+            endingLineNumber = "95">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algorithm/oj.cpp"
+            timestampString = "466784305.78551"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "72"
+            endingLineNumber = "72">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algorithm/oj.cpp"
+            timestampString = "466784305.78551"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "67"
+            endingLineNumber = "67">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algorithm/oj.cpp"
+            timestampString = "466784305.78551"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "64"
+            endingLineNumber = "64">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algorithm/oj.cpp"
+            timestampString = "466784305.78551"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "61"
+            endingLineNumber = "61">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algorithm/oj.cpp"
+            timestampString = "466784305.78551"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "58"
+            endingLineNumber = "58">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Algorithm/oj.cpp"
+            timestampString = "466784305.78551"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "29"
+            endingLineNumber = "29"
+            landmarkName = "main()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

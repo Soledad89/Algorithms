@@ -31,6 +31,256 @@ struct TreeNode {
 };
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
+/*trapping rain water containing
+ Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it is able to trap after raining.
+ 
+ For example,
+ Given [0,1,0,2,1,0,1,3,2,1,2,1], return 6.
+ */
+/*
+ 观察下就可以发现被水填满后的形状是先升后降的塔形，因此，先遍历一遍找到塔顶，然后分别从两边开始，往塔顶所在位置遍历，水位只会增高不会减小，且一直和最近遇到的最大高度持平，这样知道了实时水位，就可以边遍历边计算面积。
+ */
+class Solution {
+public:
+    //双指针法, 主要运用了container with most water 的思想
+    int trap3(vector<int>& height) {
+        int n = height.size(), l = 0, r = n - 1, water = 0, minHeight = 0;
+        while (l < r) {
+            while (l < r && height[l] <= minHeight)
+                water += minHeight - height[l++];
+            while (r > l && height[r] <= minHeight)
+                water += minHeight - height[r--];
+            minHeight = min(height[l], height[r]);
+        }
+        return water;
+    }
+    
+    int trap2(vector<int>& height) {
+        int n = height.size();
+        int* max_right = new int[n]();  //这是记录每一个trap左右两边最高的柱子
+        int* max_left  = new int[n]();
+        for (int i = 1; i < n; i++) {
+            max_left[i] = max(max_left[i-1], height[i-1]);
+            max_right[n - i - 1] = max(max_right[n-i], height[n-i]);
+        }
+        
+        int sum = 0;
+        for (int i = 0; i < n; i++) {
+            int h = min(max_left[i], max_right[i]);
+            if (h > height[i])
+                sum += h - height[i];
+        }
+        delete[] max_right;
+        delete[] max_left;
+        return sum;
+    }
+    
+    int trap(vector<int>& A) {
+        int n = A.size();
+        int maxIndex = 0; //将数组分为两个部分
+        for (int i = 0; i < n; i++)
+            if (A[i] > A[maxIndex])
+                maxIndex = i;
+        int water = 0;
+        for (int i = 0, peak = 0; i < maxIndex; i++) {
+            if (A[i] > peak)    peak = A[i];
+            else
+                water += peak - A[i];
+        }
+        
+        for (int i = n - 1, top = 0; i > maxIndex; i--) {
+            if (A[i] > top)    top = A[i];
+            else
+                water += top - A[i];
+        }
+        return water;
+    }
+    
+    /*
+     Container With Most Water
+     */
+    int maxArea(vector<int> &height) {
+        
+        int n = height.size();
+        int maxArea = 0;
+        int i = 0, j = n-1;
+        while(i<j){
+            int temp = (j - i)*(height[i]>height[j]?height[j]:height[i]);
+            if(height[i] < height[j])   //这种更新的方式
+                i++;
+            else
+                j--;
+            maxArea = max(maxArea, temp);
+        }
+        return maxArea;
+    }
+    
+};
+//问题：Largest Rectangle in Histogram
+//算法：利用堆栈来维护一个递增栈, 栈内存储的是高度递增的下标,使用一个栈的O(n)解法，代码非常简洁，栈内存储的是高度递增的下标。对于每一个直方图高度，分两种情况。1：当栈空或者当前高度大于栈顶下标所指示的高度时，当前下标入栈。否则，2：当前栈顶出栈，并且用这个下标所指示的高度计算面积。而这个方法为什么只需要一个栈呢？因为当第二种情况时，for循环的循环下标回退，也就让下一次for循环比较当前高度与新的栈顶下标所指示的高度，注意此时的栈顶已经改变由于之前的出栈。
+/*
+ 由于出栈的这些元素高度都是递增的，我们可以求出这些立柱中所围成的最大矩形。更妙的是，由于这些被弹出的立柱处于“波峰”之上(比如弹出i 到 i+k，那么所有这些立柱的高度都高于 i-1和 i+k+1的高度)，因此，如果我们使用之前所提的“左右延伸找立柱”的思路解，以这些立柱的高度作为整个矩形的高度时，左右延伸出的矩形所包含的立柱不会超出这段“波峰”，因为波峰外的立柱高度都比他们低。“波峰图”其实就是求解最大矩形的“孤岛”，它不会干扰到外部。
+ */
+int largestRectangleArea(vector<int> &height) {
+    if(height.size() == 0) return 0;
+    stack<int> st;
+    int result = 0;
+    height.push_back(0);
+    int leftarea = 0, rightarea = 0;
+    for(int i = 0; i < height.size(); ++i){
+        while(!st.empty() && height[st.top()] > height[i]){
+            int tmp = st.top();
+            st.pop();
+            leftarea = (st.empty() ? tmp + 1 : tmp - st.top()) * height[tmp]; //以tmp为高度，tmp所在柱以及向左延伸出来的矩形面积
+            rightarea = (i - tmp - 1) * height[tmp]; //以tmp为高度，向右边延伸出来的矩形面积
+            result = max(result, leftarea + rightarea);
+        }
+        st.push(i);
+    }
+    return result;
+}
+//算法2：遍历，暴力算法
+int largestRectangleArea2(vector<int> &height) {
+    if(height.size() == 0) return 0;
+    int max = 0;
+    for(int i = 0; i < height.size(); ++i){
+        int mid = i;
+        int area = 0;
+        for(;mid >= 0 && height[mid] >= height[i]; area += height[i], --mid);
+        for(mid = i+1 ;mid < height.size() && height[mid] >= height[i]; area += height[i], ++mid);
+        if(max < area) max = area;
+    }
+    return max;
+}
+
+/*
+ Given a positive integer, return its corresponding column title as appear in an Excel sheet.
+ 
+ For example:
+ 
+ 1 -> A
+ 2 -> B
+ 3 -> C
+ ...
+ 26 -> Z
+ 27 -> AA
+ 28 -> AB
+ */
+class Solution{
+public:
+    string convertToTitle(int n) {
+        string str = "";
+        while (n) {
+            str.insert(str.begin(), (n-1) % 26 + 'A');
+            n =  (n-1) / 26;
+        }
+        return str;
+    }
+    
+    string convertToTitle2(int n) {
+        string ret = "";
+        while(n)
+        {
+            ret = (char)((n-1)%26+'A') + ret;
+            n = (n-1)/26;
+        }
+        return ret;
+    }
+    
+    int titleToNumber(string s) {
+        int n = s.size();
+        int sum = 0;
+        for (int i = 0; i < n; i++) {
+            sum = sum * 26 +  (s[i] - 'A' + 1) ;
+        }
+        return sum;
+    }
+};
+
+
+/*
+ Implement regular expression matching with support for '.' and '*'.
+ 
+ '.' Matches any single character.
+ '*' Matches zero or more of the preceding element.
+ 
+ The matching should cover the entire input string (not partial).
+ 
+ The function prototype should be:
+ bool isMatch(const char *s, const char *p)
+ 
+ Some examples:
+ isMatch("aa","a") → false
+ isMatch("aa","aa") → true
+ isMatch("aaa","aa") → false
+ isMatch("aa", "a*") → true
+ isMatch("aa", ".*") → true
+ isMatch("ab", ".*") → true
+ isMatch("aab", "c*a*b") → true
+ */
+/*
+ 状态转移方程如下：
+ dp[i][j] =
+ c1. p[j+1] != '*'时   if s[i] == p[j]  dp[i][j] = dp[i+1][j+1]
+                        else dp[i][j] = false
+ c2 p[j+1] == '*'时  (这个情况下，要扩展 *, dp[i][j] 从拓展的情况下，选择一个是真的结果）
+ if( s[i] ==  p[j] || p[j] == '.' && (*s) != 0)  当s[i] 和 p[j] 一样的时候，例如 aba, a*b这个时候，i = 0, j = 0, 自然可以匹配a a
+ 如果p[j] == .  因为他可以匹配任何字符，所以和相等关系有基本一样的方式。
+ 并且每一步匹配都要递增 i 的值，如果有成立的，则返回true，否则到匹配终了，返回通配符匹配完成后的结果。
+ */
+class Solution_IsMatch {
+    
+    bool isMatch(const char *s, const char *p){
+        if (*p == '\0') return *s == '\0';
+        //next char is not '*', then must current characters
+        if (*(p+1) != '*'){
+            if (*p == *s || (*p == '.'&& *s != '\0')){
+                return isMatch(s + 1, p + 1);
+            }else { //next char is '*'
+                while (*p == *s || (*p == '.' && *s != '\0')){
+                    if (isMatch(s, p+2))
+                        return true;
+                    s++;
+                }
+                return isMatch(s, p+2);
+            }
+        }
+    }
+    
+    bool isMatch_iterate(const char *s, const char *p){
+        bool star = false;
+        const char *str, *ptr;
+        for (str = s, ptr = p; *str != '\0'; str++, ptr++){
+            switch (*ptr){
+                case '?':
+                    break;
+                case '*':
+                    star = true;
+                    s = str, p = ptr;
+                    while (*p == '*')
+                        p++;        //skip continuous '*'
+                    if (*p == '\0')
+                        return true;
+                    str = s - 1;
+                    ptr = p - 1;
+                    break;
+                default:
+                    if (*str != *ptr){
+                        //如果前面没有‘*’，则匹配不成功
+                        if (!star)
+                            return false;
+                        s++;
+                        str = s- 1;
+                        ptr = p -1;
+                    }
+            }
+        }
+        while (*ptr == '*')
+            ptr++;
+        return (*ptr == '\0');
+    }
+};
+
 
 class Solution_happyNumber {
 public:
@@ -2085,6 +2335,9 @@ int minPathSum2(vector<vector<int> > &grid) {
     
     return dp[n-1];
 }
+
+//算法3：Unique Paths, 没有了权重，看有多少条路径可以通到finish点
+
 //问题：Triangle 路径求最小和（ 动态规划问题）
 //算法：动态规划，用了O(n2)的空间
 int minimumTotal(vector<vector<int> > &triangle) {
@@ -2266,6 +2519,32 @@ string shortestPalindrome(string s)  {
     return str.substr(0,l - i) + s;
     
 }
+
+//判断一个string 是不是palindrome
+bool isPalindrome(string s) {
+    int n = s.size();
+    if (n == 0 || n == 1) return true;
+    int i = 0, j = n - 1;
+    while (i <= j) {
+        if (isalnum(s[i]) && isalnum(s[j]))
+            //if (s[i] == s[j] || tolower(s[i]) == tolower(s[j]) ) {
+            if (s[i] == s[j] || abs(s[i] - s[j]) == 32) {
+                i++;
+                j--;
+                continue;
+            }
+            else
+                return false;
+        if (!isalnum(s[i]))
+            i++;
+        if (!isalnum(s[j]))
+            j--;
+        
+    }
+    return true;
+    
+}
+
 //用KMP方法
 /*
  求字符串s的翻转s_rev
@@ -2786,42 +3065,6 @@ vector<string> wordBreak2(string s, unordered_set<string>& wordDict) {
     return result;
 }
 
-//问题：Largest Rectangle in Histogram
-//算法：利用堆栈来维护一个递增栈, 栈内存储的是高度递增的下标,使用一个栈的O(n)解法，代码非常简洁，栈内存储的是高度递增的下标。对于每一个直方图高度，分两种情况。1：当栈空或者当前高度大于栈顶下标所指示的高度时，当前下标入栈。否则，2：当前栈顶出栈，并且用这个下标所指示的高度计算面积。而这个方法为什么只需要一个栈呢？因为当第二种情况时，for循环的循环下标回退，也就让下一次for循环比较当前高度与新的栈顶下标所指示的高度，注意此时的栈顶已经改变由于之前的出栈。
-/*
- 由于出栈的这些元素高度都是递增的，我们可以求出这些立柱中所围成的最大矩形。更妙的是，由于这些被弹出的立柱处于“波峰”之上(比如弹出i 到 i+k，那么所有这些立柱的高度都高于 i-1和 i+k+1的高度)，因此，如果我们使用之前所提的“左右延伸找立柱”的思路解，以这些立柱的高度作为整个矩形的高度时，左右延伸出的矩形所包含的立柱不会超出这段“波峰”，因为波峰外的立柱高度都比他们低。“波峰图”其实就是求解最大矩形的“孤岛”，它不会干扰到外部。
- */
-int largestRectangleArea(vector<int> &height) {
-    if(height.size() == 0) return 0;
-    stack<int> st;
-    int result = 0;
-    height.push_back(0);
-    int leftarea = 0, rightarea = 0;
-    for(int i = 0; i < height.size(); ++i){
-        while(!st.empty() && height[st.top()] > height[i]){
-            int tmp = st.top();
-            st.pop();
-            leftarea = (st.empty() ? tmp + 1 : tmp - st.top()) * height[tmp]; //以tmp为高度，tmp所在柱以及向左延伸出来的矩形面积
-            rightarea = (i - tmp - 1) * height[tmp]; //以tmp为高度，向右边延伸出来的矩形面积
-            result = max(result, leftarea + rightarea);
-        }
-        st.push(i);
-    }
-    return result;
-}
-//算法2：遍历，暴力算法
-int largestRectangleArea2(vector<int> &height) {
-    if(height.size() == 0) return 0;
-    int max = 0;
-    for(int i = 0; i < height.size(); ++i){
-        int mid = i;
-        int area = 0;
-        for(;mid >= 0 && height[mid] >= height[i]; area += height[i], --mid);
-        for(mid = i+1 ;mid < height.size() && height[mid] >= height[i]; area += height[i], ++mid);
-        if(max < area) max = area;
-    }
-    return max;
-}
 
 /*
  Given a 2D binary matrix filled with 0's and 1's, find the largest rectangle containing all ones and return its area
@@ -3592,6 +3835,69 @@ public:
         
         return index+1;
     }
+    
+    /*
+     The main idea is the same with problem Linked List Cycle II,https://leetcode.com/problems/linked-list-cycle-ii/. Use two pointers the fast and the slow. The fast one goes forward two steps each time, while the slow one goes only step each time. They must meet the same item when slow==fast. In fact, they meet in a circle, the duplicate number must be the entry point of the circle when visiting the array from nums[0]. Next we just need to find the entry point. We use a point(we can use the fast one before) to visit form begining with one step each time, do the same job to slow. When fast==slow, they meet at the entry point of the circle. The easy understood code is as follows.
+     */
+    
+    int findDuplicate3(vector<int>& nums)
+    {
+        if (nums.size() > 1)
+        {
+            int slow = nums[0];     //这个的局限是只能处理1-n之间的数，如果是0-n-1这个方法就不行，因为如果nums[0] = 0那么就是死循环。
+            int fast = nums[nums[0]];
+            while (slow != fast)
+            {
+                slow = nums[slow];
+                fast = nums[nums[fast]];
+            }
+            
+            fast = 0;
+            while (fast != slow)
+            {
+                fast = nums[fast];
+                slow = nums[slow];
+            }
+            return slow;
+        }
+        return -1;
+    }
+    //更加通用的方法
+    /*
+     题目要求我们不能改变原数组，即不能给原数组排序，又不能用多余空间，那么哈希表神马的也就不用考虑了，又说时间小于O(n2)，也就不能用brute force的方法，那我们也就只能考虑用二分搜索法了，我们在区别[1, n]中搜索，首先求出中点mid，然后遍历整个数组，统计所有小于等于mid的数的个数，如果个数大于mid，则说明重复值在[mid+1, n]之间，反之，重复值应在[1, mid-1]之间，然后依次类推，知道搜索完成，此时的low就是我们要求的重复值
+     */
+    int findDuplicate(vector<int>& nums) {
+        int low = 1, high = nums.size() - 1;
+        while (low <= high) {
+            int mid = low + (high - low) * 0.5;
+            int cnt = 0;
+            for (auto a : nums) {
+                if (a <= mid) ++cnt;
+            }
+            if (cnt <= mid) low = mid + 1;
+            else high = mid - 1;
+        }
+        return low;
+    }
+    
+    
+    int firstMissingPositive(vector<int>& A) {
+        int n = A.size();
+        int i = 0, j;
+        while (i < n)
+        {
+            if (A[i] != i + 1 && A[i] > 0 && A[i] <= n && A[i] != A[A[i]-1])
+                swap(A[i], A[A[i]-1]);
+            else i++;
+        }
+        
+        for (j = 0; j < n; j++)
+            if (A[j] != j + 1)
+                return j + 1;
+        return n + 1;
+        
+    }
+
 };
 
 //----------------------------------------------------------------
@@ -3673,57 +3979,7 @@ bool hasPathSum(TreeNode* root, int sum){
 }
 
 
-bool isMatch(const char *s, const char *p){
-    if (*p == '\0') return *s == '\0';
-    
-    //next char is not '*', then must current characters
-    if (*(p+1) != '*'){
-        if (*p == *s || (*p == '.'&& *s != '\0')){
-            return isMatch(s + 1, p + 1);
-        }else { //next char is '*'
-            while (*p == *s || (*p == '.' && *s != '\0')){
-                if (isMatch(s, p+2))
-                    return true;
-                s++;
-            }
-            return isMatch(s, p+2);
-        }
-    }
-}
 
-
-
-bool isMatch_iterate(const char *s, const char *p){
-    bool star = false;
-    const char *str, *ptr;
-    for (str = s, ptr = p; *str != '\0'; str++, ptr++){
-        switch (*ptr){
-            case '?':
-                break;
-            case '*':
-                star = true;
-                s = str, p = ptr;
-                while (*p == '*')
-                    p++;//skip continuous '*'
-                if (*p == '\0') return true;
-                str = s - 1;
-                ptr = p - 1;
-                break;
-            default:
-                if (*str != *ptr){
-                    //如果前面没有‘*’，则匹配不成功
-                    if (!star)
-                        return false;
-                    s++;
-                    str = s- 1;
-                    ptr = p -1;
-                }
-        }
-    }
-    while (*ptr == '*')
-        ptr++;
-    return (*ptr == '\0');
-}
 
 bool isPalindrome(string s){
     transform(s.begin(), s.end(), s.begin(), ::tolower);

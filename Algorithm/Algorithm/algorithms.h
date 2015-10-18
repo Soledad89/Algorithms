@@ -69,6 +69,7 @@ namespace BST_14 {
  13. 由前序遍历序列和中序遍历序列重建二叉树
  14.判断二叉树是不是完全二叉树
  15.求二叉树中的最长路径和
+ 16.恢复二叉树recover binary search tree
  */
 
 
@@ -608,6 +609,42 @@ bool IsCompleteBinaryTree(BinaryTreeNode * pRoot)
             return root->val + max(max(leftsum,rightsum), 0);
         }
     };
+    
+/*
+ 16.恢复被破坏的二叉树
+ Two elements of a binary search tree (BST) are swapped by mistake.
+ 
+ Recover the tree without changing its structure.
+ */
+    class Solution_recoverTree {
+    public:
+        TreeNode *p,*q;
+        TreeNode *prev; //这些都可以放在引用参数中
+        void recoverTree(TreeNode *root)
+        {
+            p = q = prev = NULL;
+            inorder(root);
+            swap(p->val,q->val);
+        }
+        void inorder(TreeNode *root)
+        {
+            if (NULL == root)   return;
+            if(root->left)
+                inorder(root->left);
+            //
+            if(prev != NULL && (prev->val > root->val))
+            {
+                if(p == NULL)
+                    p = prev;
+                q = root;
+            }
+            prev = root;
+            //
+            if(root->right)
+                inorder(root->right);
+        }
+    };
+    
     
 }
 
@@ -2551,6 +2588,110 @@ bool intervalCoverage(vector<interval> vIntervals, interval tInterval)
     return flag;
 }
 
+/*
+ Given a collection of intervals, merge all overlapping intervals.
+ */
+/**
+ * Definition for an interval.
+ * struct Interval {
+ *     int start;
+ *     int end;
+ *     Interval() : start(0), end(0) {}
+ *     Interval(int s, int e) : start(s), end(e) {}
+ * };
+ */
+class Solution {
+    
+private:
+    static bool cmp(const Interval& a, const Interval& b) {
+        return a.start < b.start;
+    }
+    
+public:
+    vector<Interval> merge(vector<Interval> &intervals) {
+        vector<Interval> result;
+        int n = intervals.size();
+        if (n == 0) return result;
+        
+        sort(intervals.begin(), intervals.end(), cmp);
+        
+        int start = intervals[0].start;
+        int end   = intervals[0].end;
+        for (int i = 0; i < n; i++) {
+            if (intervals[i].start > end) {
+                result.push_back(Interval(start, end));
+                start = intervals[i].start;
+                end   = intervals[i].end;
+            }
+            else if (intervals[i].end > end) {
+                end = intervals[i].end;
+            }
+        }
+        result.push_back(Interval(start,end));
+        return result;
+    }
+};
+
+//这里是interval的insert
+class Solution {
+public:
+    vector<Interval> insert(vector<Interval>& intervals, Interval newInterval) { //这里假设已经排序好的，其实可以用二分法来求,这里TLE了
+        vector<Interval>::iterator iter = intervals.begin();
+        while (iter != intervals.end()) {
+            if (newInterval.end < iter->start) {
+                intervals.insert(iter, newInterval);
+                return intervals;
+            }
+            else if (newInterval.start > iter->end) {
+                iter++;
+                continue;
+            }
+            else {
+                newInterval.start = newInterval.start,
+                newInterval.end   = max(newInterval.end, iter->end);
+                iter = intervals.erase(iter);   //这都太耗时了
+            }
+        }
+        intervals.insert(intervals.end(), newInterval);
+        return intervals;
+    }
+    
+    vector<Interval> insert(vector<Interval> &intervals, Interval newInterval) {    //这个就没有超时，与上面的差别也不大啊？？？？？？
+        
+        vector<Interval> result;
+        vector<Interval>::iterator it;
+        bool flag=true;
+        for (it = intervals.begin();it!=intervals.end();it++)
+        {
+            if (it->end<newInterval.start)
+            {
+                result.push_back(*it);
+                continue;
+            }
+            if (it->start>newInterval.end)
+            {
+                if (flag)
+                {
+                    result.push_back(newInterval);
+                    flag=false;
+                }
+                
+                result.push_back(*it);
+                continue;
+            }
+            newInterval.start = it->start < newInterval.start? it->start:newInterval.start;
+            newInterval.end=it->end>newInterval.end?it->end:newInterval.end;
+            
+        }
+        if (flag)
+        {
+            result.push_back(newInterval);
+        }
+        return result;
+        
+    }
+    
+};
 
 //problem: 不用除法，求N个整数数组中N-1个整数的最大乘积
 //algorithm: 统计分析规律
@@ -3052,6 +3193,38 @@ int main_permutationD(void)
     Permutation(str , str);
     return 0;
 }
+
+/*
+ 字符交换加dfs。
+ 将第0个字符和从第0开始的每个字符进行交换，对于交换后的结果，再从第1个字符开始交换。一直到最后一个字符。
+ */
+//permutation: dfs + swap
+class Solution {
+public:
+    vector<vector<int> > permute(vector<int> &num) {
+        vector<vector<int> > ret;
+        dfs(ret, num, 0);
+        return ret;
+    }
+    
+    void dfs(vector<vector<int> >& ret, vector<int>& num, int cur)
+    {
+        if(num.size() == cur)
+        {
+            ret.push_back(num);
+        }
+        else
+        {
+            for(int i = cur; i < num.size(); ++i)
+            {
+                swap(num[cur], num[i]);
+                dfs(ret, num, cur+1);
+                swap(num[cur], num[i]);
+            }
+        }
+    }
+};
+
 
 
 //排列combination 和 subsets类似
@@ -7503,6 +7676,28 @@ int maxSubArray2(int A[], int n) {
     }
     return result;
 }
+//Find the contiguous subarray within an array (containing at least one number) which has the largest product.
+
+//For example, given the array [2,3,-2,4],
+//the contiguous subarray [2,3] has the largest product = 6.
+/*                  Maximum Product Subarray
+ Analysis:
+ 
+ similar like Maximum Subarray question
+ 
+ difference is the max value could be get from 3 situations
+ 
+ current maxValue * A[i]  if A[i]>0
+ 
+ current minValue * A[i]  if A[i]<0
+ 
+ A[i]
+ 
+ We need to record current maxValue, current minValue and update them every time get the new product
+ 
+ */
+
+
 
 
 //problem: obstain the maximum sum of the sub-matrix
