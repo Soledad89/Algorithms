@@ -70,6 +70,8 @@ namespace BST_14 {
  14.判断二叉树是不是完全二叉树
  15.求二叉树中的最长路径和
  16.恢复二叉树recover binary search tree
+ 17.打印二叉树的路径Binary Tree Path
+ 18. 二叉树的路径和Path Sum II
  */
 
 
@@ -653,7 +655,107 @@ bool IsCompleteBinaryTree(BinaryTreeNode * pRoot)
                 inorder(root->right);
         }
     };
+    /*
+     17. 打印二叉树的路径Binary Tree Path
+     Given a binary tree, return all root-to-leaf paths.
+     
+     For example, given the following binary tree:
+     
+           1
+         /   \
+        2     3
+         \
+         5
+     All root-to-leaf paths are:
+     
+     ["1->2->5", "1->3"]
+     */
     
+    class Solution {
+    public:
+        vector<string> binaryTreePaths(TreeNode* root) {
+            vector<string> result;
+            if (!root)
+                return result;
+            dfs(root, to_string(root->val), result);
+            return result;
+        }
+        
+        void dfs(TreeNode* root, string cur, vector<string> &result) {
+            if (!root->left && !root->right) {
+                result.push_back(cur);
+            }
+            if (root->left)
+                dfs(root->left, cur + "->" + to_string(root->left->val), result);
+            
+            if (root->right)
+                dfs(root->right, cur + "->" + to_string(root->right->val), result);
+        }
+    };
+    
+    /*
+     18. 二叉树的路径和Path Sum II
+     Given a binary tree and a sum, find all root-to-leaf paths where each path's sum equals the given sum.
+     
+     For example:
+     Given the below binary tree and sum = 22,
+                        5
+                       / \
+                      4   8
+                     /   / \
+                    11  13  4
+                   /  \    / \
+                  7    2  5   1
+     return
+     [
+          [5,4,11,2],
+          [5,8,4,5]
+     ]
+     */
+    class Solution {
+    public:
+        vector<vector<int>> pathSum(TreeNode* root, int sum) {
+            vector<vector<int> > paths;
+            vector<int> path;
+            findPaths(root, sum, path, paths);
+            return paths;
+        }
+        
+        void findPaths(TreeNode* node, int sum, vector<int>& path, vector<vector<int> >& paths) {
+            if (!node) return;
+            path.push_back(node -> val);
+            if (!(node -> left) && !(node -> right) && sum == node -> val)
+                paths.push_back(path);
+            findPaths(node -> left, sum - node -> val, path, paths);
+            findPaths(node -> right, sum - node -> val, path, paths);
+            path.pop_back();
+            /*  如果path用的是引用，则这里必须弹出
+             if you don't "pop_back( )", the wrong answer will remain in the vector. Note that all the recursions are using the same vector. So, if the sum isn't right, you have to "pop_back( )". Even the answer is right, you have to "pop_back" because there may be another right answer.
+             */
+        }
+    };
+    //这一这上下的区别，从而理解引用的作用
+    class Solution {
+    public:
+        vector<vector<int>> pathSum(TreeNode* root, int sum) {
+            vector<vector<int> > paths;
+            vector<int> path;
+            findPaths(root, sum, path, paths);
+            return paths;
+        }
+        
+        void findPaths(TreeNode* node, int sum, vector<int> path, vector<vector<int> >& paths) {
+            if (!node) return;
+            path.push_back(node -> val);
+            if (!(node -> left) && !(node -> right) && sum == node -> val)
+                paths.push_back(path);
+            
+            if (node->left)
+                findPaths(node -> left, sum - node -> val, path, paths);
+            if (node->right)
+                findPaths(node -> right, sum - node -> val, path, paths);
+        }
+    };
     
 }
 
@@ -7215,56 +7317,60 @@ bool verifySquenceOfBST(int squence[], int length)
 
 //问题：reverse a list
 //算法：使用三个额外指针，可以改用两个额外指针
-node *reverseList(node *head)
-{
-    if (head == NULL)
-        return NULL;
-    node *p,*q,*r;
-    p = head;
-    q = p->next;
-    while(q != NULL)
+class Solution {
+    node *reverseList(node *head)
     {
-        r = q->next;
-        q->next = p;
-        p = q;
-        q = r;
+        if (head == NULL)
+            return NULL;
+        node *p,*q,*r;
+        p = head;
+        q = p->next;
+        while(q != NULL)
+        {
+            r = q->next;
+            q->next = p;
+            p = q;
+            q = r;
+        }
+        head->next = NULL;
+        head = p;
+        return head;
     }
-    head->next = NULL;
-    head = p;
-    return head;
-}
-node *reverseList2(node *head)
-{
-    if (head == NULL)
-        return NULL;
-    node *q,*r;
-    q = head->next;
-    head->next = NULL;
+    node *reverseList2(node *head)
+    {
+        if (head == NULL)
+            return NULL;
+        node *q,*r;
+        q = head->next;
+        head->next = NULL;
+        
+        while(q != NULL)
+        {
+            r = q->next;
+            q->next = head;
+            head = q;
+            q = r;
+        }
+
+        return head;
+    }
+    /*
+    Given a linked list, swap every two adjacent nodes and return its head.
     
-    while(q != NULL)
-    {
-        r = q->next;
-        q->next = head;
-        head = q;
-        q = r;
+    For example,
+    Given 1->2->3->4, you should return the list as 2->1->4->3.
+     */
+    ListNode* swapPairs(ListNode* head) {
+        if (head == NULL || head->next == NULL)
+            return head;
+        ListNode *grandChild = swapPairs(head->next->next);
+        ListNode *child = head->next;
+        child->next = head;
+        head->next = grandChild;
+        return child;
     }
+};
 
-    return head;
-}
-
-
-
-/**
- * Definition for singly-linked list.
- * public class ListNode {
- *     int val;
- *     ListNode next;
- *     ListNode(int x) {
- *         val = x;
- *         next = null;
- *     }
- * }
- */
 public class Solution_reverseKGroup{
     public ListNode reverseKGroup(ListNode head, int k) {
         if(head == null || head.next == null || k < 2) return head;
@@ -7696,17 +7802,53 @@ int maxSubArray2(int A[], int n) {
  
  difference is the max value could be get from 3 situations
  
- current maxValue * A[i]  if A[i]>0
+ 1. current maxValue * A[i]  if A[i]>0
  
- current minValue * A[i]  if A[i]<0
+ 2. current minValue * A[i]  if A[i]<0
  
- A[i]
+ 3. A[i]
  
  We need to record current maxValue, current minValue and update them every time get the new product
  
  */
+int maxProduct(vector<int>& nums) {
+    if(nums.size() == 0) return 0;
+    long long curmax = nums[0], curmin = nums[0], res = nums[0];
+    for(int i=1; i < nums.size(); ++i){
+        long long premax = curmax;
+        curmax = max(curmax*nums[i], max(curmin*nums[i], (long long)nums[i]));
+        curmin = min(premax*nums[i], min(curmin*nums[i], (long long)nums[i]));
+        res = max(res, curmax);
+    }
+    return int(res);
+}
 
-
+/*
+ Given an array of n integers where n > 1, nums, return an array output such that output[i] is equal to the product of all the elements of nums except nums[i].
+ 
+ Solve it without division and in O(n).
+ 
+ For example, given [1,2,3,4], return [24,12,8,6].
+ */
+vector<int> productExceptSelf(vector<int>& nums) {
+    
+    int len = nums.size(), temp;
+    vector<int> ret(len, 1);
+    
+    temp = 1;
+    for(int i = 1; i < len; i++){
+        temp *= nums[i - 1];
+        ret[i] *= temp;
+    }
+    
+    temp = 1;
+    for(int i = len - 2; i >= 0; i--){
+        temp *= nums[i + 1];
+        ret[i] *= temp;
+    }
+    
+    return ret;
+}
 
 
 //problem: obstain the maximum sum of the sub-matrix
@@ -8486,85 +8628,39 @@ namespace trie {
 
 //问题：归并向量的中位数
 //算法：充分利用向量的有序性
-//中位数算法蛮力版：效率低，仅适用于max(n1, n2)较小的情况
-//子向量S1[lo1, lo1 + n1)和S2[lo2, lo2 + n2)分别有序，数据项可能重复
-int trivialMedian ( vector<int>& S1, int lo1, int n1, vector<int>& S2, int lo2, int n2 ) {
-    int hi1 = lo1 + n1, hi2 = lo2 + n2;
-    vector<int> S; //将两个有序子向量归并为一个有序向量
-    while ( ( lo1 < hi1 ) && ( lo2 < hi2 ) ) {
-        while ( ( lo1 < hi1 ) && S1[lo1] <= S2[lo2] ) S.push_back ( S1[lo1 ++] );
-        while ( ( lo2 < hi2 ) && S2[lo2] <= S1[lo1] ) S.push_back ( S2[lo2 ++] );
+
+class Solution {
+public:
+
+    double findKth(int a[], int m, int b[], int n, int k) {
+        //always assume that m is equal or smaller than n
+        if (m > n)
+            return findKth(b, n, a, m, k);
+        if (m == 0)
+            return b[k - 1];
+        if (k == 1)
+            return min(a[0], b[0]);
+        //divide k into two parts
+        int pa = min(k / 2, m), pb = k - pa;
+        if (a[pa - 1] < b[pb - 1])
+            return findKth(a + pa, m - pa, b, n, k - pa);
+        else if (a[pa - 1] > b[pb - 1])
+            return findKth(a, m, b + pb, n - pb, k - pb);
+        else
+            return a[pa - 1];
     }
-    while ( lo1 < hi1 )
-        S.push_back ( S1[lo1 ++] );
-    while ( lo2 < hi2 )
-        S.push_back ( S1[lo2 ++] );
-    return S[ ( n1 + n2 ) / 2]; //直接返回归并向量的中位数
-}
-//归并长度等长的向量
-int median( vector<int>& S1, int lo1, vector<int>& S2, int lo2, int n ) { //中位数算法（高效版）
 
-    if ( n < 3 )
-        return trivialMedian ( S1, lo1, n, S2, lo2, n ); //递归基，当元素数目较少时，可以采用蛮力法
-    int mi1 = lo1 + n / 2, mi2 = lo2 + ( n - 1 ) / 2; //长度（接近）减半
-    if ( S1[mi1] < S2[mi2] )
-        return median ( S1, mi1, S2, lo2, n + lo1 - mi1 ); //取S1右半、S2左半
-    else if ( S1[mi1] > S2[mi2] )
-        return median ( S1, lo1, S2, mi2, n + lo2 - mi2 ); //取S1左半、S2右半
-    else
-        return S1[mi1];
-}
-//归并长度不等长的向量，复杂度：log(min(n1, n2))
-int median ( vector<int>& S1, int lo1, int n1, vector<int>& S2, int lo2, int n2 ) { //中位数算法
-    if ( n1 > n2 ) return median ( S2, lo2, n2, S1, lo1, n1 ); //确保n1 <= n2
-    if ( n2 < 6 ) //递归基：1 <= n1 <= n2 <= 5
-        return trivialMedian ( S1, lo1, n1, S2, lo2, n2 );
-    ///////////////////////////////////////////////////////////////////////
-    //                lo1            lo1 + n1/2      lo1 + n1 - 1
-    //                 |                 |                 |
-    //                 X >>>>>>>>>>>>>>> X >>>>>>>>>>>>>>> X
-    // Y .. trimmed .. Y >>>>>>>>>>>>>>> Y >>>>>>>>>>>>>>> Y .. trimmed .. Y
-    // |               |                 |                 |               |
-    // lo2     lo2 + (n2-n1)/2       lo2 + n2/2     lo2 + (n2+n1)/2    lo2 + n2 -1
-    ///////////////////////////////////////////////////////////////////////
-    if ( 2 * n1 < n2 ) //若两个向量的长度相差悬殊，则长者（S2）的两翼可直接截除
-        return median ( S1, lo1, n1, S2, lo2 + ( n2 - n1 - 1 ) / 2, n1 + 2 - ( n2 - n1 ) % 2 );
-    ///////////////////////////////////////////////////////////////////////
-    //    lo1                  lo1 + n1/2              lo1 + n1 - 1
-    //     |                       |                       |
-    //     X >>>>>>>>>>>>>>>>>>>>> X >>>>>>>>>>>>>>>>>>>>> X
-    //                             |
-    //                            m1
-    ///////////////////////////////////////////////////////////////////////
-    //                            mi2b
-    //                             |
-    // lo2 + n2 - 1         lo2 + n2 - 1 - n1/2
-    //     |                       |
-    //     Y <<<<<<<<<<<<<<<<<<<<< Y ...
-    //                                .
-    //                               .
-    //                              .
-    //                             .
-    //                            .
-    //                           .
-    //                          .
-    //                         ... Y <<<<<<<<<<<<<<<<<<<<< Y
-    //                             |                       |
-    //                       lo2 + (n1-1)/2               lo2
-    //                             |
-    //                            mi2a
-    ///////////////////////////////////////////////////////////////////////
-    int mi1  = lo1 + n1 / 2;
-    int mi2a = lo2 + ( n1 - 1 ) / 2;
-    int mi2b = lo2 + n2 - 1 - n1 / 2;
-    if ( S1[mi1] > S2[mi2b] ) //取S1左半、S2右半
-        return median ( S1, lo1, n1 / 2 + 1, S2, mi2a, n2 - ( n1 - 1 ) / 2 );
-    else if ( S1[mi1] < S2[mi2a] ) //取S1右半、S2左半
-        return median ( S1, mi1, ( n1 + 1 ) / 2, S2, lo2, n2 - n1 / 2 );
-    else //S1保留，S2左右同时缩短
-        return median ( S1, lo1, n1, S2, mi2a, n2 - ( n1 - 1 ) / 2 * 2 );
-}
 
+    double findMedianSortedArrays(int A[], int m, int B[], int n)
+    {
+        int total = m + n;
+        if (total & 0x1)
+            return findKth(A, m, B, n, total / 2 + 1);
+        else
+            return (findKth(A, m, B, n, total / 2)
+                    + findKth(A, m, B, n, total / 2 + 1)) / 2;
+    }
+};
 //问题：在无序向量中，若有一半以上的元素同为m, 则称之为主流数（majority）
 //算法1：减而治之
 int majEleCandidate ( vector<int> A );
@@ -8722,81 +8818,98 @@ class majorityElement {
  2.当新的数字到达时，比如为a，将a与m进行比较，若a<=m 则将其加入到最大堆中，否则将其加入到最小堆中
  3.如果此时最小堆和最大堆的元素个数的差值>=2 ，则将m加入到元素个数少的堆中，然后从元素个数多的堆将根节点赋值到m，最后重建两个最大堆和最小堆，返回到2
  */
-namespace median_max-minHeap {  //min-max heap
-
-class Median{
+class MedianFinder {
 private:
-    priority_queue<int,vector<int>,less<int> > max_heap;//左边的数
-    priority_queue<int,vector<int>,greater<int> > min_heap;//右边的数
-    
+    priority_queue<int, vector<int>, less<int> > max_heap;
+    priority_queue<int, vector<int>, greater<int> > min_heap;
 public:
-    void Insert(int v);
-    int GetValue();
+    
+    // Adds a number into the data structure.
+    void addNum(int v) {
+        if(max_heap.empty() && min_heap.empty())
+            max_heap.push(v);
+        else{
+            if(v < max_heap.top())
+                max_heap.push(v);
+            else
+                min_heap.push(v);
+        }
+        
+        while(max_heap.size() > min_heap.size()+1){
+            int data = max_heap.top();
+            min_heap.push(data);
+            max_heap.pop();
+        }
+        while(min_heap.size() > max_heap.size()+1){
+            int data = min_heap.top();
+            max_heap.push(data);
+            min_heap.pop();
+        }
+        
+    }
+    
+    // Returns the median of current data stream
+    double findMedian() {
+        if(max_heap.empty() && min_heap.empty())
+            return INT_MIN;
+        if(max_heap.size() == min_heap.size())
+            return (max_heap.top() + min_heap.top()) / 2.0;
+        else if(max_heap.size() > min_heap.size())
+            return max_heap.top();
+        else
+            return min_heap.top();
+    }
 };
 
-void Median::Insert(int v){
-    if(max_heap.empty() && min_heap.empty())
-        max_heap.push(v);
-    // max_heap不为空，则往max_heap插入数据，
-    // 往min_heap插入数据的话可能导致较小的数放到右边的堆
-    else if(!max_heap.empty() && min_heap.empty())
-        max_heap.push(v);
-    else if(max_heap.empty() && !min_heap.empty())
-        min_heap.push(v);
-    else{
-        if(v < max_heap.top())
-            max_heap.push(v);
+class MedianFinder2 {
+private:
+    priority_queue<int> que1;
+    priority_queue<int, vector<int>, greater<int> > que2;
+public:
+    
+    // Adds a number into the data structure.
+    void addNum(int num) {
+        if(que1.empty() && que2.empty()) {que1.push(num);return;}
+        double mid = findMedian();
+        if(num < mid) {
+            que1.push(num);
+            if(que1.size()-que2.size()>1){
+                int t=que1.top();
+                que1.pop();
+                que2.push(t);
+            }
+        }else{
+            que2.push(num);
+            if(que2.size()-que1.size()>1){
+                int t=que2.top();
+                que2.pop();
+                que1.push(t);
+            }
+        }
+        return;
+        
+    }
+    
+    // Returns the median of current data stream
+    double findMedian() {
+        if(que1.empty() && que2.empty())
+            return 0;
+        if(que1.size()==que2.size()){
+            double m=que1.top(),n=que2.top();
+            return (m+n)/2;
+        }
+        if(que1.size() > que2.size())
+            return (double)que1.top();
         else
-            min_heap.push(v);
+            return (double)que2.top();
     }
-    //调整，保证两个堆的元素数量差别不大于1
-    //不要用hmax_heap.size()-min_heap.size()>1
-    //因为size返回的是unsigned类型，当左边相减得到一个负数时，本来为false
-    //但会被转为一个大的正数，结果为true，出问题
-    while(max_heap.size() > min_heap.size()+1){
-        int data = max_heap.top();
-        min_heap.push(data);
-        max_heap.pop();
-    }
-    while(min_heap.size() > max_heap.size()+1){
-        int data = min_heap.top();
-        max_heap.push(data);
-        min_heap.pop();
-    }
-}
+};
 
-int Median::GetValue(){//中位数为int，由于有除法，也可改为float
-    if(max_heap.empty() && min_heap.empty())
-        return (1<<31); //都为空时，返回int最小值
-    if(max_heap.size() == min_heap.size())
-        return (max_heap.top()+min_heap.top()) / 2;
-    else if(max_heap.size() > min_heap.size())
-        return max_heap.top();
-    else
-        return min_heap.top();
-}
+// Your MedianFinder object will be instantiated and called as such:
+// MedianFinder mf;
+// mf.addNum(1);
+// mf.findMedian();
 
-int main_median(){
-    srand((unsigned)time(0));
-    Median md;
-    // vector<int> vi;
-    // int num = rand() % 30; //数量是30以内的随机数
-    // for(int i=0; i<num; ++i){
-    //     int data = rand() % 100; //元素是100内的数
-    //     vi.push_back(data);
-    //     md.Insert(data);
-    // }
-    // sort(vi.begin(), vi.end());
-    // for(int i=0; i<num; ++i)
-    //     cout<<vi.at(i)<<" "; //排序的序列
-    md.Insert(3);
-    md.Insert(1);
-    md.Insert(2);
-    cout<<endl<<md.GetValue()<<endl; //中位数
-    return 0;
-}
-
-}
 
 //问题：排序
 //算法：quicksort

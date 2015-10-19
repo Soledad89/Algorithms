@@ -31,6 +31,328 @@ struct TreeNode {
 };
 //边界条件、特殊输入（NULL指针、空字符串）、错误处理
 
+
+/*
+ 果然是郑老师的检查下水道，注意与二分法比较像，但是要处理边界条件
+ */
+bool isBadVersion(int version);
+
+class Solution {
+public:
+    int firstBadVersion(int n) {
+        int i = 1;
+        int j = n;
+        while (i < j) {
+            int mid = i + (j - i) / 2;
+            if (isBadVersion(mid))
+                j = mid;
+            else
+                i = mid + 1;
+        }
+        return j;
+    }
+};
+
+
+/*
+ Given a positive integer n, find the least number of perfect square numbers (for example, 1, 4, 9, 16, ...) which sum to n.
+ 
+ For example, given n = 12, return 3 because 12 = 4 + 4 + 4; given n = 13, return 2 because 13 = 4 + 9.
+ */
+
+//Perfect Squares,总共有以下两种方法dp, bfs当然还有数学方法，见有道笔记
+
+//DP
+class Solution {
+public:
+    int numSquares(int n) {
+        if (n == 0) return 0;
+        
+        vector<int> dp(n+1, INT_MAX);
+        dp[0] = 0;
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 1; j * j <= i; ++j) {
+                dp[i] = min(dp[i], 1 + dp[i - j*j]);
+            }
+        }
+        
+        return dp[n];
+    }
+};
+
+//BFS
+class Solution
+{
+public:
+    int numSquares(int n)
+    {
+        if (n <= 0)
+        {
+            return 0;
+        }
+        
+        // perfectSquares contain all perfect square numbers which
+        // are smaller than or equal to n.
+        vector<int> perfectSquares;
+        // cntPerfectSquares[i - 1] = the least number of perfect
+        // square numbers which sum to i.
+        vector<int> cntPerfectSquares(n);
+        
+        // Get all the perfect square numbers which are smaller than
+        // or equal to n.
+        for (int i = 1; i*i <= n; i++)
+        {
+            perfectSquares.push_back(i*i);
+            cntPerfectSquares[i*i - 1] = 1;
+        }
+        
+        // If n is a perfect square number, return 1 immediately.
+        if (perfectSquares.back() == n)
+        {
+            return 1;
+        }
+        
+        // Consider a graph which consists of number 0, 1,...,n as
+        // its nodes. Node j is connected to node i via an edge if
+        // and only if either j = i + (a perfect square number) or
+        // i = j + (a perfect square number). Starting from node 0,
+        // do the breadth-first search. If we reach node n at step
+        // m, then the least number of perfect square numbers which
+        // sum to n is m. Here since we have already obtained the
+        // perfect square numbers, we have actually finished the
+        // search at step 1.
+        queue<int> searchQ;
+        for (auto& i : perfectSquares)
+        {
+            searchQ.push(i);
+        }
+        
+        int currCntPerfectSquares = 1;
+        while (!searchQ.empty())
+        {
+            currCntPerfectSquares++;
+            
+            int searchQSize = searchQ.size();
+            for (int i = 0; i < searchQSize; i++)
+            {
+                int tmp = searchQ.front();
+                // Check the neighbors of node tmp which are the sum
+                // of tmp and a perfect square number.
+                for (auto& j : perfectSquares)
+                {
+                    if (tmp + j == n)
+                    {
+                        // We have reached node n.
+                        return currCntPerfectSquares;
+                    }
+                    else if ((tmp + j < n) && (cntPerfectSquares[tmp + j - 1] == 0))
+                    {
+                        // If cntPerfectSquares[tmp + j - 1] > 0, this is not
+                        // the first time that we visit this node and we should
+                        // skip the node (tmp + j).
+                        cntPerfectSquares[tmp + j - 1] = currCntPerfectSquares;
+                        searchQ.push(tmp + j);
+                    }
+                    else if (tmp + j > n)
+                    {
+                        // We don't need to consider the nodes which are greater ]
+                        // than n.
+                        break;
+                    }
+                }
+                
+                searchQ.pop();
+            }
+        }
+        
+        return 0;
+    }
+};
+
+/*
+ Given a string that contains only digits 0-9 and a target value, return all possibilities to add operators +, -, or * between the digits so they evaluate to the target value.
+ 
+ Examples:
+ 
+ "123", 6 -> ["1+2+3", "1*2*3"]
+ "232", 8 -> ["2*3+2", "2+3*2"]
+ "00", 0 -> ["0+0", "0-0", "0*0"]
+ "3456237490", 9191 -> []
+ */
+
+/*
+ 我们需要两个变量diff和curNum，一个用来记录将要变化的值，另一个是当前运算后的值，而且它们都需要用long long型的，因为字符串转为int型很容易溢出，所以我们用长整型。对于加和减，diff就是即将要加上的数和即将要减去的数的负值，而对于乘来说稍有些复杂，此时的diff应该是上一次的变化的diff乘以即将要乘上的数，有点不好理解，那我们来举个例子，比如2+3*2，即将要运算到乘以2的时候，上次循环的curNum = 5, diff = 3, 而如果我们要算这个乘2的时候，新的变化值diff应为3*2=6，而我们要把之前+3操作的结果去掉，再加上新的diff，即(5-3)+6=8，即为新表达式2+3*2的值，有点难理解，大家自己一步一步推算吧。
+ 
+
+ */
+
+class Solution {
+public:
+    vector<string> addOperators(string num, int target) {
+        vector<string> res;
+        dfs(num, target, 0, 0, "", res);
+        return res;
+    }
+    void dfs(string num, int target, long long diff, long long curNum, string out, vector<string> &res) {
+        if (num.size() == 0 && curNum == target) {
+            res.push_back(out);
+        }
+        for (int i = 1; i <= num.size(); ++i) {
+            string cur = num.substr(0, i);
+            if (cur.size() > 1 && cur[0] == '0') return;
+            string next = num.substr(i);
+            if (out.size() > 0) {
+                dfs(next, target, stoll(cur), curNum + stoll(cur), out + "+" + cur, res);
+                dfs(next, target, -stoll(cur), curNum - stoll(cur), out + "-" + cur, res);
+                dfs(next, target, diff * stoll(cur), (curNum - diff) + diff * stoll(cur), out + "*" + cur, res);
+            } else {
+                dfs(next, target, stoll(cur), stoll(cur), cur, res);
+            }
+        }
+    }
+};
+
+
+//
+/*
+ 题目大意是给你一个迭代器的接口，接口支持两个方法，next(), hasNext(),next()返回下一个元素，指针后移一位，hasNext返回是否还有下一个元素，要求在这个接口上做一层封装，使得支持peek()方法，即获取下一个元素但是不移动指针。
+ 
+ 
+ 
+ 题目本身并没有什么难度，增加一个cache缓存一下next()返回值作为peek()的返回值，并标记这个元素已经在缓存里就可以了。
+ 
+ 题目有个容易出错的地方是新的peekingIterator需要从iterator类继承，然而父类已经有next()方法了，所以在子类直接用next()得到的是子类的next()，要调用题目给的接口需要加上域操作符iterator::next()，另外编译类时，从上往下编译声明，之后再编译函数体，这个顺序在这里也得以体现。事实证明这些东西没写过还是很容易出错的- -！
+ */
+
+// Below is the interface for Iterator, which is already defined for you.
+// **DO NOT** modify the interface for Iterator.
+class Iterator {
+    struct Data;
+    Data* data;
+public:
+    Iterator(const vector<int>& nums);
+    Iterator(const Iterator& iter);
+    virtual ~Iterator();
+    // Returns the next element in the iteration.
+    int next();
+    // Returns true if the iteration has more elements.
+    bool hasNext() const;
+};
+
+
+class PeekingIterator : public Iterator {
+public:
+    int cache;
+    bool hasPeeked;
+    
+    PeekingIterator(const vector<int>& nums) : Iterator(nums) {
+        // Initialize any member here.
+        // **DO NOT** save a copy of nums and manipulate it directly.
+        // You should only use the Iterator interface methods.
+        hasPeeked = false;
+    }
+    
+    // Returns the next element in the iteration without advancing the iterator.
+    int peek() {
+        if (!hasPeeked) {
+            hasPeeked = true;
+            return cache = Iterator::next();
+        } else {
+            return cache;
+        }
+    }
+    
+    // hasNext() and next() should behave the same as in the Iterator interface.
+    // Override them if needed.
+    int next() {
+        if (hasPeeked) {
+            hasPeeked = false;
+            return cache;
+        } else {
+            return Iterator::next();
+        }
+    }
+    
+    bool hasNext() const {
+        if (hasPeeked) {
+            return true;
+        } else {
+            return Iterator::hasNext();
+        }
+    }
+};
+
+//设计BST的迭代器
+class BSTIterator {
+private:
+    stack<TreeNode*> sta;
+public:
+    BSTIterator(TreeNode *root) {
+        while(!sta.empty())
+            sta.pop();
+        while(root) {//初始化时，栈里保存从根节点到最左边叶子的节点，栈顶是整颗树的最小值
+            sta.push(root);
+            root = root->left;
+        }
+    }
+    
+    /** @return whether we have a next smallest number */
+    bool hasNext() {
+        return !sta.empty();
+    }
+    
+    /** @return the next smallest number */
+    int next() {
+        TreeNode *tmp = sta.top();
+        sta.pop();
+        int ret = tmp->val;
+        tmp = tmp->right;//开始保存当前弹出栈的节点的右子树，还是先压入右儿子的所有左儿子！
+        while(tmp) {
+            sta.push(tmp);
+            tmp = tmp->left;
+        }
+        return ret;
+    }
+};
+
+
+class BSTIterator {
+private:
+    stack<TreeNode*> s;
+public:
+    BSTIterator(TreeNode *root) {
+        while (root != NULL) {
+            s.push(root);
+            root = root -> left;
+        }
+    }
+    
+    /** @return whether we have a next smallest number */
+    bool hasNext() {
+        return !s.empty();
+    }
+    
+    /** @return the next smallest number */
+    int next() {
+        if (!hasNext()) {
+            return INT_MIN; //Error
+        }
+        int res = s.top() -> val;
+        TreeNode* node = s.top();
+        s.pop();
+        if (node -> right != NULL) {
+            node = node -> right;
+            s.push(node);
+            while (node -> left != NULL) {
+                node = node -> left;
+                s.push(node);
+            }
+        }
+        return res;
+    }
+};
+
+
 /*
  game of life
  */
@@ -1030,29 +1352,53 @@ Each intermediate word must exist in the dictionary
 
 //problem: letter combinations
 //algorithm: dfs
-const vector<string> keyboard = { " ", "", "abc", "def", "ghi", "jkl","mno",
-    "pqrs", "tuv", "wxyz" };
+class Solution {
 
-void dfs_letterCombination(const string &digits, size_t cur, string path, vector<string> &result) {
-    
-    if (cur == digits.size()) {
-        result.push_back(path);
-        return;
+public:
+    vector<string> letterCombinations(const string &digits) {
+        if (digits.empty()) return vector<string>();
+        vector<string>  result;
+        dfs(digits, 0, "", result);
+        return result;
+    }
+private:
+    const vector<string> keyboard = { " ", "", "abc", "def", "ghi", "jkl","mno","pqrs", "tuv", "wxyz" };
+
+    void dfs(const string &digits, size_t cur, string path, vector<string> &result) {
+        if (cur == digits.size()) {
+            result.push_back(path);
+            return;
+        }
+        
+        for (auto c : keyboard[digits[cur] - '0']) {
+            dfs(digits, cur+1, path+c, result);
+        }
     }
     
-    for (auto c : keyboard[digits[cur] - '0']) {
-        dfs_letterCombination(digits, cur+1, path+c, result);
+    
+    //利用迭代
+    vector<string> letterCombinations(string digits) {
+        vector<string> result;
+        if(digits.empty()) return vector<string>();
+        static const vector<string> v = {"", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+        result.push_back("");   // add a seed for the initial case
+        for(int i = 0 ; i < digits.size(); ++i) {
+            int num = digits[i]-'0';
+            if(num < 0 || num > 9) break;
+            const string& candidate = v[num];
+            if(candidate.empty()) continue;
+            vector<string> tmp;
+            for(int j = 0 ; j < candidate.size() ; ++j) {
+                for(int k = 0 ; k < result.size() ; ++k) {
+                    tmp.push_back(result[k] + candidate[j]);
+                }
+            }
+            result.swap(tmp);
+        }
+        return result;
     }
-}
 
-
-
-vector<string> letterCombination(const string &digits) {
-    vector<string>  result;
-    dfs_letterCombination(digits, 0, "", result);
-    return result;
-}
-
+};
 //problem: word search
 //algorithm: dfs;
 /*
@@ -2690,6 +3036,66 @@ bool isPalindrome(string s) {
     
 }
 
+/*
+ 最长回文子串 longest palindrome substring
+ */
+class Solution {
+public:
+    string longestPalindrome2(string s) {    //600ms
+        int n = s.size(), ss = 0, tt = 0;
+        int max = -1;
+        bool flag[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (i >= j)
+                    flag[i][j] = true;
+                else
+                    flag[i][j] = false;
+            }
+        }
+        
+        for (int j = 1; j < n; j++) {
+            for (int i = 0; i < j; i++) {
+                if (s[i] == s[j]) {
+                    flag[i][j] = flag[i+1][j-1];
+                    if (flag[i][j] && j - i + 1 >= max) {
+                        max = j - i + 1;
+                        ss = i;
+                        tt = j;
+                    }
+                }
+                else
+                    flag[i][j] = false;
+            }
+        }
+        
+        return s.substr(ss, max);
+    }
+    
+    //这是从中间开始搜素
+    std::string longestPalindrome(std::string s) {//8ms
+        if (s.size() < 2)
+            return s;
+        int len = s.size(), max_left = 0, max_len = 1, left, right;
+        for (int start = 0; start < len && len - start > max_len / 2;) {
+            left = right = start;
+            while (right < len - 1 && s[right + 1] == s[right]) //跳过重复的字符
+                ++right;
+            start = right + 1;
+            while (right < len - 1 && left > 0 && s[right + 1] == s[left - 1]) {
+                ++right;
+                --left;
+            }
+            if (max_len < right - left + 1) {
+                max_left = left;
+                max_len = right - left + 1;
+            }
+        }
+        return s.substr(max_left, max_len);
+    }
+};
+
+
 //用KMP方法
 /*
  求字符串s的翻转s_rev
@@ -3774,6 +4180,7 @@ int myAtoi(char* str) {
         //	if (str[i] < '0' || str[i] > '9')
         if (!isdigit(str[i]))
             break;
+        //怎么判断整数溢出，这是一个方法
         if (num > INT_MAX/10 || (num == INT_MAX / 10 && (str[i] - '0') > INT_MAX % 10))
             return sign == -1 ? INT_MIN: INT_MAX;
         num = num * 10 + str[i] - '0';
@@ -3782,6 +4189,83 @@ int myAtoi(char* str) {
     return num*sign;
     
 }
+
+class Solution {
+public:
+    int reverse(int x) {
+        bool flag = false;
+        if (x == INT_MIN)
+            return 0;
+        if (x < 0) {
+            x = abs(x);
+            flag = true;
+        }
+        int sum = 0;
+        while (x) {
+            if (sum > INT_MAX / 10 || (sum == INT_MAX && (x > INT_MAX % 10)))
+                return 0;
+            sum = sum * 10 + x % 10;
+            x /= 10;
+        }
+        if (flag) {
+            return -sum;
+        }else
+            return sum;
+    }
+    
+    //其实把它转换成long就可以了
+    int reverse(int x) {
+        if (x == 0) {
+            return x;
+        }
+        int neg = (x > 0) ? 1 : -1;
+        long sum = 0;
+        long tmp = abs((long)x);
+        while (tmp) {
+            sum = sum * 10 + tmp % 10;
+            tmp /= 10;
+        }
+        return (sum > INT_MAX) ? 0 : sum * neg;
+    }
+};
+
+/*
+ Reverse digits of an integer.
+ 
+ Example1: x = 123, return 321
+ Example2: x = -123, return -321
+ */
+
+//以上得判断一个整数是否溢出
+/*
+ 无符号整数没有溢出， 溢出是有符号数的专利
+ 检查 cpu 的状态标志寄存器中的溢出标志位
+ 1. 无符号整数溢出很好判断, x + y < x 就表示溢出了.
+ */
+//有符号整形a和b,如何判断a+b是否溢出
+int ifo_add(int a,int b) {
+    __asm {
+        mov eax,a
+        add eax,b
+        jo  overflowed
+        xor eax,eax
+        jmp no_overflowed
+    overflowed:
+        mov eax,1
+    no_overflowed:
+    }
+}
+int main_test() {
+    int a,b;
+    
+    a=          1;b= 2;printf("%11d+(%2d) %d\n",a,b,ifo_add(a,b));
+    a=         -1;b=-2;printf("%11d+(%2d) %d\n",a,b,ifo_add(a,b));
+    a= 2147483647;b= 1;printf("%11d+(%2d) %d\n",a,b,ifo_add(a,b));
+    a=-2147483647;b=-1;printf("%11d+(%2d) %d\n",a,b,ifo_add(a,b));
+    a=-2147483647;b=-2;printf("%11d+(%2d) %d\n",a,b,ifo_add(a,b));
+}
+//          1+( 2)
+
 
 //problem: gas station, 保证解唯一，这个很重要
 //algorithm:
@@ -4099,6 +4583,7 @@ public:
     /*
      Given an array of integers, find out whether there are two distinct indices i and j in the array such that the difference between nums[i] and nums[j] is at most t and the difference between i and j is at most k.
      */
+    //这个如果逐一遍历-t~t的话，复杂度太高了
     bool containsNearbyAlmostDuplicate(vector<int>& nums, int k, int t) {
         if (k < 1 || t < 0 || nums.size() < 2)
             return false;
@@ -4115,6 +4600,20 @@ public:
             if(i >= k) {            //维护一个k大小的窗
                 box.erase(nums[i - k]);
             }
+        }
+        return false;
+    }
+    
+    bool containsNearbyAlmostDuplicate(vector<int>& nums, int k, int t) {
+        set<int> window; // set is ordered automatically
+        for (int i = 0; i < nums.size(); i++) {
+            if (i > k)
+                window.erase(nums[i-k-1]);// the set contains nums i j at most k
+            // -t <= x - nums[i] <= t;
+            auto pos = window.lower_bound(nums[i] - t); // x >= nums[i] - t
+            if (pos != window.end() && *pos - nums[i] <= t) // x <= nums[i] + t
+                return true;
+            window.insert(nums[i]);
         }
         return false;
     }
