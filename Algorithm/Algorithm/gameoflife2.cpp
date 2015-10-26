@@ -34,6 +34,9 @@ private:
     int _wid, _hei;
     byte* _cells;
 };
+
+
+
 class rule {
 public:
     rule( world* w ) : wrd( w ) {
@@ -93,9 +96,11 @@ private:
         return( _birth.end() != find( _birth.begin(), _birth.end(), n ) );
     }
     int wid, hei;
-    world *wrd, *wrdT;
+    world *wrd, *wrdT;              //需要保存两次的平面值
     std::vector<int> _stay, _birth;
 };
+
+
 class cellular {
 public:
     cellular( int w, int h ) : rl( 0 ) {
@@ -123,8 +128,8 @@ public:
                 rl->setRuleB( t );
                 break;
             case 4: // maze
-                t.push_back( 1 ); t.push_back( 2 ); t.push_back( 3 ); t.push_back( 4 ); t.push_back( 5 ); rl->setRuleS( t );
-                t.clear(); t.push_back( 3 ); rl->setRuleB( t );
+                t.push_back( 1 ); t.push_back( 2 ); t.push_back( 3 ); t.push_back( 4 ); t.push_back( 5 ); 
+                rl->setRuleS( t );t.clear(); t.push_back( 3 ); rl->setRuleB( t );
                 break;
         }
  
@@ -141,7 +146,7 @@ public:
     }
 private:
     void display() {
-        system( "cls" );
+        system( "clear" );
         int wid = wrd->wid(),
             hei = wrd->hei();
         std::cout << "+" << std::string( wid, '-' ) << "+\n";
@@ -172,7 +177,7 @@ private:
 };
  
 int main( int argc, char* argv[] ) {
-    cellular c( 20, 12 );
+    cellular c( 64, 32 );
     std::cout << "\n\t*** CELLULAR AUTOMATA ***" << "\n\n Which one you want to run?\n\n\n";
     std::cout << " [1]\tConway's Life\n [2]\tAmoeba\n [3]\tLife 34\n [4]\tMaze\n\n > ";
     int o; 

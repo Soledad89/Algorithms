@@ -71,7 +71,7 @@ namespace BST_14 {
  15.求二叉树中的最长路径和
  16.恢复二叉树recover binary search tree
  17.打印二叉树的路径Binary Tree Path
- 18. 二叉树的路径和Path Sum II
+ 18. 二叉树的路径和Path Sum I
  */
 
 
@@ -288,6 +288,12 @@ bool StructureCmp(BinaryTreeNode * pRoot1, BinaryTreeNode * pRoot2)
     bool resultRight = StructureCmp(pRoot1->m_pRight, pRoot2->m_pRight); // 比较对应右子树
     return (resultLeft && resultRight);
 }
+    
+bool isSameTree(TreeNode* p, TreeNode* q) {
+    if (p==NULL && q==NULL) return true;
+    if (p==NULL || q==NULL) return false;
+    return (p->val==q->val) && isSameTree(p->left,q->left) && isSameTree(p->right,q->right);
+}
 /*
  9. 判断二叉树是不是平衡二叉树
  递归解法：
@@ -334,6 +340,7 @@ BinaryTreeNode * Mirror(BinaryTreeNode * pRoot)
     pRoot->m_pLeft = pRight;
     pRoot->m_pRight = pLeft;
     return pRoot;
+    
 }
 /*
  11. 求二叉树中两个节点的最低公共祖先节点
@@ -694,7 +701,7 @@ bool IsCompleteBinaryTree(BinaryTreeNode * pRoot)
     };
     
     /*
-     18. 二叉树的路径和Path Sum II
+     18. 二叉树的路径和Path sum I and Path Sum II
      Given a binary tree and a sum, find all root-to-leaf paths where each path's sum equals the given sum.
      
      For example:
@@ -712,6 +719,15 @@ bool IsCompleteBinaryTree(BinaryTreeNode * pRoot)
           [5,8,4,5]
      ]
      */
+    //这个仅仅判断是否有等于某个数的路径
+    bool hasPathSum(TreeNode* node, int sum) {
+        if (!node) return false;
+        if (!(node -> left) && !(node -> right))
+            return sum == node -> val;
+        return hasPathSum(node -> left, sum - node -> val) || hasPathSum(node -> right, sum - node -> val);
+        
+    }
+    
     class Solution {
     public:
         vector<vector<int>> pathSum(TreeNode* root, int sum) {
@@ -4789,103 +4805,187 @@ int kmp(const char text[], const char str[], int next[])
 
 //problem: linkedlist sort mergelist listmerge
 //algorithm: use merge sort to sort a linked list, with no extra space used
+class Solution {
 
-Node * merge2(Node * p1, Node * p2);
-Node * mergeSort2(Node * p, int len);
-int getLen(Node* head);
-
-Node * linkedListMergeSort(Node * pHead) {
-    int len = getLen(pHead);
-    return mergeSort2(pHead, len);
-}
-int getLen(Node* head){
-    int i = 0;
-    while (head){
-        head = head->next;
-        i++;
+    Node * linkedListMergeSort(Node * pHead) {
+        int len = getLen(pHead);
+        return mergeSort2(pHead, len);
     }
-    return i;
-}
-Node * mergeSort2(Node * p, int len) {
-    if (len == 1) { p->next = NULL; return p; }
-    Node * pmid = p;
-    for (int i=0; i<len/2; i++) {
-        pmid = pmid->next; }
-    Node * p1 = mergeSort2(p, len/2);
-    Node * p2 = mergeSort2(pmid, len - len/2);
-    return merge2(p1, p2);
-}
+    
+    int getLen(Node* head){
+        int i = 0;
+        while (head){
+            head = head->next;
+            i++;
+        }
+        return i;
+    }
+    Node * mergeSort(Node * p, int len) {
+        if (len == 1) { p->next = NULL; return p; }
+        Node * pmid = p;
+        for (int i=0; i<len/2; i++) {
+            pmid = pmid->next; }
+        Node * p1 = mergeSort(p, len/2);
+        Node * p2 = mergeSort(pmid, len - len/2);
+        return merge(p1, p2);
+    }
+};
+
+//这是利用快慢指针来获取中间值
+class Solution {
+public:
+    ListNode *sortList(ListNode *head) {
+        if(!head||!head->next)
+            return head;
+        return mergeSort(head);
+    }
+    ListNode * mergeSort(ListNode *head){
+        if(!head||!head->next)   //just one element
+            return head;
+        ListNode *p = head, *q = head, *pre = NULL;
+        while(q && q->next){
+            q = q->next->next;
+            pre = p;
+            p = p->next;  //divide into two parts
+        }
+        pre->next = NULL;
+        ListNode *lhalf = mergeSort(head);
+        ListNode *rhalf = mergeSort(p);  //recursive
+        return merge(lhalf, rhalf);   //merge
+    }
+    ListNode * merge(ListNode *lh, ListNode *rh){
+        ListNode *temp = new ListNode(0);
+        ListNode *p = temp;
+        while(lh&&rh){
+            if(lh->val <= rh->val){
+                p->next = lh;
+                lh = lh->next;
+            }
+            else{
+                p->next = rh;
+                rh = rh->next;
+            }
+            p = p->next;
+        }
+        if(!lh)
+            p->next = rh;
+        else
+            p->next = lh;
+        p = temp->next;
+        temp->next = NULL;
+        delete temp;
+        return p;
+    }
+};
+
+//不用递归，用迭代
+class Solution {
+public:
+    ListNode* merge( ListNode* head1 , ListNode * head2){
+        ListNode* d = new ListNode (0);            // dummy node
+        ListNode* e = d;
+        while(head1 || head2){
+            if( head1 && (!head2 || head1->val <= head2 -> val) ){
+                e = e->next = head1 ;
+                head1 = head1 -> next;
+            }
+            if( head2 && (!head1 || head2->val < head1 -> val) ){
+                e = e->next = head2 ;
+                head2 = head2 -> next;
+            }
+        }
+        e->next = NULL;
+        return d->next;
+    }
+    ListNode* sortList(ListNode* head) {
+        if(!head || !head->next) return head;
+        ListNode* slow = head;
+        ListNode* fast =head->next;
+        while(fast && fast->next){         // to find middle node
+            fast= fast->next->next;
+            slow = slow->next;
+        }
+        ListNode* headb = slow->next;     // headb is start of 2nd half of list
+        slow->next = NULL;
+        return merge(sortList(head) , sortList(headb));
+    }
+};
+
+
 //链表合并
-Node *mergeListNonRecursively(Node *head1,Node *head2)
-{
-    if(head1 == NULL) //鲁棒性测试必须先行
-        return head2;
-    if(head2 == NULL)
-        return head1;
+class Solution {
     
-    Node *p1 = NULL;
-    Node *p2 = NULL;
-    Node *head = NULL;
-    
-    //找出两个链表中第一个结点较小的结点，head记录较小结点的头结点
-    if(head1->data < head2->data){
-        head = head1;
-        p1 = head1->next;
-        p2 = head2;
-    }
-    else{
-        head = head2;
-        p2 = head2->next;
-        p1 = head1;
-    }
-    
-    Node *pcur = head;
-    
-    //在两个链表中遍历比较，将值较小的结点链接到pcur结点后
-    while(p1 != NULL && p2 != NULL){
-        if(p1->data <= p2->data){
+    Node *mergeListNonRecursively(Node *head1,Node *head2)
+    {
+        if(head1 == NULL) //鲁棒性测试必须先行
+            return head2;
+        if(head2 == NULL)
+            return head1;
+        
+        Node *p1 = NULL;
+        Node *p2 = NULL;
+        Node *head = NULL;
+        
+        //找出两个链表中第一个结点较小的结点，head记录较小结点的头结点
+        if(head1->data < head2->data){
+            head = head1;
+            p1 = head1->next;
+            p2 = head2;
+        }
+        else{
+            head = head2;
+            p2 = head2->next;
+            p1 = head1;
+        }
+        
+        Node *pcur = head;
+        
+        //在两个链表中遍历比较，将值较小的结点链接到pcur结点后
+        while(p1 != NULL && p2 != NULL){
+            if(p1->data <= p2->data){
+                pcur->next = p1;
+                pcur = p1;
+                p1 = p1->next;
+            }
+            else
+            {
+                pcur->next = p2;
+                pcur = p2;
+                p2 = p2->next;
+            }
+        }
+        //将p1或p2剩余的结点链到pcur之后，完成整个合并的过程
+        if(p1 != NULL)
             pcur->next = p1;
-            pcur = p1;
-            p1 = p1->next;
+        if(p2 != NULL)
+            pcur->next = p2;
+        
+        return head;
+    }
+
+
+    //再用递归实现链表的merge
+    Node * mergelistRecursively(Node *head1, Node *head2)
+    {
+        if(head1 == NULL)
+            return head2;
+        if(head2 == NULL)
+            return head1;
+        Node *head = NULL;
+        if(head1->data < head2->data)
+        {
+            head = head1;
+            head->next = mergelistRecursively(head1->next, head2);
         }
         else
         {
-            pcur->next = p2;
-            pcur = p2;
-            p2 = p2->next;
+            head = head2;
+            head->next = mergelistRecursively(head1, head2->next);
         }
+        return head;
     }
-    //将p1或p2剩余的结点链到pcur之后，完成整个合并的过程
-    if(p1 != NULL)
-        pcur->next = p1;
-    if(p2 != NULL)
-        pcur->next = p2;
-    
-    return head;
-}
 
-
-//再用递归实现链表的merge
-Node * mergelistRecursively(Node *head1, Node *head2)
-{
-    if(head1 == NULL)
-        return head2;
-    if(head2 == NULL)
-        return head1;
-    Node *head = NULL;
-    if(head1->data < head2->data)
-    {
-        head = head1;
-        head->next = mergelistRecursively(head1->next, head2);
-    }
-    else
-    {
-        head = head2;
-        head->next = mergelistRecursively(head1, head2->next);
-    }
-    return head;
-}
-
+};
 class Solution_merge2Lists {
 public:
     
@@ -7484,8 +7584,6 @@ namespace insertionSortList {
  Given 1->2->3->4->5->NULL and k = 2,
  return 4->5->1->2->3->NULL.
  */
-
-
 node* rotateRight(node* head, int k) {
     if (head == NULL)
         return NULL;
@@ -7510,6 +7608,105 @@ node* rotateRight(node* head, int k) {
     return head;
 }
 
+/*
+ Given a singly linked list L: L0→L1→…→Ln-1→Ln,
+ reorder it to: L0→Ln→L1→Ln-1→L2→Ln-2→…
+ 
+ You must do this in-place without altering the nodes' values.
+ 
+ For example,
+ Given {1,2,3,4}, reorder it to {1,4,2,3}.
+ */
+void reorderList(ListNode *head) {
+    if (!head) return;
+    ListNode dummy(-1);
+    dummy.next = head;
+    ListNode *p1 = &dummy, *p2 = &dummy;
+    for (; p2 && p2->next; p1 = p1->next, p2 = p2->next->next);
+    for ( ListNode *prev = p1, *curr = p1->next; curr && curr->next; ){
+        ListNode *tmp = curr->next;
+        curr->next = curr->next->next;
+        tmp->next = prev->next;
+        prev->next = tmp;
+    }
+    for ( p2 = p1->next, p1->next = NULL,p1 = head; p2; ){
+        ListNode *tmp = p1->next;
+        p1->next = p2;
+        p2 = p2->next;
+        p1->next->next = tmp;
+        p1 = tmp;
+    }
+}
+
+/*利用快慢两个指针将链表一分为二，针对第二个子链表求倒序，最后将两个子链表合并。*/
+
+
+class Solution {
+public:
+    void reorderList(ListNode *head) {
+        if(head == NULL){
+            return;
+        }
+        
+        ListNode* p1 = head;
+        ListNode* p2 = splitList(head);
+        
+        p2 = revertList(p2);
+        
+        mergeList(p1, p2);
+    }
+    
+    void mergeList(ListNode * p1, ListNode * p2){
+        while(p2 != NULL){
+            ListNode* tmp = p2;
+            p2 = p2->next;
+            
+            tmp->next = p1->next;
+            p1->next = tmp;
+            p1 = p1->next;
+            p1 = p1->next;
+        };
+    }
+    
+    ListNode* splitList(ListNode *head){
+        ListNode* slow = new ListNode(0);
+        slow->next = head;
+        ListNode* fast = slow;
+        
+        while(fast->next != NULL && fast->next->next != NULL){
+            slow = slow->next;
+            fast = fast->next;
+            fast = fast->next;
+        }
+        
+        if(fast->next != NULL){
+            slow = slow->next;
+            fast = fast->next;
+        }
+        
+        ListNode* tmp = slow->next;
+        slow->next = NULL;
+        return tmp;
+    }
+    
+    ListNode* revertList(ListNode* head){
+        if(head == NULL){
+            return NULL;
+        }
+        
+        ListNode* p = head->next;
+        head->next = NULL;
+        
+        while(p != NULL){
+            ListNode* tmp = p;
+            p = p->next;
+            tmp->next = head;
+            head = tmp;
+        }
+        return head;
+    }
+};
+
 //问题：给出俩个单向链表的头指针，比如h1，h2，判断这俩个链表是否相交。交点
 //算法：
 /*
@@ -7528,20 +7725,18 @@ node* rotateRight(node* head, int k) {
  */
 
 //判断一个单项链表是否存在环，快慢指针，双指针都是解决问题的好办法
-bool checkCircle(const node* head)
-{
-    if(head==NULL)                  //首先检查这个
-        return false;
-    const node *low = head, *fast = head->next;
-    while(fast && fast->next)
-    {
-        low = low->next;
+
+bool listHasCycle(ListNode* head){
+    ListNode *slow = head;
+    ListNode *fast = head;
+    while (fast && fast->next){
+        slow = slow->next;
         fast = fast->next->next;
-        if(low == fast) return true;
+        if (slow == fast) return true;
     }
+    
     return false;
 }
-
 //判断一个单项链表的环的位置
 node* FindLoopPort(node *head)
 {
@@ -7596,51 +7791,33 @@ bool connectionList(const node* h1, const node* h2) {
 
 //algorithm3: 先遍历得到两条链表的长度信息，先让长度更长的移动一段距离，再同时开始运动
 //algorithm4:
-unsigned int GetListLength(ListNode* pHead);
-
-ListNode* FindFirstCommonNode( ListNode *pHead1, ListNode *pHead2)
-{
-    //
-    unsigned int nLength1 = GetListLength(pHead1);
-    unsigned int nLength2 = GetListLength(pHead2);
-    int nLengthDif = nLength1 - nLength2;
-    
-    ListNode* pListHeadLong = pHead1;
-    ListNode* pListHeadShort = pHead2;
-    if(nLength2 > nLength1)
-    {
-        pListHeadLong = pHead2;
-        pListHeadShort = pHead1;
-        nLengthDif = nLength2 - nLength1;
+class Solution {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        ListNode *pA = headA;
+        ListNode *pB = headB;
+        int lenA = 0;
+        int lenB = 0;
+        while (pA) {++lenA;  pA = pA->next; }
+        while (pB) {++lenB;  pB = pB->next; }
+        for (int diff = abs(lenA - lenB); diff > 0; --diff) {
+            if (lenA > lenB) {
+                headA = headA->next;
+            }
+            else {
+                headB = headB->next;
+            }
+        }
+        while (headA && headB) {
+            if (headA == headB) {
+                return headA;
+            }
+            headA = headA ->next;
+            headB = headB ->next;
+        }
+        return NULL;
     }
-    
-    //
-    for(int i = 0; i < nLengthDif; ++ i)
-        pListHeadLong = pListHeadLong->succ;
-    
-    while((pListHeadLong != NULL) &&
-          (pListHeadShort != NULL) &&
-          (pListHeadLong != pListHeadShort))
-    {
-        pListHeadLong = pListHeadLong->succ;
-        pListHeadShort = pListHeadShort->succ;
-    }
-    
-    return pListHeadLong; //这步还是比较巧妙，不需要判断是不是到达末尾了
-}
-
-unsigned int GetListLength(ListNode* pHead)     //代码复用的体现
-{
-    unsigned int nLength = 0;
-    ListNode* pNode = pHead;
-    while(pNode != NULL)
-    {
-        ++ nLength;
-        pNode = pNode->succ;
-    }
-    
-    return nLength;
-}
+};
 
 
 
@@ -9735,6 +9912,23 @@ int findPeakElement(const vector<int> &num) {
             right = mid;
     }
 }
+
+// 4 5 6 7 0 1 2 ,有一个前提条件是没有重复的元素
+int findMinElement(const vector<int> &num) {
+    int n = num.size();
+    int l = 0;
+    int r = n - 1;
+    while(l <= r) {
+        int mid = l + (r - l) / 2;
+        if (num[mid] > num[n-1]) {  //真有想象力，将中间值与最右边的值进行比较
+            l = mid + 1;
+        } else {
+            r = mid - 1;
+        }
+    }
+    return num[l];
+}
+
 //以上的findPeakelement变形为：given a list of elements arranged in ascending and then descending order(e.g. 1,3,5,7,6,4,2), write a function to determine if a target number in in this list.
 
 //不适用递归，如果存在返回数组位置，不存在则返回-1

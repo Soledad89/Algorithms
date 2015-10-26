@@ -4689,15 +4689,6 @@ vector<int> grayCode(int n)
 }
 
 
-bool hasPathSum(TreeNode* root, int sum){
-    if (root == NULL) return false;
-    
-    if (root->left == NULL && root->right == NULL)
-        return sum == root->val;
-    
-    return hasPathSum(root->left, sum - root->val) ||
-    hasPathSum(root->right, sum - root->val);
-}
 
 
 
@@ -4754,17 +4745,7 @@ ListNode* listDetectCycle(ListNode* head){
 }
 
 
-bool listHasCycle(ListNode* head){
-    ListNode *slow = head;
-    ListNode *fast = head;
-    while (fast && fast->next){
-        slow = slow->next;
-        fast = fast->next->next;
-        if (slow == fast) return true;
-    }
-    
-    return false;
-}
+
 
 string longestCommonPrefix(vector<string> &strs){
     if (strs.empty()) return "";
